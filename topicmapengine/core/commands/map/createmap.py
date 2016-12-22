@@ -6,6 +6,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 import sqlite3
+import os
 
 from topicmapengine.core.topicstoreerror import TopicStoreError
 
@@ -17,7 +18,7 @@ class CreateMap:
 
     def execute(self):
         connection = sqlite3.connect(self.database_path)
-        definitions_file = open('/home/brettk/Source/storytechnologies/story_engine/topicmap-definition.sql')
+        definitions_file = open(os.path.join(os.path.dirname(__file__), '../../../config/topicmap-definition.sql'))
         statements = definitions_file.read()
 
         try:
