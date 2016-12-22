@@ -1,0 +1,138 @@
+swagger: '2.0'
+info:
+  title: StoryTechnologies Topic Map API
+  version: '0.2'
+consumes:
+  - application/json
+produces:
+  - application/json
+basePath: /1.0
+paths:
+  '/maps/{map_identifier}/identifiers':
+    get:
+      operationId: topicmapengine.api.service.get_topic_identifiers
+      summary: Get topic identifiers
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - name: query
+          description: Query string
+          in: query
+          type: string
+          required: true
+          pattern: "^\\*|[a-zA-Z0-9-]+$"
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Return topic identifiers
+        404:
+          description: No topics exist
+  '/maps/{map_identifier}/topics':
+    get:
+      operationId: topicmapengine.api.service.get_topics
+      summary: Get topics
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - $ref: '#/parameters/instance_of'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+      responses:
+        200:
+          description: Return topics
+        404:
+          description: No topics exist
+  '/maps/{map_identifier}/topics/{identifier}':
+    get:
+      operationId: topicmapengine.api.service.get_topic
+      summary: Get a single topic
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - $ref: '#/parameters/identifier'
+      responses:
+        200:
+          description: Return topic
+        404:
+          description: Topic does not exist
+  '/maps/{map_identifier}/topics/{identifier}/occurrences':
+    get:
+      operationId: topicmapengine.api.service.get_occurrences
+      summary: Get the occurrences for a given topic
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - $ref: '#/parameters/identifier'
+        - name: inline_resource_data
+          description: Retrieve (and inline) the occurrence's data
+          in: query
+          type: boolean
+          required: false
+        - name: resolve_attributes
+          description: Retrieve the occurrence's attributes
+          in: query
+          type: boolean
+          required: false
+        - $ref: '#/parameters/instance_of'
+      responses:
+        200:
+          description: Return occurrences
+        404:
+          description: Topic does not have occurrences
+  '/maps/{map_identifier}/topics/{identifier}/associations':
+    get:
+      operationId: topicmapengine.api.service.get_associations
+      summary: Get the associations for a given topic
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - $ref: '#/parameters/identifier'
+      responses:
+        200:
+          description: Return associations
+        404:
+          description: Topic does not have associations
+  '/maps/{map_identifier}/hierarchies/{identifier}':
+    get:
+      operationId: topicmapengine.api.service.get_topics_hierarchy
+      summary: Pending
+      parameters:
+        - $ref: '#/parameters/map_identifier'
+        - $ref: '#/parameters/identifier'
+      responses:
+        200:
+          description: Return topics hierarchy
+        404:
+          description: Topics hierarchy is not available
+
+parameters:
+  map_identifier:
+    name: map_identifier
+    description: Unique (topic) map identifier
+    in: path
+    type: integer
+    required: true
+  identifier:
+    name: identifier
+    description: Unique identifier
+    in: path
+    type: string
+    required: true
+    pattern: "^\\*|[a-zA-Z0-9-]+$"
+  instance_of:
+    name: instance_of
+    description: Unique 'instance of' identifier
+    in: query
+    type: string
+    required: false
+    pattern: "^\\*|[a-zA-Z0-9-]+$"
+  offset:
+    name: offset
+    description: Positive number
+    in: query
+    type: number
+    required: false
+    pattern: "^[0-9]+$"
+  limit:
+    name: limit
+    description: Positive number
+    in: query
+    type: number
+    required: false
+    pattern: "^[0-9]+$"

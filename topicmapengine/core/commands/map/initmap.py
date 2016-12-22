@@ -16,6 +16,9 @@ class InitMap:
         self.database_path = database_path
         self.map_identifier = map_identifier
 
+        # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+        # https://en.wikipedia.org/wiki/ISO_639-2
+
         self.items = {
             ('entity', 'Entity'),
             ('topic', 'Topic'),
@@ -58,7 +61,14 @@ class InitMap:
             ('south', 'South'),
             ('south-west', 'Southwest'),
             ('west', 'West'),
-            ('north-west', 'Northwest')
+            ('north-west', 'Northwest'),
+            ('eng', 'English Language'),
+            ('spa', 'Spanish Language'),
+            ('deu', 'German Language'),
+            ('ita', 'Italian Language'),
+            ('fra', 'French Language'),
+            ('nld', 'Dutch Language'),
+            ('nob', 'Norwegian (Bokmål) Language')
         }
 
     def execute(self):

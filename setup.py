@@ -11,11 +11,11 @@ setup(name='topicmap_engine',
       version='0.1.0',
       description='Topic map-based graph database',
       classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.5',
-        'Topic :: Software Development :: Libraries :: Python Modules'
+          'Development Status :: 3 - Alpha',
+          'Intended Audience :: Developers',
+          'License :: OSI Approved :: MIT License',
+          'Programming Language :: Python :: 3.5',
+          'Topic :: Software Development :: Libraries :: Python Modules'
       ],
       keywords='topic map, graph database, nosql, semantic',
       url='https://github.com/brettkromkamp/topicmap_engine',
@@ -26,5 +26,6 @@ setup(name='topicmap_engine',
       install_requires=[
           'connexion', 'flask-cors', 'gevent', 'python-slugify'
       ],
+      scripts=['bin/init-topicmap'],
       include_package_data=True,
       zip_safe=False)
