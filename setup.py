@@ -26,6 +26,5 @@ setup(name='topicmap_engine',
       install_requires=[
           'connexion', 'flask-cors', 'gevent', 'python-slugify'
       ],
-      scripts=['bin/init-topicmap'],
       include_package_data=True,
       zip_safe=False)

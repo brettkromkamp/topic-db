@@ -1,1 +1,1 @@
-include topicmapengine/config/topicmap-definition.sql
+include topicmapengine/conf/topicmap-definition.sql

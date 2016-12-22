@@ -18,7 +18,7 @@ class CreateMap:
 
     def execute(self):
         connection = sqlite3.connect(self.database_path)
-        definitions_file = open(os.path.join(os.path.dirname(__file__), '../../../config/topicmap-definition.sql'))
+        definitions_file = open(os.path.join(os.path.dirname(__file__), '../../../conf/topicmap-definition.sql'))
         statements = definitions_file.read()
 
         try:
