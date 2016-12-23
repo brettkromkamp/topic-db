@@ -5,6 +5,7 @@ December 22, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+import os
 import connexion
 
 from flask_cors import CORS
@@ -12,7 +13,7 @@ from flask_cors import CORS
 
 app = connexion.App(__name__)
 CORS(app.app)
-app.add_api('swagger.yaml')
+app.add_api(os.path.join(os.path.dirname(__file__), '../conf/swagger.yaml'))
 application = app.app
 
 if __name__ == '__main__':

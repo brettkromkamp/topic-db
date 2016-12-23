@@ -1,1 +1,2 @@
 include topicmapengine/conf/topicmap-definition.sql
+include topicmapengine/conf/swagger.yaml
