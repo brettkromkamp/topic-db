@@ -9,9 +9,9 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import os
 
-from topicmapengine.core.commands.map.createmap import CreateMap
-from topicmapengine.core.commands.map.initmap import InitMap
-from topicmapengine.core.commands.topic.topicexists import TopicExists
+from topicdb.core.commands.map.createmap import CreateMap
+from topicdb.core.commands.map.initmap import InitMap
+from topicdb.core.commands.topic.topicexists import TopicExists
 
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), '../data/topicmap.db')
