@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from setuptools import setup, find_packages
 
-setup(name='topicmap_engine',
+setup(name='topic_db',
       version='0.1.0',
       description='Topic map-based graph database',
       classifiers=[
@@ -15,6 +15,7 @@ setup(name='topicmap_engine',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 3.5',
+          'Topic :: Database :: Database Engines/Servers',
           'Topic :: Software Development :: Libraries :: Python Modules'
       ],
       keywords='topic map, graph database, nosql, semantic',
