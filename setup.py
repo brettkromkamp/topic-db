@@ -18,14 +18,12 @@ setup(name='topic_db',
           'Topic :: Database :: Database Engines/Servers',
           'Topic :: Software Development :: Libraries :: Python Modules'
       ],
-      keywords='topic map, graph database, nosql, semantic, topic mapping, concept mapping',
+      keywords='topic map, graph database, nosql, semantic, concept map, knowledge management',
       url='https://github.com/brettkromkamp/topic_db',
       author='Brett Alistair Kromkamp',
       author_email='brett.kromkamp@gmail.com',
       license='MIT',
       packages=find_packages(),
-      install_requires=[
-          'connexion', 'flask-cors', 'gevent', 'python-slugify'
-      ],
+      install_requires=['python-slugify'],
       include_package_data=True,
       zip_safe=False)
