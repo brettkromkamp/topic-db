@@ -26,7 +26,7 @@ setup(name='topic-db',
       author='Brett Alistair Kromkamp',
       author_email='brett.kromkamp@gmail.com',
       license='MIT',
-      packages=find_packages(exclude=['docs']),
+      packages=find_packages(exclude=['docs', 'tests*', 'scripts']),
       install_requires=['python-slugify'],
       include_package_data=True,
       zip_safe=False)
