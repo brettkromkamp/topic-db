@@ -7,13 +7,16 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from setuptools import setup, find_packages
 
-setup(name='topic_db',
-      version='0.1.0',
-      description='Topic map-based graph database',
+setup(name='topic-db',
+      version='0.1.1',
+      description='TopicDB is a topic map-based graph (NoSQL) database',
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
+          'Natural Language :: English',
+          'Operating System :: POSIX :: Linux',
+          'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.5',
           'Topic :: Database :: Database Engines/Servers',
           'Topic :: Software Development :: Libraries :: Python Modules'
@@ -23,7 +26,7 @@ setup(name='topic_db',
       author='Brett Alistair Kromkamp',
       author_email='brett.kromkamp@gmail.com',
       license='MIT',
-      packages=find_packages(),
+      packages=find_packages(exclude=['docs']),
       install_requires=['python-slugify'],
       include_package_data=True,
       zip_safe=False)

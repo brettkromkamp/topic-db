@@ -17,9 +17,10 @@ from topicdb.core.commands.topic.topicexists import TopicExists
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), '../data/topicmap.db')
 MAP_IDENTIFIER = 1
 
-# Create database schema and bootstrap topic map (ontology).
+# Create database schema.
 if not os.path.isfile(DATABASE_PATH):
     CreateMap(DATABASE_PATH).execute()
 
-if not TopicExists(DATABASE_PATH, 'genesis', MAP_IDENTIFIER).execute():
+# Bootstrap default topic map (ontology).
+if not TopicExists(DATABASE_PATH, MAP_IDENTIFIER, 'genesis').execute():
     InitMap(DATABASE_PATH, MAP_IDENTIFIER).execute()
