@@ -18,6 +18,7 @@ setup(name='topic-db',
           'Operating System :: POSIX :: Linux',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Database :: Database Engines/Servers',
           'Topic :: Software Development :: Libraries :: Python Modules'
       ],
