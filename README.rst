@@ -75,5 +75,3 @@ How to Contribute
 
 .. _`the repository`: https://github.com/brettkromkamp/topic_db
 .. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
-.. _`story engine`: https://github.com/brettkromkamp/story_engine
-.. _`story engine`: http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/
