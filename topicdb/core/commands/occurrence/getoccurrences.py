@@ -7,12 +7,12 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.retrievaloption import RetrievalOption
-from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
 from topicdb.core.commands.attribute.getattributes import GetAttributes
-from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
+from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.models.language import Language
+from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetOccurrences:
@@ -68,7 +68,7 @@ class GetOccurrences:
                 if self.resolve_attributes is RetrievalOption.resolve_attributes:
                     # TODO: Optimize.
                     occurrence.add_attributes(
-                        GetAttributes(self.database_path, self.map_identifier, occurrence.identifier, self.language).execute())
+                        GetAttributes(self.database_path, self.map_identifier, occurrence.identifier).execute())
                 result.append(occurrence)
         except sqlite3.Error as error:
             raise TopicStoreError(error)

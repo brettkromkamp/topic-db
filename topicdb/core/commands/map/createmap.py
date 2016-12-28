@@ -18,11 +18,12 @@ class CreateMap:
 
     def execute(self):
         connection = sqlite3.connect(self.database_path)
-        definitions_file = open(os.path.join(os.path.dirname(__file__), '../../../conf/topicmap-definition.sql'))
+        definitions_file = open(
+            os.path.join(os.path.dirname(__file__), '../../../conf/topicmap-definition.sql'))
         statements = definitions_file.read()
 
         try:
-            with connection:  # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
+            with connection:
                 for statement in statements.split(';'):
                     connection.execute(statement)
         except sqlite3.Error as error:

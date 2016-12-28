@@ -7,13 +7,13 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
+from topicdb.core.commands.attribute.getattributes import GetAttributes
+from topicdb.core.commands.occurrence.getoccurrences import GetOccurrences
+from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.models.basename import BaseName
 from topicdb.core.models.language import Language
 from topicdb.core.models.topic import Topic
-from topicdb.core.retrievaloption import RetrievalOption
 from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.commands.attribute.getattributes import GetAttributes
-from topicdb.core.commands.occurrence.getoccurrences import GetOccurrences
 
 
 class GetTopic:
@@ -56,9 +56,11 @@ class GetTopic:
                                      Language[base_name_record['language']],
                                      base_name_record['identifier']))
                 if self.resolve_attributes is RetrievalOption.resolve_attributes:
-                    result.add_attributes(GetAttributes(self.database_path, self.map_identifier, self.identifier, self.language).execute())
+                    result.add_attributes(GetAttributes(self.database_path, self.map_identifier,
+                                                        self.identifier).execute())
                 if self.resolve_occurrences is RetrievalOption.resolve_occurrences:
-                    result.add_occurrences(GetOccurrences(self.database_path, self.map_identifier, self.identifier).execute())
+                    result.add_occurrences(GetOccurrences(self.database_path, self.map_identifier,
+                                                          self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

@@ -7,14 +7,14 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.models.basename import BaseName
-from topicdb.core.models.association import Association
-from topicdb.core.models.language import Language
-from topicdb.core.models.member import Member
-from topicdb.core.retrievaloption import RetrievalOption
 from topicdb.core.commands.attribute.getattributes import GetAttributes
 from topicdb.core.commands.occurrence.getoccurrences import GetOccurrences
+from topicdb.core.commands.retrievaloption import RetrievalOption
+from topicdb.core.models.association import Association
+from topicdb.core.models.basename import BaseName
+from topicdb.core.models.language import Language
+from topicdb.core.models.member import Member
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetAssociation:
@@ -73,7 +73,7 @@ class GetAssociation:
                                 member.add_topic_ref(topic_ref_record['topic_ref'])
                             result.add_member(member)
                 if self.resolve_attributes is RetrievalOption.resolve_attributes:
-                    result.add_attributes(GetAttributes(self.database_path, self.identifier, self.language).execute())
+                    result.add_attributes(GetAttributes(self.database_path, self.identifier).execute())
                 if self.resolve_occurrences is RetrievalOption.resolve_occurrences:
                     result.add_occurrences(GetOccurrences(self.database_path, self.identifier).execute())
         except sqlite3.Error as error:

@@ -28,7 +28,8 @@ class SetTag:
             raise TopicStoreError("Missing 'tag' or 'identifier' parameter")
 
         if not TopicExists(self.database_path, self.map_identifier, self.identifier).execute():
-            identifier_topic = Topic(identifier=self.identifier, base_name=self.identifier.capitalize())
+            identifier_topic = Topic(identifier=self.identifier,
+                                     base_name=self.identifier.capitalize())
             SetTopic(self.database_path, self.map_identifier, identifier_topic).execute()
 
         if not TopicExists(self.database_path, self.map_identifier, self.tag).execute():
