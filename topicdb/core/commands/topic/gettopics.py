@@ -7,10 +7,10 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
+from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.retrievaloption import RetrievalOption
 from topicdb.core.models.language import Language
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetTopics:

@@ -8,7 +8,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 from setuptools import setup, find_packages
 
 setup(name='topic-db',
-      version='0.1.1',
+      version='0.2.0',
       description='TopicDB is a topic map-based graph (NoSQL) database',
       classifiers=[
           'Development Status :: 3 - Alpha',

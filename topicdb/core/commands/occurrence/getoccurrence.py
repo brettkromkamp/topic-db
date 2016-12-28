@@ -7,12 +7,12 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.retrievaloption import RetrievalOption
-from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
 from topicdb.core.commands.attribute.getattributes import GetAttributes
-from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
+from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.models.language import Language
+from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetOccurrence:
@@ -27,7 +27,6 @@ class GetOccurrence:
         self.identifier = identifier
         self.inline_resource_data = inline_resource_data
         self.resolve_attributes = resolve_attributes
-        self.language = language
 
     def execute(self):
         if self.identifier == '':
@@ -55,7 +54,7 @@ class GetOccurrence:
                     Language[record['language']])
                 if self.resolve_attributes is RetrievalOption.resolve_attributes:
                     # TODO: Optimize.
-                    result.add_attributes(GetAttributes(self.database_path, self.map_identifier, self.identifier, self.language).execute())
+                    result.add_attributes(GetAttributes(self.database_path, self.map_identifier, self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

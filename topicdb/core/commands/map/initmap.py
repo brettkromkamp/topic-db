@@ -4,7 +4,7 @@ InitMap class. Part of the StoryTechnologies project.
 July 16, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
-
+from topicdb.core.commands.ontologymode import OntologyMode
 from topicdb.core.models.topic import Topic
 from topicdb.core.commands.topic.settopic import SetTopic
 from topicdb.core.commands.map.topicfield import TopicField
@@ -72,8 +72,10 @@ class InitMap:
         }
 
     def execute(self):
-        set_topic_command = SetTopic(self.database_path, self.map_identifier)
+        set_topic_command = SetTopic(self.database_path, self.map_identifier,
+                                     ontology_mode=OntologyMode.lenient)
         for item in self.items:
-            topic = Topic(identifier=item[TopicField.identifier.value], base_name=item[TopicField.base_name.value])
+            topic = Topic(identifier=item[TopicField.identifier.value],
+                          base_name=item[TopicField.base_name.value])
             set_topic_command.topic = topic
             set_topic_command.execute()
