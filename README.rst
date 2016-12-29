@@ -15,12 +15,10 @@ Feature Support
 
 - Pending
 
-TopicDB officially supports Python 3.3–3.6.
-
 Installation
 ------------
 
-To install TopicDB, simply:
+TopicDB officially supports Python 3.3–3.6. To install TopicDB, simply:
 
 .. code-block:: bash
 
