@@ -3,6 +3,8 @@ TopicDB from StoryTechnologies
 
 TopicDB is a topic map-based graph (NoSQL) database.
 
+.. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
+
 Why?
 ----
 
