@@ -6,7 +6,7 @@ TopicDB is a topic map-based graph (NoSQL) database.
 Why?
 ----
 
-I build my own (virtual) worlds. TopicDB plays a crucial role in that endeavour: `Interactive Scene Browser for Stories <http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/>`_.
+I build my own (virtual) worlds. TopicDB plays a crucial role in that endeavour: `Interactive Scene Browser for Stories`_.
 
 Feature Support
 ---------------
@@ -73,5 +73,6 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
-.. _`the repository`: https://github.com/brettkromkamp/topic_db
+.. _Interactive Scene Browser for Stories: http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/
+.. _the repository: https://github.com/brettkromkamp/topic_db
 .. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
