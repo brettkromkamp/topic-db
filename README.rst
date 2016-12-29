@@ -8,7 +8,7 @@ TopicDB is a topic map-based graph (NoSQL) database.
 Why?
 ----
 
-I build my own (virtual) worlds. TopicDB plays a crucial role in that endeavour: `Interactive Scene Browser for Stories`_.
+I build (story) worlds. TopicDB plays a crucial role in that endeavour: `Interactive Scene Browser for Stories`_.
 
 Feature Support
 ---------------
