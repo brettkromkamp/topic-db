@@ -7,10 +7,10 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from setuptools import setup, find_packages
 
-with open('README.rst', 'r', 'utf-8') as f:
+with open('README.rst', encoding='utf-8') as f:
     readme = f.read()
 
-with open('HISTORY.rst', 'r', 'utf-8') as f:
+with open('HISTORY.rst', encoding='utf-8') as f:
     history = f.read()
 
 setup(name='topic-db',
