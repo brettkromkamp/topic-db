@@ -14,7 +14,7 @@ with open('HISTORY.rst', 'r', 'utf-8') as f:
     history = f.read()
 
 setup(name='topic-db',
-      version='0.2.0',  # Bump version number *after* starting (git flow) release.
+      version='0.3.0',  # Bump version number *after* starting (git flow) release.
       description='TopicDB is a topic map-based graph (NoSQL) database',
       long_description=readme + '\n\n' + history,
       keywords='topic map, graph database, nosql, semantic, concept map, knowledge management',
