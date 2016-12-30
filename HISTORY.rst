@@ -8,7 +8,7 @@ Release History
 
 **Improvements**
 
-- Added the ability to delete associations.
+- Added functionality to delete associations (i.e., DeleteAssociation class).
 
 0.2.0 (2016-12-28)
 ++++++++++++++++++
@@ -23,4 +23,4 @@ Release History
 
 **Miscellaneous**
 
-- Initial release.
+- Initial release on PyPI (https://pypi.python.org/pypi/topic-db).
