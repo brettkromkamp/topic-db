@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS basename (
 CREATE INDEX IF NOT EXISTS basename_1_index ON basename (topicmap_identifier, topic_identifier_fk); /* Verified */
 
 
-/* TODO: Rename (story -> topicmap). */
+/* TODO: Refactor. */
 CREATE TABLE IF NOT EXISTS story (
     identifier INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT,
