@@ -5,10 +5,10 @@ July 13, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.models.doublekeydict import DoubleKeyDict
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
 from topicdb.core.models.associationfield import AssociationField
+from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.commands.association.getassociations import GetAssociations
 
 
 class GetAssociationGroups:
@@ -30,12 +30,12 @@ class GetAssociationGroups:
                 "At least one of the 'identifier' or 'associations' parameters is required")
 
         if self.associations is None and (self.database_path == '' or self.map_identifier is None):
-            raise TopicStoreError("Missing 'database path' or 'map identifier' parameters")
+            raise TopicStoreError("Missing 'database path' or 'topicmap identifier' parameters")
 
         result = DoubleKeyDict()
         if not self.associations:
-            self.associations = GetAssociations(self.database_path, self.map_identifier,
-                                                self.identifier).execute()
+            self.associations = GetTopicAssociations(self.database_path, self.map_identifier,
+                                                     self.identifier).execute()
 
         for association in self.associations:
             resolved_topic_refs = self._resolve_topic_refs(association)

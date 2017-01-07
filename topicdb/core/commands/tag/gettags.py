@@ -5,9 +5,9 @@ August 29, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.commands.association.getassociations import GetAssociations
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetTags:
@@ -22,7 +22,8 @@ class GetTags:
             raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
-        associations = GetAssociations(self.database_path, self.map_identifier, self.identifier).execute()
+        associations = GetTopicAssociations(
+            self.database_path, self.map_identifier, self.identifier).execute()
         if associations:
             groups = GetAssociationGroups(associations=associations).execute()
             for instance_of in groups.dict:

@@ -1,12 +1,12 @@
 """
-GetAssociations class. Part of the StoryTechnologies project.
+DeleteTopicmap class. Part of the StoryTechnologies project.
 
 January 07, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 
-class GetAssociations:
+class DeleteTopicmap:
 
     def __init__(self):
         pass

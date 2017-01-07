@@ -5,12 +5,12 @@ November 20, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.commands.association.getassociations import GetAssociations
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
-from topicdb.core.models.tree.tree import Tree
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
+from topicdb.core.commands.topic.gettopic import GetTopic
 from topicdb.core.models.associationfield import AssociationField
+from topicdb.core.models.tree.tree import Tree
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetTopicsHierarchy:
@@ -27,7 +27,7 @@ class GetTopicsHierarchy:
         self.accumulative_tree = accumulative_tree
         self.accumulative_nodes = accumulative_nodes
 
-        self.maximum_distance = 10
+        self.maximum_depth = 10
 
     def execute(self):
         if self.identifier == '':
@@ -44,14 +44,16 @@ class GetTopicsHierarchy:
         else:
             nodes = self.accumulative_nodes
 
-        if self.cumulative_distance <= self.maximum_distance:  # Exit case.
-            associations = GetAssociations(self.database_path, self.map_identifier, self.identifier).execute()
+        if self.cumulative_distance <= self.maximum_depth:  # Exit case.
+            associations = GetTopicAssociations(
+                self.database_path, self.map_identifier, self.identifier).execute()
             for association in associations:
                 resolved_topic_refs = GetAssociationGroups._resolve_topic_refs(association)
                 for resolved_topic_ref in resolved_topic_refs:
                     topic_ref = resolved_topic_ref[AssociationField.topic_ref.value]
                     if topic_ref != self.identifier and topic_ref not in nodes:
-                        topic = GetTopic(self.database_path, self.map_identifier, topic_ref).execute()
+                        topic = GetTopic(self.database_path, self.map_identifier,
+                                         topic_ref).execute()
                         tree.add_node(topic_ref, parent=self.identifier, topic=topic)
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)
