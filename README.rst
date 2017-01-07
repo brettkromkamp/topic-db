@@ -39,7 +39,9 @@ First-Time Use
     print('Creating and initializing topic map')
     SetTopicMap(DATABASE_PATH, MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
 
-    print("\nGetting map")
+    # Rest of the code is for testing purposes (e.g., to verify that the topic map has been created
+    # and that the 'entry' topic can be retrieved.
+    print("\nGetting topic map")
     topic_map = GetTopicMap(DATABASE_PATH, MAP_IDENTIFIER).execute()
 
     print("Map identifier: [{0}]".format(topic_map.identifier))

@@ -22,7 +22,7 @@ DESCRIPTION = 'Default topic map'
 print('Creating and initializing topic map')
 SetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
 
-print("\nGetting map")
+print("\nGetting topic map")
 topic_map = GetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER).execute()
 
 print("Map identifier: [{0}]".format(topic_map.identifier))
