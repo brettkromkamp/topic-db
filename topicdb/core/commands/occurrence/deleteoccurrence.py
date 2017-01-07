@@ -13,9 +13,9 @@ from topicdb.core.commands.attribute.deleteattributes import DeleteAttributes
 
 class DeleteOccurrence:
 
-    def __init__(self, database_path, map_identifier, identifier=''):
+    def __init__(self, database_path, topic_map_identifier, identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
 
     def execute(self):
@@ -26,8 +26,8 @@ class DeleteOccurrence:
 
         try:
             with connection:  # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
-                connection.execute("DELETE FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.map_identifier, self.identifier))
-            DeleteAttributes(self.database_path, self.map_identifier, self.identifier).execute()
+                connection.execute("DELETE FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
+            DeleteAttributes(self.database_path, self.topic_map_identifier, self.identifier).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

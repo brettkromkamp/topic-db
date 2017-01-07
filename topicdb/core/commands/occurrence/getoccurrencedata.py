@@ -12,9 +12,9 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetOccurrenceData:
 
-    def __init__(self, database_path, map_identifier, identifier=''):
+    def __init__(self, database_path, topic_map_identifier, identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
 
     def execute(self):
@@ -27,7 +27,7 @@ class GetOccurrenceData:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT resource_data FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.map_identifier, self.identifier))
+            cursor.execute("SELECT resource_data FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 result = record['resource_data']

@@ -1,24 +1,63 @@
 """
-InitMap class. Part of the StoryTechnologies project.
+SetTopicMap class. Part of the StoryTechnologies project.
 
-July 16, 2016
+January 07, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
+
+import sqlite3
+import os
+
 from topicdb.core.commands.ontologymode import OntologyMode
+from topicdb.core.commands.topic.topicexists import TopicExists
 from topicdb.core.models.topic import Topic
 from topicdb.core.commands.topic.settopic import SetTopic
-from topicdb.core.commands.map.topicfield import TopicField
+from topicdb.core.commands.topicmap.topicfield import TopicField
+from topicdb.core.topicstoreerror import TopicStoreError
 
 
-class InitMap:
+class SetTopicMap:
 
-    def __init__(self, database_path, map_identifier):
+    def __init__(self, database_path, topic_map_identifier, title,
+                 description='',
+                 entry_topic='genesis'):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
+        self.title = title
+        self.description = description
+        self.entry_topic = entry_topic
 
-        # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
-        # https://en.wikipedia.org/wiki/ISO_639-2
+    def execute(self):
+        # Create database schema.
+        self._create_map()
 
+        # Bootstrap default topic topicmap (ontology).
+        if not TopicExists(self.database_path, self.topic_map_identifier, 'genesis').execute():
+            self._init_map()
+
+    def _create_map(self):
+        connection = sqlite3.connect(self.database_path)
+        definitions_file = open(
+            os.path.join(os.path.dirname(__file__), '../../../conf/topicmap-definition.sql'))
+        statements = definitions_file.read()
+
+        try:
+            with connection:
+                for statement in statements.split(';'):
+                    connection.execute(statement)
+                connection.execute(
+                    "INSERT INTO topicmap (title, description, topicmap_identifier_fk, entry_identifier_fk) VALUES (?, ?, ?, ?)",
+                    (self.title,
+                     self.description,
+                     self.topic_map_identifier,
+                     self.entry_topic))
+        except sqlite3.Error as error:
+            raise TopicStoreError(error)
+        finally:
+            if connection:
+                connection.close()
+
+    def _init_map(self):
         self.items = {
             ('entity', 'Entity'),
             ('topic', 'Topic'),
@@ -71,8 +110,7 @@ class InitMap:
             ('nob', 'Norwegian (Bokmål) Language')
         }
 
-    def execute(self):
-        set_topic_command = SetTopic(self.database_path, self.map_identifier,
+        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier,
                                      ontology_mode=OntologyMode.lenient)
         for item in self.items:
             topic = Topic(identifier=item[TopicField.identifier.value],

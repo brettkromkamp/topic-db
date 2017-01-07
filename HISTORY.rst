@@ -8,7 +8,7 @@ Release History
 
 **Improvements**
 
-- Added functionality to delete associations (i.e., DeleteAssociation class).
+- Added functionality to delete associations (i.e., ``DeleteAssociation`` command class).
 
 0.2.0 (2016-12-28)
 ++++++++++++++++++

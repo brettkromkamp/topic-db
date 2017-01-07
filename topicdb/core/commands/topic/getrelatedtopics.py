@@ -5,17 +5,17 @@ October 12, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
 from topicdb.core.commands.topic.gettopic import GetTopic
 from topicdb.core.topicstoreerror import TopicStoreError
-from topicdb.core.commands.association.getassociations import GetAssociations
-from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
 
 
 class GetRelatedTopics:
 
-    def __init__(self, database_path, map_identifier, identifier=''):
+    def __init__(self, database_path, topic_map_identifier, identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
 
     def execute(self):
@@ -23,7 +23,8 @@ class GetRelatedTopics:
             raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
-        associations = GetAssociations(self.database_path, self.map_identifier, self.identifier).execute()
+        associations = GetTopicAssociations(
+            self.database_path, self.topic_map_identifier, self.identifier).execute()
         if associations:
             groups = GetAssociationGroups(associations=associations).execute()
             for instance_of in groups.dict:

@@ -31,30 +31,35 @@ First-Time Use
 
     import os
 
-    from topicdb.core.commands.map.createmap import CreateMap
-    from topicdb.core.commands.map.initmap import InitMap
-    from topicdb.core.commands.topic.topicexists import TopicExists
     from topicdb.core.commands.topic.gettopic import GetTopic
+    from topicdb.core.commands.topicmap.gettopicmap import GetTopicMap
+    from topicdb.core.commands.topicmap.settopicmap import SetTopicMap
 
 
-    # Set constants.
     DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'test-topicmap.db')
     MAP_IDENTIFIER = 1
+    TITLE = 'Topic Map'
+    DESCRIPTION = 'Default topic map'
 
-    # Create database schema.
-    if not os.path.isfile(DATABASE_PATH):
-        CreateMap(DATABASE_PATH).execute()
+    print('Creating and initializing topic map')
+    SetTopicMap(DATABASE_PATH, MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
 
-    # Bootstrap default topics.
-    if not TopicExists(DATABASE_PATH, MAP_IDENTIFIER, 'genesis').execute():
-        InitMap(DATABASE_PATH, MAP_IDENTIFIER).execute()
+    # Rest of the code is for testing purposes (e.g., to verify that the topic map has been created
+    # and that the 'entry' topic can be retrieved.
+    print("\nGetting topic map")
+    topic_map = GetTopicMap(DATABASE_PATH, MAP_IDENTIFIER).execute()
 
-    # Retrieve "Genesis" topic (with the accompanying topic identifier in lower case
-    # for the purpose of testing).
+    print("Map identifier: [{0}]".format(topic_map.identifier))
+    print("Map title: [{0}]".format(topic_map.title))
+    print("Map description: [{0}]".format(topic_map.description))
+    print("Map entry topic: [{0}]".format(topic_map.entry_topic_identifier))
+
+    print("\nGetting entry topic")
     topic = GetTopic(DATABASE_PATH, MAP_IDENTIFIER, 'genesis').execute()
-    print(topic.identifier)
-    print(topic.instance_of)
-    print(topic.first_base_name.name)
+
+    print("Topic identifier: [{0}]".format(topic.identifier))
+    print("Topic 'instance of': [{0}]".format(topic.instance_of))
+    print("Topic (base) name: [{0}]".format(topic.first_base_name.name))
 
 Documentation
 -------------

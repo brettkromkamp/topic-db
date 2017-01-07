@@ -19,13 +19,13 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetAssociation:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  identifier='',
                  resolve_attributes=RetrievalOption.dont_resolve_attributes,
                  resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
                  language=Language.eng):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
@@ -41,7 +41,7 @@ class GetAssociation:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier, instance_of, scope FROM topic WHERE topicmap_identifier = ? AND identifier = ? AND scope IS NOT NULL", (self.map_identifier, self.identifier))
+            cursor.execute("SELECT identifier, instance_of, scope FROM topic WHERE topicmap_identifier = ? AND identifier = ? AND scope IS NOT NULL", (self.topic_map_identifier, self.identifier))
             association_record = cursor.fetchone()
             if association_record:
                 result = Association(
@@ -50,7 +50,7 @@ class GetAssociation:
                     scope=association_record['scope'])
                 result.clear_base_names()
                 cursor.execute("SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?",
-                               (self.map_identifier, self.identifier))
+                               (self.topic_map_identifier, self.identifier))
                 base_name_records = cursor.fetchall()
                 if base_name_records:
                     for base_name_record in base_name_records:
@@ -58,12 +58,12 @@ class GetAssociation:
                             BaseName(base_name_record['name'],
                                      Language[base_name_record['language']],
                                      base_name_record['identifier']))
-                cursor.execute("SELECT * FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?", (self.map_identifier, self.identifier))
+                cursor.execute("SELECT * FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?", (self.topic_map_identifier, self.identifier))
                 member_records = cursor.fetchall()
                 if member_records:
                     for member_record in member_records:
                         role_spec = member_record['role_spec']
-                        cursor.execute("SELECT * FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?", (self.map_identifier, member_record['identifier']))
+                        cursor.execute("SELECT * FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?", (self.topic_map_identifier, member_record['identifier']))
                         topic_ref_records = cursor.fetchall()
                         if topic_ref_records:
                             member = Member(

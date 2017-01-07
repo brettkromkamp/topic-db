@@ -20,11 +20,11 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class SetOccurrence:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  occurrence=None,
                  ontology_mode=OntologyMode.strict):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.occurrence = occurrence
         self.ontology_mode = ontology_mode
 
@@ -35,13 +35,13 @@ class SetOccurrence:
             raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
 
         if self.ontology_mode is OntologyMode.strict:
-            instance_of_exists = TopicExists(self.database_path, self.map_identifier,
+            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.occurrence.instance_of).execute()
             if not instance_of_exists:
                 raise TopicStoreError(
                     "Ontology mode 'strict' violation: 'instance Of' topic does not exist")
 
-            scope_exists = TopicExists(self.database_path, self.map_identifier,
+            scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.occurrence.scope).execute()
             if not scope_exists:
                 raise TopicStoreError(
@@ -52,7 +52,7 @@ class SetOccurrence:
         try:
             with connection:
                 connection.execute("INSERT INTO occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                                   (self.map_identifier,
+                                   (self.topic_map_identifier,
                                     self.occurrence.identifier,
                                     self.occurrence.instance_of,
                                     self.occurrence.scope,
@@ -68,7 +68,7 @@ class SetOccurrence:
                                                 scope='*',
                                                 language=Language.eng)
                 self.occurrence.add_attribute(timestamp_attribute)
-            SetAttributes(self.database_path, self.map_identifier,
+            SetAttributes(self.database_path, self.topic_map_identifier,
                           self.occurrence.attributes).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)

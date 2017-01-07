@@ -15,9 +15,9 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetAttribute:
 
-    def __init__(self, database_path, map_identifier, identifier=''):
+    def __init__(self, database_path, topic_map_identifier, identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
 
     def execute(self):
@@ -30,7 +30,7 @@ class GetAttribute:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND identifier = ?", (self.map_identifier, self.identifier))
+            cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 result = Attribute(

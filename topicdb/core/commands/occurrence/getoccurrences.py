@@ -17,7 +17,7 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetOccurrences:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  topic_identifier='',
                  inline_resource_data=RetrievalOption.dont_inline_resource_data,
                  resolve_attributes=RetrievalOption.dont_resolve_attributes,
@@ -25,7 +25,7 @@ class GetOccurrences:
                  scope='*',
                  language=Language.eng):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.topic_identifier = topic_identifier
         self.inline_resource_data = inline_resource_data
         self.resolve_attributes = resolve_attributes
@@ -45,10 +45,10 @@ class GetOccurrences:
         try:
             if self.instance_of == '':
                 sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND scope = ? AND language = ?"
-                bind_variables = (self.map_identifier, self.topic_identifier, self.scope, self.language.name)
+                bind_variables = (self.topic_map_identifier, self.topic_identifier, self.scope, self.language.name)
             else:
                 sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND instance_of = ? AND scope = ? AND language = ?"
-                bind_variables = (self.map_identifier, self.topic_identifier, self.instance_of, self.scope, self.language.name)
+                bind_variables = (self.topic_map_identifier, self.topic_identifier, self.instance_of, self.scope, self.language.name)
 
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
@@ -56,7 +56,7 @@ class GetOccurrences:
                 resource_data = None
                 if self.inline_resource_data:
                     # TODO: Optimize.
-                    resource_data = GetOccurrenceData(self.database_path, self.map_identifier, record['identifier']).execute()
+                    resource_data = GetOccurrenceData(self.database_path, self.topic_map_identifier, record['identifier']).execute()
                 occurrence = Occurrence(
                     record['identifier'],
                     record['instance_of'],
@@ -68,7 +68,7 @@ class GetOccurrences:
                 if self.resolve_attributes is RetrievalOption.resolve_attributes:
                     # TODO: Optimize.
                     occurrence.add_attributes(
-                        GetAttributes(self.database_path, self.map_identifier, occurrence.identifier).execute())
+                        GetAttributes(self.database_path, self.topic_map_identifier, occurrence.identifier).execute())
                 result.append(occurrence)
         except sqlite3.Error as error:
             raise TopicStoreError(error)
