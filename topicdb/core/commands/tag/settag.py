@@ -15,11 +15,11 @@ from topicdb.core.models.topic import Topic
 
 class SetTag:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  identifier='',
                  tag=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.tag = tag
 
@@ -27,14 +27,15 @@ class SetTag:
         if self.tag == '' or self.identifier == '':
             raise TopicStoreError("Missing 'tag' or 'identifier' parameter")
 
-        if not TopicExists(self.database_path, self.map_identifier, self.identifier).execute():
+        if not TopicExists(self.database_path, self.topic_map_identifier,
+                           self.identifier).execute():
             identifier_topic = Topic(identifier=self.identifier,
                                      base_name=self.identifier.capitalize())
-            SetTopic(self.database_path, self.map_identifier, identifier_topic).execute()
+            SetTopic(self.database_path, self.topic_map_identifier, identifier_topic).execute()
 
-        if not TopicExists(self.database_path, self.map_identifier, self.tag).execute():
+        if not TopicExists(self.database_path, self.topic_map_identifier, self.tag).execute():
             tag_topic = Topic(identifier=self.tag, base_name=self.tag.capitalize())
-            SetTopic(self.database_path, self.map_identifier, tag_topic).execute()
+            SetTopic(self.database_path, self.topic_map_identifier, tag_topic).execute()
 
         tag_association1 = Association(
             instance_of='categorization',
@@ -48,5 +49,5 @@ class SetTag:
             dest_topic_ref=self.tag,
             src_role_spec='broader',
             dest_role_spec='narrower')
-        SetAssociation(self.database_path, self.map_identifier, tag_association1).execute()
-        SetAssociation(self.database_path, self.map_identifier, tag_association2).execute()
+        SetAssociation(self.database_path, self.topic_map_identifier, tag_association1).execute()
+        SetAssociation(self.database_path, self.topic_map_identifier, tag_association2).execute()

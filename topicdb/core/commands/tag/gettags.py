@@ -12,9 +12,9 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetTags:
 
-    def __init__(self, database_path, map_identifier, identifier=''):
+    def __init__(self, database_path, topic_map_identifier, identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
 
     def execute(self):
@@ -23,7 +23,7 @@ class GetTags:
         result = []
 
         associations = GetTopicAssociations(
-            self.database_path, self.map_identifier, self.identifier).execute()
+            self.database_path, self.topic_map_identifier, self.identifier).execute()
         if associations:
             groups = GetAssociationGroups(associations=associations).execute()
             for instance_of in groups.dict:

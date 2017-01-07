@@ -14,10 +14,10 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class SetAttribute:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  attribute=None, ontology_mode=OntologyMode.lenient):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.attribute = attribute
         self.ontology_mode = ontology_mode
 
@@ -28,7 +28,7 @@ class SetAttribute:
             raise TopicStoreError("Attribute has an empty 'entity identifier' property")
 
         if self.ontology_mode is OntologyMode.strict:
-            scope_exists = TopicExists(self.database_path, self.map_identifier,
+            scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.attribute.scope).execute()
             if not scope_exists:
                 raise TopicStoreError(
@@ -39,7 +39,7 @@ class SetAttribute:
         try:
             with connection:
                 connection.execute("INSERT INTO attribute (topicmap_identifier, identifier, parent_identifier_fk, name, value, data_type, scope, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                                   (self.map_identifier,
+                                   (self.topic_map_identifier,
                                     self.attribute.identifier,
                                     self.attribute.entity_identifier,
                                     self.attribute.name,

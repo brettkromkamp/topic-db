@@ -15,12 +15,12 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetAttributes:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  entity_identifier='',
                  scope='*',
                  language=Language.eng):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.entity_identifier = entity_identifier
         self.scope = scope
         self.language = language
@@ -36,7 +36,7 @@ class GetAttributes:
         cursor = connection.cursor()
         try:
             cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ? AND language = ?",
-                           (self.map_identifier, self.entity_identifier, self.scope, self.language.name))
+                           (self.topic_map_identifier, self.entity_identifier, self.scope, self.language.name))
             records = cursor.fetchall()
             for record in records:
                 attribute = Attribute(

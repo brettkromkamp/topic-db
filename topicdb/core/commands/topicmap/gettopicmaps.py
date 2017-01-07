@@ -17,7 +17,7 @@ class GetTopicMaps:
         self.database_path = database_path
 
     def execute(self):
-        result = None
+        result = []
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row

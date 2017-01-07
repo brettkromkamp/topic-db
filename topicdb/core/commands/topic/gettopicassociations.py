@@ -15,13 +15,13 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetTopicAssociations:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  identifier='',
                  resolve_attributes=RetrievalOption.dont_resolve_attributes,
                  resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
                  language=Language.eng):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
@@ -37,16 +37,16 @@ class GetTopicAssociations:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND topic_ref = ?", (self.map_identifier, self.identifier))
+            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND topic_ref = ?", (self.topic_map_identifier, self.identifier))
             topic_ref_records = cursor.fetchall()
             if topic_ref_records:
                 for topic_ref_record in topic_ref_records:
-                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND identifier = ?", (self.map_identifier, topic_ref_record['member_identifier_fk']))
+                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, topic_ref_record['member_identifier_fk']))
                     member_records = cursor.fetchall()
                     if member_records:
                         for member_record in member_records:
                             # TODO: Optimize.
-                            association = GetAssociation(self.database_path, self.map_identifier,
+                            association = GetAssociation(self.database_path, self.topic_map_identifier,
                                                          member_record['association_identifier_fk'],
                                                          self.resolve_attributes,
                                                          self.resolve_occurrences,

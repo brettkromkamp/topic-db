@@ -17,12 +17,7 @@ class Topic(Entity):
                  instance_of='topic',
                  base_name='Undefined',
                  language=Language.eng):
-        if identifier == '' and base_name != '':
-            # If no identifier has been provided but a (base) name has, then use the 'slugified'
-            # name as the topic's identifier.
-            super().__init__(base_name, instance_of)
-        else:
-            super().__init__(identifier, instance_of)
+        super().__init__(identifier, instance_of)
 
         default_base_name = BaseName(base_name, language)
 

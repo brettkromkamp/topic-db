@@ -13,9 +13,9 @@ from topicdb.core.commands.occurrence.deleteoccurrence import DeleteOccurrence
 
 class DeleteOccurrences:
 
-    def __init__(self, database_path, map_identifier, topic_identifier=''):
+    def __init__(self, database_path, topic_map_identifier, topic_identifier=''):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.topic_identifier = topic_identifier
 
     def execute(self):
@@ -27,11 +27,11 @@ class DeleteOccurrences:
 
         cursor = connection.cursor()
         try:
-            connection.execute("SELECT identifier FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ?", (self.map_identifier, self.topic_identifier))
+            connection.execute("SELECT identifier FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ?", (self.topic_map_identifier, self.topic_identifier))
             records = cursor.fetchall()
             for record in records:
                 # TODO: Optimize.
-                DeleteOccurrence(self.database_path, self.map_identifier, record['identifier']).execute()
+                DeleteOccurrence(self.database_path, self.topic_map_identifier, record['identifier']).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

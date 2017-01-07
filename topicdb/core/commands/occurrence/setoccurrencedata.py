@@ -11,11 +11,11 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class SetOccurrenceData:
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  identifier='',
                  resource_data=None):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.resource_data = bytes(resource_data, 'utf-8')
 
@@ -27,7 +27,7 @@ class SetOccurrenceData:
 
         try:
             with connection:
-                connection.execute("UPDATE occurrence SET resource_data = ? WHERE topicmap_identifier = ? AND identifier = ?", (self.resource_data, self.map_identifier, self.identifier))
+                connection.execute("UPDATE occurrence SET resource_data = ? WHERE topicmap_identifier = ? AND identifier = ?", (self.resource_data, self.topic_map_identifier, self.identifier))
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

@@ -13,13 +13,13 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class AttributeExists:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  entity_identifier='',
                  name='',
                  scope='*',
                  language=Language.eng):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.entity_identifier = entity_identifier
         self.name = name
         self.scope = scope
@@ -35,7 +35,7 @@ class AttributeExists:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ? AND scope = ? AND language = ?", (self.map_identifier, self.entity_identifier, self.name, self.scope, self.language))
+            cursor.execute("SELECT identifier FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ? AND scope = ? AND language = ?", (self.topic_map_identifier, self.entity_identifier, self.name, self.scope, self.language))
             record = cursor.fetchone()
             if record:
                 result = True

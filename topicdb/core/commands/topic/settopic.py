@@ -20,12 +20,12 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class SetTopic:
 
-    def __init__(self, database_path, map_identifier,
+    def __init__(self, database_path, topic_map_identifier,
                  topic=None,
                  language=Language.eng,
                  ontology_mode=OntologyMode.strict):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.topic = topic
         self.language = language
         self.ontology_mode = ontology_mode
@@ -35,7 +35,7 @@ class SetTopic:
             raise TopicStoreError("Missing 'topic' parameter")
 
         if self.ontology_mode is OntologyMode.strict:
-            instance_of_exists = TopicExists(self.database_path, self.map_identifier,
+            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.topic.instance_of).execute()
             if not instance_of_exists:
                 raise TopicStoreError(
@@ -46,12 +46,12 @@ class SetTopic:
         try:
             with connection:
                 connection.execute("INSERT INTO topic (topicmap_identifier, identifier, instance_of) VALUES (?, ?, ?)",
-                                   (self.map_identifier,
+                                   (self.topic_map_identifier,
                                     self.topic.identifier,
                                     self.topic.instance_of))
                 for base_name in self.topic.base_names:
                     connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
-                                       (self.map_identifier,
+                                       (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
                                         self.topic.identifier,
@@ -64,7 +64,7 @@ class SetTopic:
                                                 scope='*',
                                                 language=Language.eng)
                 self.topic.add_attribute(timestamp_attribute)
-            SetAttributes(self.database_path, self.map_identifier, self.topic.attributes).execute()
+            SetAttributes(self.database_path, self.topic_map_identifier, self.topic.attributes).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

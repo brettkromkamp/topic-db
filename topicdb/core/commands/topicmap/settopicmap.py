@@ -18,22 +18,21 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class SetTopicMap:
 
-    def __init__(self, database_path, map_identifier, title,
+    def __init__(self, database_path, topic_map_identifier, title,
                  description='',
                  entry_topic='genesis'):
         self.database_path = database_path
-        self.map_identifier = map_identifier
+        self.topic_map_identifier = topic_map_identifier
         self.title = title
         self.description = description
         self.entry_topic = entry_topic
 
     def execute(self):
         # Create database schema.
-        if not os.path.isfile(self.database_path):
-            self._create_map()
+        self._create_map()
 
         # Bootstrap default topic topicmap (ontology).
-        if not TopicExists(self.database_path, self.map_identifier, 'genesis').execute():
+        if not TopicExists(self.database_path, self.topic_map_identifier, 'genesis').execute():
             self._init_map()
 
     def _create_map(self):
@@ -50,7 +49,7 @@ class SetTopicMap:
                     "INSERT INTO topicmap (title, description, topicmap_identifier_fk, entry_identifier_fk) VALUES (?, ?, ?, ?)",
                     (self.title,
                      self.description,
-                     self.map_identifier,
+                     self.topic_map_identifier,
                      self.entry_topic))
         except sqlite3.Error as error:
             raise TopicStoreError(error)
@@ -111,7 +110,7 @@ class SetTopicMap:
             ('nob', 'Norwegian (Bokmål) Language')
         }
 
-        set_topic_command = SetTopic(self.database_path, self.map_identifier,
+        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier,
                                      ontology_mode=OntologyMode.lenient)
         for item in self.items:
             topic = Topic(identifier=item[TopicField.identifier.value],
