@@ -5,6 +5,15 @@ TopicDB is a topic map-based graph (NoSQL) database.
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
 
+For a more in-depth introduction to topic maps, I recommend reading the excellent introductory
+article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although
+TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of
+the `ISO/IEC 13250 Topic Maps`_ standard.
+
+TopicDB is intended to be used by other Python applications, and currently does not provide a web
+interface to the API. `Story Engine`_ is a good example of TopicDB being used by another
+application.
+
 Why?
 ----
 
@@ -78,6 +87,9 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
+.. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
+.. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
+.. _Story Engine: https://github.com/brettkromkamp/story_engine
 .. _Interactive Scene Browser for Stories: http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/
 .. _the repository: https://github.com/brettkromkamp/topic_db
 .. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
