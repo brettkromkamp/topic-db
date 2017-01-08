@@ -8,7 +8,7 @@ TopicDB is a topic map-based graph (NoSQL) database.
 For a more in-depth introduction to topic maps, I recommend reading the excellent introductory
 article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although
 TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of
-the `ISO/IEC 13250 Topic Maps`_ standard.
+the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications, and currently does not provide a web
 interface to the API. `Story Engine`_ is a good example of TopicDB being used by another
