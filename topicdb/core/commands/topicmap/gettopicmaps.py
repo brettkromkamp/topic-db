@@ -24,7 +24,7 @@ class GetTopicMaps:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM topicmap")
+            cursor.execute("SELECT * FROM topicmap ORDER BY identifier")
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(

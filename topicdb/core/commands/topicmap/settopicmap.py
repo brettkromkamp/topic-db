@@ -31,7 +31,7 @@ class SetTopicMap:
         # Create database schema.
         self._create_map()
 
-        # Bootstrap default topic topicmap (ontology).
+        # Bootstrap default topics (ontology).
         if not TopicExists(self.database_path, self.topic_map_identifier, 'genesis').execute():
             self._init_map()
 
