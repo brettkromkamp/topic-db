@@ -15,7 +15,7 @@ with open('HISTORY.rst', encoding='utf-8') as f:
 
 setup(name='topic-db',
       version='0.4.0',  # Bump version number *after* starting (git flow) release.
-      description='TopicDB is a topic topicmap-based graph (NoSQL) database',
+      description='TopicDB is a topic map-based graph (NoSQL) database',
       long_description=readme + '\n\n' + history,
       keywords='topic topicmap, graph database, nosql, semantic, concept topicmap, knowledge management',
       url='https://github.com/brettkromkamp/topic_db',
@@ -37,5 +37,6 @@ setup(name='topic-db',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: Implementation :: CPython',
-          'Topic :: Database :: Database Engines/Servers'
+          'Topic :: Database :: Database Engines/Servers',
+          'Topic :: Software Development :: Libraries :: Python Modules'
       ])

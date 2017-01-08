@@ -3,6 +3,15 @@
 Release History
 ---------------
 
+0.4.0 (2017-01-08)
+++++++++++++++++++
+
+**Improvements**
+
+- Renamed ``GetAssociations`` command class to ``GetTopicAssociations``.
+- Refactored topic map-related commands and models, including changes to the topic map definition (SQL).
+- Renamed several (important) variables for the purpose of improving clarity and consistency.
+
 0.3.0 (2016-12-30)
 ++++++++++++++++++
 
