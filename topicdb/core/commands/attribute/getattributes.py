@@ -17,8 +17,8 @@ class GetAttributes:
 
     def __init__(self, database_path, topic_map_identifier,
                  entity_identifier='',
-                 scope='*',
-                 language=Language.eng):
+                 scope=None,
+                 language=None):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.entity_identifier = entity_identifier
@@ -35,8 +35,22 @@ class GetAttributes:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ? AND language = ?",
-                           (self.topic_map_identifier, self.entity_identifier, self.scope, self.language.name))
+            if self.scope is None:
+                if self.language is None:
+                    sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ?"
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier)
+                else:
+                    sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND language = ?"
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.language.name)
+            else:
+                if self.language is None:
+                    sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ?"
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.scope)
+                else:
+                    sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ? AND language = ?"
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.scope, self.language.name)
+
+            cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
             for record in records:
                 attribute = Attribute(

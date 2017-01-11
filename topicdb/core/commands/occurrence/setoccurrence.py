@@ -22,7 +22,7 @@ class SetOccurrence:
 
     def __init__(self, database_path, topic_map_identifier,
                  occurrence=None,
-                 ontology_mode=OntologyMode.strict):
+                 ontology_mode=OntologyMode.STRICT):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.occurrence = occurrence
@@ -34,18 +34,18 @@ class SetOccurrence:
         elif self.occurrence.topic_identifier == '':
             raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
 
-        if self.ontology_mode is OntologyMode.strict:
+        if self.ontology_mode is OntologyMode.STRICT:
             instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.occurrence.instance_of).execute()
             if not instance_of_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'instance Of' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
             scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.occurrence.scope).execute()
             if not scope_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'scope' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
@@ -66,7 +66,7 @@ class SetOccurrence:
                                                 self.occurrence.identifier,
                                                 data_type=DataType.timestamp,
                                                 scope='*',
-                                                language=Language.eng)
+                                                language=Language.ENG)
                 self.occurrence.add_attribute(timestamp_attribute)
             SetAttributes(self.database_path, self.topic_map_identifier,
                           self.occurrence.attributes).execute()

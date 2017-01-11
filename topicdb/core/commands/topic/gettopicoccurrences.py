@@ -19,11 +19,11 @@ class GetTopicOccurrences:
 
     def __init__(self, database_path, topic_map_identifier,
                  topic_identifier='',
-                 inline_resource_data=RetrievalOption.dont_inline_resource_data,
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
+                 inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
                  instance_of='',
                  scope='*',
-                 language=Language.eng):
+                 language=Language.ENG):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.topic_identifier = topic_identifier
@@ -70,7 +70,7 @@ class GetTopicOccurrences:
                     record['resource_ref'],
                     resource_data,
                     Language[record['language']])
-                if self.resolve_attributes is RetrievalOption.resolve_attributes:
+                if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     # TODO: Optimize.
                     occurrence.add_attributes(
                         GetAttributes(self.database_path, self.topic_map_identifier,

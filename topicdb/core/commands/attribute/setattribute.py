@@ -15,7 +15,7 @@ from topicdb.core.topicstoreerror import TopicStoreError
 class SetAttribute:
 
     def __init__(self, database_path, topic_map_identifier,
-                 attribute=None, ontology_mode=OntologyMode.lenient):
+                 attribute=None, ontology_mode=OntologyMode.LENIENT):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.attribute = attribute
@@ -27,12 +27,12 @@ class SetAttribute:
         elif self.attribute.entity_identifier == '':
             raise TopicStoreError("Attribute has an empty 'entity identifier' property")
 
-        if self.ontology_mode is OntologyMode.strict:
+        if self.ontology_mode is OntologyMode.STRICT:
             scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.attribute.scope).execute()
             if not scope_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'scope' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 

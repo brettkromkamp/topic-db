@@ -20,7 +20,7 @@ class Attribute:
                  identifier='',
                  data_type=DataType.string,
                  scope='*',
-                 language=Language.eng):
+                 language=Language.ENG):
         if entity_identifier == '*':  # Universal Scope.
             self.__entity_identifier = '*'
         else:

@@ -22,7 +22,7 @@ class SetAssociation:
 
     def __init__(self, database_path, topic_map_identifier,
                  association=None,
-                 ontology_mode=OntologyMode.strict):
+                 ontology_mode=OntologyMode.STRICT):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.association = association
@@ -32,18 +32,18 @@ class SetAssociation:
         if self.association is None:
             raise TopicStoreError("Missing 'association' parameter")
 
-        if self.ontology_mode is OntologyMode.strict:
+        if self.ontology_mode is OntologyMode.STRICT:
             instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.association.instance_of).execute()
             if not instance_of_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'instance Of' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
             scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.association.scope).execute()
             if not scope_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'scope' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
@@ -68,7 +68,7 @@ class SetAssociation:
                                                 self.association.identifier,
                                                 data_type=DataType.timestamp,
                                                 scope='*',
-                                                language=Language.eng)
+                                                language=Language.ENG)
                 self.association.add_attribute(timestamp_attribute)
             SetAttributes(self.database_path, self.topic_map_identifier,
                           self.association.attributes).execute()

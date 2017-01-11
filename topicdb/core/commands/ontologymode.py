@@ -9,5 +9,5 @@ from enum import Enum
 
 
 class OntologyMode(Enum):
-    strict = 1
-    lenient = 2
+    STRICT = 1
+    LENIENT = 2

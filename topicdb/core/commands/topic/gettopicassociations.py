@@ -17,9 +17,9 @@ class GetTopicAssociations:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
-                 language=Language.eng):
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
+                 language=Language.ENG):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier

@@ -17,7 +17,7 @@ class AttributeExists:
                  entity_identifier='',
                  name='',
                  scope='*',
-                 language=Language.eng):
+                 language=Language.ENG):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.entity_identifier = entity_identifier

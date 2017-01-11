@@ -19,7 +19,7 @@ class Association(Topic):
                  identifier='',
                  instance_of='association',
                  base_name='Undefined',
-                 language=Language.eng,
+                 language=Language.ENG,
                  scope='*',
                  src_topic_ref='',
                  dest_topic_ref='',

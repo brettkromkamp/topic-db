@@ -20,9 +20,9 @@ class GetTopic:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
-                 language=Language.eng):
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
+                 language=None):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
@@ -45,9 +45,15 @@ class GetTopic:
             if topic_record:
                 result = Topic(topic_record['identifier'], topic_record['instance_of'])
                 result.clear_base_names()
-                cursor.execute("SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?",
-                               (self.topic_map_identifier,
-                                self.identifier))
+
+                if self.language is None:
+                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
+                    bind_variables = (self.topic_map_identifier, self.identifier)
+                else:
+                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
+                    bind_variables = (self.topic_map_identifier, self.identifier, self.language)
+
+                cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
                     for base_name_record in base_name_records:
@@ -55,11 +61,11 @@ class GetTopic:
                             BaseName(base_name_record['name'],
                                      Language[base_name_record['language']],
                                      base_name_record['identifier']))
-                if self.resolve_attributes is RetrievalOption.resolve_attributes:
+                if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     result.add_attributes(GetAttributes(self.database_path,
                                                         self.topic_map_identifier,
                                                         self.identifier).execute())
-                if self.resolve_occurrences is RetrievalOption.resolve_occurrences:
+                if self.resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
                     result.add_occurrences(GetTopicOccurrences(self.database_path,
                                                                self.topic_map_identifier,
                                                                self.identifier).execute())

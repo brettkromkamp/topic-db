@@ -21,7 +21,7 @@ class Occurrence(Entity):
                  scope='*',  # Universal scope
                  resource_ref='',
                  resource_data=None,
-                 language=Language.eng):
+                 language=Language.ENG):
         super().__init__(identifier, instance_of)
 
         if topic_identifier == '*':  # Universal Scope.

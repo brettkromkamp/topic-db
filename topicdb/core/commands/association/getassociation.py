@@ -21,9 +21,9 @@ class GetAssociation:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
-                 language=Language.eng):
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
+                 language=Language.ENG):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
@@ -72,10 +72,10 @@ class GetAssociation:
                             for topic_ref_record in topic_ref_records:
                                 member.add_topic_ref(topic_ref_record['topic_ref'])
                             result.add_member(member)
-                if self.resolve_attributes is RetrievalOption.resolve_attributes:
+                if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     result.add_attributes(GetAttributes(self.database_path,
                                                         self.identifier).execute())
-                if self.resolve_occurrences is RetrievalOption.resolve_occurrences:
+                if self.resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
                     result.add_occurrences(GetTopicOccurrences(self.database_path,
                                                                self.identifier).execute())
         except sqlite3.Error as error:

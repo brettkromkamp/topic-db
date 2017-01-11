@@ -101,17 +101,17 @@ class SetTopicMap:
             ('south-west', 'Southwest'),
             ('west', 'West'),
             ('north-west', 'Northwest'),
-            ('eng', 'English Language'),
-            ('spa', 'Spanish Language'),
-            ('deu', 'German Language'),
-            ('ita', 'Italian Language'),
-            ('fra', 'French Language'),
-            ('nld', 'Dutch Language'),
-            ('nob', 'Norwegian (Bokmål) Language')
+            ('ENG', 'English Language'),
+            ('SPA', 'Spanish Language'),
+            ('DEU', 'German Language'),
+            ('ITA', 'Italian Language'),
+            ('FRA', 'French Language'),
+            ('NLD', 'Dutch Language'),
+            ('NOB', 'Norwegian (Bokmål) Language')
         }
 
         set_topic_command = SetTopic(self.database_path, self.topic_map_identifier,
-                                     ontology_mode=OntologyMode.lenient)
+                                     ontology_mode=OntologyMode.LENIENT)
         for item in self.items:
             topic = Topic(identifier=item[TopicField.identifier.value],
                           base_name=item[TopicField.base_name.value])

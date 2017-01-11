@@ -22,8 +22,8 @@ class SetTopic:
 
     def __init__(self, database_path, topic_map_identifier,
                  topic=None,
-                 language=Language.eng,
-                 ontology_mode=OntologyMode.strict):
+                 language=Language.ENG,
+                 ontology_mode=OntologyMode.STRICT):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.topic = topic
@@ -34,12 +34,12 @@ class SetTopic:
         if self.topic is None:
             raise TopicStoreError("Missing 'topic' parameter")
 
-        if self.ontology_mode is OntologyMode.strict:
+        if self.ontology_mode is OntologyMode.STRICT:
             instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.topic.instance_of).execute()
             if not instance_of_exists:
                 raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'instance Of' topic does not exist")
+                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
@@ -62,7 +62,7 @@ class SetTopic:
                                                 self.topic.identifier,
                                                 data_type=DataType.timestamp,
                                                 scope='*',
-                                                language=Language.eng)
+                                                language=Language.ENG)
                 self.topic.add_attribute(timestamp_attribute)
             SetAttributes(self.database_path, self.topic_map_identifier, self.topic.attributes).execute()
         except sqlite3.Error as error:

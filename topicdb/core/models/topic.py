@@ -16,7 +16,7 @@ class Topic(Entity):
                  identifier='',
                  instance_of='topic',
                  base_name='Undefined',
-                 language=Language.eng):
+                 language=Language.ENG):
         super().__init__(identifier, instance_of)
 
         default_base_name = BaseName(base_name, language)
@@ -35,7 +35,7 @@ class Topic(Entity):
         return self.__occurrences
 
     @property
-    def first_base_name(self, language=Language.eng):
+    def first_base_name(self, language=Language.ENG):
         result = None
 
         # Does the base name exist in the requested language?
@@ -47,26 +47,26 @@ class Topic(Entity):
         # A base name for the requested language does not exist, fall back to the English base name.
         if result is None:
             for base_name in self.__base_names:
-                if base_name.language is Language.eng:
+                if base_name.language is Language.ENG:
                     result = base_name
                     break
 
         # An English base name is not present either, hence return a base name of "Undefined" in the requested language.
         if result is None:
-            if language is Language.spa:
-                result = BaseName("Sin Definir", Language.spa)
-            elif language is Language.deu:
-                result = BaseName("Undefiniert", Language.deu)
-            elif language is Language.ita:
-                result = BaseName("Indefinito", Language.ita)
-            elif language is Language.fra:
-                result = BaseName("Indéfini", Language.fra)
-            elif language is Language.nld:
-                result = BaseName("Onbepaald", Language.nld)
-            elif language is Language.nob:
-                result = BaseName("Ikke Definert", Language.nob)  # Norwegian (Bokmål)
+            if language is Language.SPA:
+                result = BaseName("Sin Definir", Language.SPA)
+            elif language is Language.DEU:
+                result = BaseName("Undefiniert", Language.DEU)
+            elif language is Language.ITA:
+                result = BaseName("Indefinito", Language.ITA)
+            elif language is Language.FRA:
+                result = BaseName("Indéfini", Language.FRA)
+            elif language is Language.NLD:
+                result = BaseName("Onbepaald", Language.NLD)
+            elif language is Language.NOB:
+                result = BaseName("Ikke Definert", Language.NOB)  # Norwegian (Bokmål)
             else:
-                result = BaseName("Undefined", Language.eng)
+                result = BaseName("Undefined", Language.ENG)
         return result
 
     def get_base_name(self, identifier):

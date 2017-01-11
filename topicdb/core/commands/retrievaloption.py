@@ -9,9 +9,9 @@ from enum import Enum
 
 
 class RetrievalOption(Enum):
-    resolve_attributes = 1
-    dont_resolve_attributes = 2
-    resolve_occurrences = 3
-    dont_resolve_occurrences = 4
-    inline_resource_data = 5
-    dont_inline_resource_data = 6
+    RESOLVE_ATTRIBUTES = 1
+    DONT_RESOLVE_ATTRIBUTES = 2
+    RESOLVE_OCCURRENCES = 3
+    DONT_RESOLVE_OCCURRENCES = 4
+    INLINE_RESOURCE_DATA = 5
+    DONT_INLINE_RESOURCE_DATA = 6

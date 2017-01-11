@@ -16,9 +16,9 @@ from topicdb.core.topicstoreerror import TopicStoreError
 class GetTopics:
 
     def __init__(self, database_path, topic_map_identifier,
-                 instance_of='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 language=Language.eng,
+                 instance_of=None,
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                 language=None,
                  offset=0,
                  limit=100):
         self.database_path = database_path
@@ -37,7 +37,8 @@ class GetTopics:
 
         cursor = connection.cursor()
         try:
-            if self.instance_of == '':
+
+            if self.instance_of is None:
                 sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.limit, self.offset)
             else:
