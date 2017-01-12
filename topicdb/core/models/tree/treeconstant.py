@@ -9,6 +9,6 @@ from enum import Enum
 
 
 class TreeConstant(Enum):
-    root = 1
-    depth = 2
-    breadth = 3
+    ROOT = 1
+    DEPTH = 2
+    BREADTH = 3

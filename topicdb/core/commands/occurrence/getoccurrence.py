@@ -20,8 +20,7 @@ class GetOccurrence:
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
                  inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                 language=Language.ENG):
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
@@ -54,7 +53,9 @@ class GetOccurrence:
                     Language[record['language']])
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     # TODO: Optimize.
-                    result.add_attributes(GetAttributes(self.database_path, self.topic_map_identifier, self.identifier).execute())
+                    result.add_attributes(GetAttributes(self.database_path,
+                                                        self.topic_map_identifier,
+                                                        self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

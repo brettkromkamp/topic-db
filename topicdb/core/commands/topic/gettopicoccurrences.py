@@ -18,23 +18,23 @@ from topicdb.core.topicstoreerror import TopicStoreError
 class GetTopicOccurrences:
 
     def __init__(self, database_path, topic_map_identifier,
-                 topic_identifier='',
+                 identifier='',
+                 instance_of=None,
+                 scope=None,
+                 language=None,
                  inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                 instance_of='',
-                 scope='*',
-                 language=Language.ENG):
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
-        self.topic_identifier = topic_identifier
-        self.inline_resource_data = inline_resource_data
-        self.resolve_attributes = resolve_attributes
+        self.identifier = identifier
         self.instance_of = instance_of
         self.scope = scope
         self.language = language
+        self.inline_resource_data = inline_resource_data
+        self.resolve_attributes = resolve_attributes
 
     def execute(self):
-        if self.topic_identifier == '':
+        if self.identifier == '':
             raise TopicStoreError("Missing 'topic identifier' parameter")
         result = []
 
@@ -45,11 +45,11 @@ class GetTopicOccurrences:
         try:
             if self.instance_of == '':
                 sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND scope = ? AND language = ?"
-                bind_variables = (self.topic_map_identifier, self.topic_identifier, self.scope,
+                bind_variables = (self.topic_map_identifier, self.identifier, self.scope,
                                   self.language.name)
             else:
                 sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND instance_of = ? AND scope = ? AND language = ?"
-                bind_variables = (self.topic_map_identifier, self.topic_identifier,
+                bind_variables = (self.topic_map_identifier, self.identifier,
                                   self.instance_of,
                                   self.scope,
                                   self.language.name)

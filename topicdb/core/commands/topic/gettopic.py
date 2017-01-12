@@ -20,9 +20,9 @@ class GetTopic:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
+                 language=None,
                  resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
-                 language=None):
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
@@ -45,14 +45,12 @@ class GetTopic:
             if topic_record:
                 result = Topic(topic_record['identifier'], topic_record['instance_of'])
                 result.clear_base_names()
-
                 if self.language is None:
                     sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
                     bind_variables = (self.topic_map_identifier, self.identifier)
                 else:
                     sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
-                    bind_variables = (self.topic_map_identifier, self.identifier, self.language)
-
+                    bind_variables = (self.topic_map_identifier, self.identifier, self.language.name)
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:

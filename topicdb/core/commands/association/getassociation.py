@@ -21,15 +21,15 @@ class GetAssociation:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
+                 language=None,
                  resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
-                 language=Language.ENG):
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
+        self.language = language
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
-        self.language = language
 
     def execute(self):
         if self.identifier == '':
@@ -49,8 +49,14 @@ class GetAssociation:
                     instance_of=association_record['instance_of'],
                     scope=association_record['scope'])
                 result.clear_base_names()
-                cursor.execute("SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?",
-                               (self.topic_map_identifier, self.identifier))
+                if self.language is None:
+                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
+                    bind_variables = (self.topic_map_identifier, self.identifier)
+                else:
+                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
+                    bind_variables = (self.topic_map_identifier, self.identifier,
+                                      self.language.name)
+                cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
                     for base_name_record in base_name_records:

@@ -17,15 +17,19 @@ class GetTopicAssociations:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
+                 instance_of=None,
+                 scope=None,
+                 language=None,
                  resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES,
-                 language=Language.ENG):
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
+        self.instance_of = instance_of
+        self.scope = scope
+        self.language = language
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
-        self.language = language
 
     def execute(self):
         if self.identifier == '':
