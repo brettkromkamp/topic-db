@@ -5,8 +5,8 @@ July 13, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from topicdb.core.commands.associationfield import AssociationField
 from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
-from topicdb.core.models.associationfield import AssociationField
 from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.topicstoreerror import TopicStoreError
 
@@ -26,10 +26,10 @@ class GetAssociationGroups:
     def execute(self):
         # TODO: Review logic for lines 27-33.
         if self.identifier == '' and self.associations is None:
-            raise TopicStoreError("At least one of the 'IDENTIFIER' or 'associations' parameters is required")
+            raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
         if self.associations is None and (self.database_path == '' or self.topic_map_identifier is None):
-            raise TopicStoreError("Missing 'database path' or 'topicmap IDENTIFIER' parameters")
+            raise TopicStoreError("Missing 'database path' or 'topicmap identifier' parameters")
 
         result = DoubleKeyDict()
         if not self.associations:
@@ -38,9 +38,9 @@ class GetAssociationGroups:
         for association in self.associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
             for resolved_topic_ref in resolved_topic_refs:
-                instance_of = resolved_topic_ref[AssociationField.instance_of.value]
-                role_spec = resolved_topic_ref[AssociationField.role_spec.value]
-                topic_ref = resolved_topic_ref[AssociationField.topic_ref.value]
+                instance_of = resolved_topic_ref[AssociationField.INSTANCE_OF.value]
+                role_spec = resolved_topic_ref[AssociationField.ROLE_SPEC.value]
+                topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
                 if topic_ref != self.identifier:
                     if [instance_of, role_spec] in result:
                         topic_refs = result[instance_of, role_spec]

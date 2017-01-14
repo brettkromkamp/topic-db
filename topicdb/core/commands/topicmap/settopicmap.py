@@ -109,10 +109,8 @@ class SetTopicMap:
             ('nld', 'Dutch Language'),
             ('nob', 'Norwegian (Bokmål) Language')}
 
-        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier,
-                                     ontology_mode=OntologyMode.LENIENT)
+        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier, ontology_mode=OntologyMode.LENIENT)
         for item in self.items:
-            topic = Topic(identifier=item[TopicField.IDENTIFIER.value],
-                          base_name=item[TopicField.BASE_NAME.value])
+            topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
             set_topic_command.topic = topic
             set_topic_command.execute()

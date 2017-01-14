@@ -19,7 +19,7 @@ class TopicExists:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         result = False
 
         connection = sqlite3.connect(self.database_path)
@@ -27,7 +27,7 @@ class TopicExists:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT IDENTIFIER FROM topic WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT identifier FROM topic WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 result = True

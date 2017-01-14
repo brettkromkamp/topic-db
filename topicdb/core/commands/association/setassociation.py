@@ -45,24 +45,24 @@ class SetAssociation:
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, IDENTIFIER, instance_of, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
+                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
                 for base_name in self.association.base_names:
-                    connection.execute("INSERT INTO basename (topicmap_identifier, IDENTIFIER, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
+                    connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
                                        (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
                                         self.association.identifier,
                                         base_name.language.name))
                 for member in self.association.members:
-                    connection.execute("INSERT INTO member (topicmap_identifier, IDENTIFIER, role_spec, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
+                    connection.execute("INSERT INTO member (topicmap_identifier, identifier, ROLE_SPEC, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
                     for topic_ref in member.topic_refs:
-                        connection.execute("INSERT INTO topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (?, ?, ?)", (self.topic_map_identifier, topic_ref, member.identifier))
+                        connection.execute("INSERT INTO topicref (topicmap_identifier, TOPIC_REF, member_identifier_fk) VALUES (?, ?, ?)", (self.topic_map_identifier, topic_ref, member.identifier))
 
-            if not self.association.get_attribute_by_name('creation-timestamp'):
+            if not self.association.get_attribute_by_name('creation-TIMESTAMP'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-timestamp', timestamp,
+                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp,
                                                 self.association.identifier,
-                                                data_type=DataType.timestamp,
+                                                data_type=DataType.TIMESTAMP,
                                                 scope='*',
                                                 language=Language.ENG)
                 self.association.add_attribute(timestamp_attribute)

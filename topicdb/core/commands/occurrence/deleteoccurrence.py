@@ -20,13 +20,13 @@ class DeleteOccurrence:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:  # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
-                connection.execute("DELETE FROM occurrence WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
+                connection.execute("DELETE FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             DeleteAttributes(self.database_path, self.topic_map_identifier, self.identifier).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)

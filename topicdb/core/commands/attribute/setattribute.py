@@ -25,7 +25,7 @@ class SetAttribute:
         if self.attribute is None:
             raise TopicStoreError("Missing 'attribute' parameter")
         elif self.attribute.entity_identifier == '':
-            raise TopicStoreError("Attribute has an empty 'entity IDENTIFIER' property")
+            raise TopicStoreError("Attribute has an empty 'entity identifier' property")
 
         if self.ontology_mode is OntologyMode.STRICT:
             scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
@@ -37,7 +37,7 @@ class SetAttribute:
 
         try:
             with connection:
-                connection.execute("INSERT INTO attribute (topicmap_identifier, IDENTIFIER, parent_identifier_fk, name, value, data_type, scope, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                connection.execute("INSERT INTO attribute (topicmap_identifier, identifier, parent_identifier_fk, name, value, data_type, scope, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.attribute.identifier,
                                     self.attribute.entity_identifier,

@@ -22,7 +22,7 @@ class GetAttribute:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -30,14 +30,14 @@ class GetAttribute:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT * FROM attribute WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 result = Attribute(
                     record['name'],
                     record['value'],
                     record['parent_identifier_fk'],
-                    record['IDENTIFIER'],
+                    record['identifier'],
                     DataType[record['data_type']],
                     record['scope'],
                     Language[record['language']])

@@ -29,7 +29,7 @@ class GetTopicAssociations:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'topic IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'topic identifier' parameter")
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -37,11 +37,11 @@ class GetTopicAssociations:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND topic_ref = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND TOPIC_REF = ?", (self.topic_map_identifier, self.identifier))
             topic_ref_records = cursor.fetchall()
             if topic_ref_records:
                 for topic_ref_record in topic_ref_records:
-                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, topic_ref_record['member_identifier_fk']))
+                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, topic_ref_record['member_identifier_fk']))
                     member_records = cursor.fetchall()
                     if member_records:
                         for member_record in member_records:

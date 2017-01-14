@@ -43,21 +43,21 @@ class SetTopic:
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, IDENTIFIER, instance_of) VALUES (?, ?, ?)",
+                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, INSTANCE_OF) VALUES (?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.topic.identifier,
                                     self.topic.instance_of))
                 for base_name in self.topic.base_names:
-                    connection.execute("INSERT INTO basename (topicmap_identifier, IDENTIFIER, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
+                    connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
                                        (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
                                         self.topic.identifier,
                                         base_name.language.name))
-            if not self.topic.get_attribute_by_name('creation-timestamp'):
+            if not self.topic.get_attribute_by_name('creation-TIMESTAMP'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-timestamp', timestamp, self.topic.identifier,
-                                                data_type=DataType.timestamp,
+                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp, self.topic.identifier,
+                                                data_type=DataType.TIMESTAMP,
                                                 scope='*',
                                                 language=Language.ENG)
                 self.topic.add_attribute(timestamp_attribute)

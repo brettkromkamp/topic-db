@@ -6,9 +6,9 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
-from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
+from topicdb.core.commands.associationfield import AssociationField
 from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.models.associationfield import AssociationField
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
 from topicdb.core.models.tree.tree import Tree
 from topicdb.core.topicstoreerror import TopicStoreError
 
@@ -31,7 +31,7 @@ class GetTopicsHierarchy:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         if self.accumulative_tree is None:
             tree = Tree()
             root_topic = GetTopic(self.database_path, self.topic_map_identifier, self.identifier).execute()
@@ -50,7 +50,7 @@ class GetTopicsHierarchy:
             for association in associations:
                 resolved_topic_refs = GetAssociationGroups._resolve_topic_refs(association)
                 for resolved_topic_ref in resolved_topic_refs:
-                    topic_ref = resolved_topic_ref[AssociationField.topic_ref.value]
+                    topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
                     if topic_ref != self.identifier and topic_ref not in nodes:
                         topic = GetTopic(self.database_path, self.topic_map_identifier, topic_ref).execute()
                         tree.add_node(topic_ref, parent=self.identifier, topic=topic)

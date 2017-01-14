@@ -20,7 +20,7 @@ class GetRelatedTopics:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
         associations = GetTopicAssociations(

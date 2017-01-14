@@ -32,11 +32,11 @@ class GetTopicIdentifiers:
 
         cursor = connection.cursor()
         try:
-            sql = "SELECT IDENTIFIER FROM topic WHERE topicmap_identifier = ? AND IDENTIFIER LIKE ? AND scope IS NULL ORDER BY IDENTIFIER LIMIT ? OFFSET ?"
+            sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND identifier LIKE ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
             cursor.execute(sql, (self.topic_map_identifier, query_string, self.limit, self.offset))
             records = cursor.fetchall()
             for record in records:
-                result.append(record['IDENTIFIER'])
+                result.append(record['identifier'])
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

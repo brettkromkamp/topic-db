@@ -18,7 +18,7 @@ class Attribute:
 
     def __init__(self, name, value, entity_identifier,
                  identifier='',
-                 data_type=DataType.string,
+                 data_type=DataType.STRING,
                  scope='*',
                  language=Language.ENG):
         if entity_identifier == '*':  # Universal Scope.

@@ -9,7 +9,7 @@ from enum import Enum
 
 
 class DataType(Enum):
-    string = 1
-    number = 2
-    timestamp = 3
-    boolean = 4
+    STRING = 1
+    NUMBER = 2
+    TIMESTAMP = 3
+    BOOLEAN = 4

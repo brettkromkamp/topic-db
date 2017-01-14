@@ -32,7 +32,7 @@ class SetOccurrence:
         if self.occurrence is None:
             raise TopicStoreError("Missing 'occurrence' parameter")
         elif self.occurrence.topic_identifier == '':
-            raise TopicStoreError("Occurrence has an empty 'topic IDENTIFIER' property")
+            raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
 
         if self.ontology_mode is OntologyMode.STRICT:
             instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
@@ -49,7 +49,7 @@ class SetOccurrence:
 
         try:
             with connection:
-                connection.execute("INSERT INTO occurrence (topicmap_identifier, IDENTIFIER, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                connection.execute("INSERT INTO occurrence (topicmap_identifier, identifier, INSTANCE_OF, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.occurrence.identifier,
                                     self.occurrence.instance_of,
@@ -58,11 +58,11 @@ class SetOccurrence:
                                     self.occurrence.resource_data,
                                     self.occurrence.topic_identifier,
                                     self.occurrence.language.name))
-            if not self.occurrence.get_attribute_by_name('creation-timestamp'):
+            if not self.occurrence.get_attribute_by_name('creation-TIMESTAMP'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-timestamp', timestamp,
+                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp,
                                                 self.occurrence.identifier,
-                                                data_type=DataType.timestamp,
+                                                data_type=DataType.TIMESTAMP,
                                                 scope='*',
                                                 language=Language.ENG)
                 self.occurrence.add_attribute(timestamp_attribute)

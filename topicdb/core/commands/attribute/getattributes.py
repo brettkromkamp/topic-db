@@ -27,7 +27,7 @@ class GetAttributes:
 
     def execute(self):
         if self.entity_identifier == '':
-            raise TopicStoreError("Missing 'entity IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'entity identifier' parameter")
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -57,7 +57,7 @@ class GetAttributes:
                     record['name'],
                     record['value'],
                     record['parent_identifier_fk'],
-                    record['IDENTIFIER'],
+                    record['identifier'],
                     DataType[record['data_type']],
                     record['scope'],
                     Language[record['language']])

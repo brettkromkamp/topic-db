@@ -19,13 +19,13 @@ class DeleteAttribute:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:  # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
-                connection.execute("DELETE FROM attribute WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
+                connection.execute("DELETE FROM attribute WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

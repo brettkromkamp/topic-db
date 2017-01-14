@@ -19,7 +19,7 @@ class GetTopicMap:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -35,7 +35,7 @@ class GetTopicMap:
                     record['topicmap_identifier_fk'],
                     record['entry_identifier_fk'],
                     record['description'])
-                result.identifier = record['IDENTIFIER']
+                result.identifier = record['identifier']
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

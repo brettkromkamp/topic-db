@@ -19,7 +19,7 @@ class GetTags:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
+            raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
         associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
