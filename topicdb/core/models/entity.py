@@ -14,9 +14,7 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class Entity:
 
-    def __init__(self,
-                 identifier='',
-                 instance_of='entity'):
+    def __init__(self, identifier='', instance_of='entity'):
         if instance_of == '':
             raise TopicStoreError("Empty 'instance of' parameter")
 

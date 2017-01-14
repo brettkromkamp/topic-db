@@ -14,10 +14,7 @@ from topicdb.core.models.language import Language
 
 class BaseName:
 
-    def __init__(self,
-                 name,
-                 language=Language.ENG,
-                 identifier=''):
+    def __init__(self, name, language=Language.ENG, identifier=''):
         self.__identifier = (str(uuid.uuid4()) if identifier == '' else slugify(str(identifier)))
 
         self.name = name

@@ -12,11 +12,7 @@ from topicdb.core.models.language import Language
 
 class Topic(Entity):
 
-    def __init__(self,
-                 identifier='',
-                 instance_of='topic',
-                 base_name='Undefined',
-                 language=Language.ENG):
+    def __init__(self, identifier='', instance_of='topic', base_name='Undefined', language=Language.ENG):
         super().__init__(identifier, instance_of)
 
         default_base_name = BaseName(base_name, language)
