@@ -20,7 +20,6 @@ class GetAssociationGroups:
         self.associations = associations
 
     def execute(self):
-        # TODO: Review logic for lines 22-28.
         if self.identifier == '' and self.associations is None:
             raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
