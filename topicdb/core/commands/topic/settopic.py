@@ -43,7 +43,7 @@ class SetTopic:
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, INSTANCE_OF) VALUES (?, ?, ?)",
+                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, instance_of) VALUES (?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.topic.identifier,
                                     self.topic.instance_of))

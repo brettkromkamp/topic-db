@@ -62,17 +62,17 @@ class GetOccurrences:
             else:
                 if self.scope is None:
                     if self.language is None:
-                        query_filter = " AND INSTANCE_OF = ?"
+                        query_filter = " AND instance_of = ?"
                         bind_variables = (self.topic_map_identifier, self.instance_of)
                     else:
-                        query_filter = " AND INSTANCE_OF = ? AND language = ?"
+                        query_filter = " AND instance_of = ? AND language = ?"
                         bind_variables = (self.topic_map_identifier, self.instance_of, self.language.name.lower())
                 else:
                     if self.language is None:
-                        query_filter = " AND INSTANCE_OF = ? AND scope = ?"
+                        query_filter = " AND instance_of = ? AND scope = ?"
                         bind_variables = (self.topic_map_identifier, self.instance_of, self.scope)
                     else:
-                        query_filter = " AND INSTANCE_OF = ? AND scope = ? AND language = ?"
+                        query_filter = " AND instance_of = ? AND scope = ? AND language = ?"
                         bind_variables = (self.topic_map_identifier, self.instance_of, self.scope, self.language.name.lower())
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
@@ -82,7 +82,7 @@ class GetOccurrences:
                     resource_data = GetOccurrenceData(self.database_path, self.topic_map_identifier, record['identifier']).execute()
                 occurrence = Occurrence(
                     record['identifier'],
-                    record['INSTANCE_OF'],
+                    record['instance_of'],
                     record['topic_identifier_fk'],
                     record['scope'],
                     record['resource_ref'],

@@ -37,7 +37,7 @@ class GetOccurrence:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier, INSTANCE_OF, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 resource_data = None
@@ -45,14 +45,13 @@ class GetOccurrence:
                     resource_data = GetOccurrenceData(self.database_path, self.identifier).execute()
                 result = Occurrence(
                     record['identifier'],
-                    record['INSTANCE_OF'],
+                    record['instance_of'],
                     record['topic_identifier_fk'],
                     record['scope'],
                     record['resource_ref'],
                     resource_data,
                     Language[record['language'].upper()])
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
-                    # TODO: Optimize.
                     result.add_attributes(GetAttributes(self.database_path,
                                                         self.topic_map_identifier,
                                                         self.identifier).execute())

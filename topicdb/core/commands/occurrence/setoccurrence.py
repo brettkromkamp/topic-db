@@ -49,7 +49,7 @@ class SetOccurrence:
 
         try:
             with connection:
-                connection.execute("INSERT INTO occurrence (topicmap_identifier, identifier, INSTANCE_OF, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                connection.execute("INSERT INTO occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.occurrence.identifier,
                                     self.occurrence.instance_of,

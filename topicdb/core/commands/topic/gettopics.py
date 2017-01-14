@@ -42,7 +42,7 @@ class GetTopics:
                 sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.limit, self.offset)
             else:
-                sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND INSTANCE_OF = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
+                sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND instance_of = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.instance_of, self.limit, self.offset)
 
             cursor.execute(sql, bind_variables)

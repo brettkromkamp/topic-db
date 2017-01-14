@@ -35,14 +35,14 @@ class Attribute:
         self.value = value
 
     def __repr__(self):
-        return("Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
+        return "Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
             self.name,
             self.value,
             self.__entity_identifier,
             self.__identifier,
             str(self.data_type),
             self.__scope,
-            str(self.language)))
+            str(self.language))
 
     @property
     def entity_identifier(self):

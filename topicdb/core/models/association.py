@@ -66,7 +66,7 @@ class Association(Topic):
             self.__members.append(member)
 
     def remove_member(self, identifier):
-        self.__members[:] = [x for x in self.__members if x.identifier != identifier]  # TODO: Verify.
+        self.__members[:] = [x for x in self.__members if x.identifier != identifier]
 
     def clear_members(self):
         del self.__members[:]

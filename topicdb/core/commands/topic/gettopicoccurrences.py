@@ -43,7 +43,7 @@ class GetTopicOccurrences:
 
         cursor = connection.cursor()
         try:
-            sql = "SELECT identifier, INSTANCE_OF, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? {0}"
+            sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? {0}"
             if self.instance_of is None:
                 if self.scope is None:
                     if self.language is None:
@@ -62,17 +62,17 @@ class GetTopicOccurrences:
             else:
                 if self.scope is None:
                     if self.language is None:
-                        query_filter = " AND INSTANCE_OF = ?"
+                        query_filter = " AND instance_of = ?"
                         bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of)
                     else:
-                        query_filter = " AND INSTANCE_OF = ? AND language = ?"
+                        query_filter = " AND instance_of = ? AND language = ?"
                         bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.language.name.lower())
                 else:
                     if self.language is None:
-                        query_filter = " AND INSTANCE_OF = ? AND scope = ?"
+                        query_filter = " AND instance_of = ? AND scope = ?"
                         bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.scope)
                     else:
-                        query_filter = " AND INSTANCE_OF = ? AND scope = ? AND language = ?"
+                        query_filter = " AND instance_of = ? AND scope = ? AND language = ?"
                         bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.scope, self.language.name.lower())
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
@@ -82,7 +82,7 @@ class GetTopicOccurrences:
                     resource_data = GetOccurrenceData(self.database_path, self.topic_map_identifier, record['identifier']).execute()
                 occurrence = Occurrence(
                     record['identifier'],
-                    record['INSTANCE_OF'],
+                    record['instance_of'],
                     record['topic_identifier_fk'],
                     record['scope'],
                     record['resource_ref'],

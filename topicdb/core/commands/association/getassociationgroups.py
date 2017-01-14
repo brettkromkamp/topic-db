@@ -13,18 +13,14 @@ from topicdb.core.topicstoreerror import TopicStoreError
 
 class GetAssociationGroups:
 
-    def __init__(self,
-                 database_path='',
-                 topic_map_identifier=None,
-                 identifier='',
-                 associations=None):
+    def __init__(self, database_path='', topic_map_identifier=None, identifier='', associations=None):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.associations = associations
 
     def execute(self):
-        # TODO: Review logic for lines 27-33.
+        # TODO: Review logic for lines 22-28.
         if self.identifier == '' and self.associations is None:
             raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
