@@ -31,11 +31,10 @@ class GetTopicsHierarchy:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
         if self.accumulative_tree is None:
             tree = Tree()
-            root_topic = GetTopic(self.database_path, self.topic_map_identifier,
-                                  self.identifier).execute()
+            root_topic = GetTopic(self.database_path, self.topic_map_identifier, self.identifier).execute()
             tree.add_node(self.identifier, parent=None, topic=root_topic)
         else:
             tree = self.accumulative_tree
@@ -53,8 +52,7 @@ class GetTopicsHierarchy:
                 for resolved_topic_ref in resolved_topic_refs:
                     topic_ref = resolved_topic_ref[AssociationField.topic_ref.value]
                     if topic_ref != self.identifier and topic_ref not in nodes:
-                        topic = GetTopic(self.database_path, self.topic_map_identifier,
-                                         topic_ref).execute()
+                        topic = GetTopic(self.database_path, self.topic_map_identifier, topic_ref).execute()
                         tree.add_node(topic_ref, parent=self.identifier, topic=topic)
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)

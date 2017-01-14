@@ -24,7 +24,7 @@ class GetTopicMaps:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM topicmap ORDER BY identifier")
+            cursor.execute("SELECT * FROM topicmap ORDER BY IDENTIFIER")
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -32,8 +32,13 @@ class GetTopicMaps:
                     record['topicmap_identifier_fk'],
                     record['entry_identifier_fk'],
                     record['description'])
-                topic_map.identifier = record['identifier']
+                topic_map.identifier = record['IDENTIFIER']
                 result.append(topic_map)
         except sqlite3.Error as error:
             raise TopicStoreError(error)
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
         return result

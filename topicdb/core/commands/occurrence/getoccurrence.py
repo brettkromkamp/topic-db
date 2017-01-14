@@ -29,7 +29,7 @@ class GetOccurrence:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -37,14 +37,14 @@ class GetOccurrence:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT IDENTIFIER, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 resource_data = None
                 if self.inline_resource_data:
                     resource_data = GetOccurrenceData(self.database_path, self.identifier).execute()
                 result = Occurrence(
-                    record['identifier'],
+                    record['IDENTIFIER'],
                     record['instance_of'],
                     record['topic_identifier_fk'],
                     record['scope'],

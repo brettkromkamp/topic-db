@@ -21,13 +21,13 @@ class SetOccurrenceData:
 
     def execute(self):
         if self.identifier == '' or self.resource_data is None:
-            raise TopicStoreError("Missing either or both 'identifier' and 'resource data' parameters")
+            raise TopicStoreError("Missing either or both 'IDENTIFIER' and 'resource data' parameters")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:
-                connection.execute("UPDATE occurrence SET resource_data = ? WHERE topicmap_identifier = ? AND identifier = ?", (self.resource_data, self.topic_map_identifier, self.identifier))
+                connection.execute("UPDATE occurrence SET resource_data = ? WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.resource_data, self.topic_map_identifier, self.identifier))
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

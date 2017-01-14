@@ -21,7 +21,7 @@ class SetTags:
 
     def execute(self):
         if self.tags is None or self.identifier == '':
-            raise TopicStoreError("Missing 'tags' or 'identifier' parameter")
+            raise TopicStoreError("Missing 'tags' or 'IDENTIFIER' parameter")
 
         for tag in self.tags:
             SetTag(self.database_path, self.topic_map_identifier, self.identifier, tag).execute()

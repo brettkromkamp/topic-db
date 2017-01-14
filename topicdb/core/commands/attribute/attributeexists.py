@@ -27,7 +27,7 @@ class AttributeExists:
 
     def execute(self):
         if self.entity_identifier == '' or self.name == '':
-            raise TopicStoreError("Missing 'entity identifier' or 'name' parameters")
+            raise TopicStoreError("Missing 'entity IDENTIFIER' or 'name' parameters")
         result = False
 
         connection = sqlite3.connect(self.database_path)
@@ -35,7 +35,7 @@ class AttributeExists:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ? AND scope = ? AND language = ?", (self.topic_map_identifier, self.entity_identifier, self.name, self.scope, self.language))
+            cursor.execute("SELECT IDENTIFIER FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ? AND scope = ? AND language = ?", (self.topic_map_identifier, self.entity_identifier, self.name, self.scope, self.language))
             record = cursor.fetchone()
             if record:
                 result = True

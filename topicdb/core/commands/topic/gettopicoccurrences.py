@@ -35,7 +35,7 @@ class GetTopicOccurrences:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'topic identifier' parameter")
+            raise TopicStoreError("Missing 'topic IDENTIFIER' parameter")
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -43,27 +43,45 @@ class GetTopicOccurrences:
 
         cursor = connection.cursor()
         try:
-            if self.instance_of == '':
-                sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND scope = ? AND language = ?"
-                bind_variables = (self.topic_map_identifier, self.identifier, self.scope,
-                                  self.language.name)
+            sql = "SELECT IDENTIFIER, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? {0}"
+            if self.instance_of is None:
+                if self.scope is None:
+                    if self.language is None:
+                        query_filter = ""
+                        bind_variables = (self.topic_map_identifier, self.identifier)
+                    else:
+                        query_filter = " AND language = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.language.name)
+                else:
+                    if self.language is None:
+                        query_filter = " AND scope = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.scope)
+                    else:
+                        query_filter = " AND scope = ? AND language = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.scope, self.language.name)
             else:
-                sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND instance_of = ? AND scope = ? AND language = ?"
-                bind_variables = (self.topic_map_identifier, self.identifier,
-                                  self.instance_of,
-                                  self.scope,
-                                  self.language.name)
-            cursor.execute(sql, bind_variables)
+                if self.scope is None:
+                    if self.language is None:
+                        query_filter = " AND instance_of = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of)
+                    else:
+                        query_filter = " AND instance_of = ? AND language = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.language.name)
+                else:
+                    if self.language is None:
+                        query_filter = " AND instance_of = ? AND scope = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.scope)
+                    else:
+                        query_filter = " AND instance_of = ? AND scope = ? AND language = ?"
+                        bind_variables = (self.topic_map_identifier, self.identifier, self.instance_of, self.scope, self.language.name)
+            cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
                 resource_data = None
                 if self.inline_resource_data:
-                    # TODO: Optimize.
-                    resource_data = GetOccurrenceData(self.database_path,
-                                                      self.topic_map_identifier,
-                                                      record['identifier']).execute()
+                    resource_data = GetOccurrenceData(self.database_path, self.topic_map_identifier, record['IDENTIFIER']).execute()
                 occurrence = Occurrence(
-                    record['identifier'],
+                    record['IDENTIFIER'],
                     record['instance_of'],
                     record['topic_identifier_fk'],
                     record['scope'],
@@ -71,10 +89,7 @@ class GetTopicOccurrences:
                     resource_data,
                     Language[record['language']])
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
-                    # TODO: Optimize.
-                    occurrence.add_attributes(
-                        GetAttributes(self.database_path, self.topic_map_identifier,
-                                      occurrence.identifier).execute())
+                    occurrence.add_attributes(GetAttributes(self.database_path, self.topic_map_identifier, occurrence.identifier).execute())
                 result.append(occurrence)
         except sqlite3.Error as error:
             raise TopicStoreError(error)

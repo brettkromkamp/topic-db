@@ -33,32 +33,28 @@ class SetAssociation:
             raise TopicStoreError("Missing 'association' parameter")
 
         if self.ontology_mode is OntologyMode.STRICT:
-            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
-                                             self.association.instance_of).execute()
+            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier, self.association.instance_of).execute()
             if not instance_of_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
-            scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
-                                       self.association.scope).execute()
+            scope_exists = TopicExists(self.database_path, self.topic_map_identifier, self.association.scope).execute()
             if not scope_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, instance_of, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
+                connection.execute("INSERT INTO topic (topicmap_identifier, IDENTIFIER, instance_of, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
                 for base_name in self.association.base_names:
-                    connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
+                    connection.execute("INSERT INTO basename (topicmap_identifier, IDENTIFIER, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
                                        (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
                                         self.association.identifier,
                                         base_name.language.name))
                 for member in self.association.members:
-                    connection.execute("INSERT INTO member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
+                    connection.execute("INSERT INTO member (topicmap_identifier, IDENTIFIER, role_spec, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
                     for topic_ref in member.topic_refs:
                         connection.execute("INSERT INTO topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (?, ?, ?)", (self.topic_map_identifier, topic_ref, member.identifier))
 
@@ -70,8 +66,7 @@ class SetAssociation:
                                                 scope='*',
                                                 language=Language.ENG)
                 self.association.add_attribute(timestamp_attribute)
-            SetAttributes(self.database_path, self.topic_map_identifier,
-                          self.association.attributes).execute()
+            SetAttributes(self.database_path, self.topic_map_identifier, self.association.attributes).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

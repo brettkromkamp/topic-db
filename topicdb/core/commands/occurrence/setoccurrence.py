@@ -32,26 +32,24 @@ class SetOccurrence:
         if self.occurrence is None:
             raise TopicStoreError("Missing 'occurrence' parameter")
         elif self.occurrence.topic_identifier == '':
-            raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
+            raise TopicStoreError("Occurrence has an empty 'topic IDENTIFIER' property")
 
         if self.ontology_mode is OntologyMode.STRICT:
             instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                              self.occurrence.instance_of).execute()
             if not instance_of_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
             scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
                                        self.occurrence.scope).execute()
             if not scope_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:
-                connection.execute("INSERT INTO occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                connection.execute("INSERT INTO occurrence (topicmap_identifier, IDENTIFIER, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.occurrence.identifier,
                                     self.occurrence.instance_of,

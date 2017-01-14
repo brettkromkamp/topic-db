@@ -19,7 +19,7 @@ class OccurrenceExists:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
         result = False
 
         connection = sqlite3.connect(self.database_path)
@@ -27,7 +27,7 @@ class OccurrenceExists:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier FROM occurrence WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT IDENTIFIER FROM occurrence WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, self.identifier))
             record = cursor.fetchone()
             if record:
                 result = True

@@ -19,7 +19,7 @@ class DeleteAttributes:
 
     def execute(self):
         if self.entity_identifier == '':
-            raise TopicStoreError("Missing 'entity identifier' parameter")
+            raise TopicStoreError("Missing 'entity IDENTIFIER' parameter")
 
         connection = sqlite3.connect(self.database_path)
 

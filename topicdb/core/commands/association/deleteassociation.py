@@ -20,7 +20,7 @@ class DeleteAssociation:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -30,32 +30,29 @@ class DeleteAssociation:
         try:
             with connection:  # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
                 # Delete topic/association record.
-                connection.execute(
-                    "DELETE FROM topic WHERE topicmap_identifier = ? AND identifier = ? AND scope IS NOT NULL",
-                    (self.topic_map_identifier, self.identifier))
+                connection.execute("DELETE FROM topic WHERE topicmap_identifier = ? AND IDENTIFIER = ? AND scope IS NOT NULL",
+                                   (self.topic_map_identifier, self.identifier))
                 # Delete base name record(s).
-                connection.execute(
-                    "DELETE FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?",
-                    (self.topic_map_identifier, self.identifier))
+                connection.execute("DELETE FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?",
+                                   (self.topic_map_identifier, self.identifier))
                 # Get members.
-                cursor.execute(
-                    "SELECT identifier FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?",
-                    (self.topic_map_identifier, self.identifier))
+                cursor.execute("SELECT IDENTIFIER FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?",
+                               (self.topic_map_identifier, self.identifier))
                 member_records = cursor.fetchall()
                 # Delete members.
-                connection.execute(
-                    "DELETE FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?",
-                    (self.topic_map_identifier, self.identifier))
+                connection.execute("DELETE FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?",
+                                   (self.topic_map_identifier, self.identifier))
                 if member_records:
                     for member_record in member_records:
                         # Delete topic refs.
-                        connection.execute(
-                            "DELETE FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?",
-                            (self.topic_map_identifier, member_record['identifier']))
+                        connection.execute("DELETE FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?",
+                                           (self.topic_map_identifier, member_record['IDENTIFIER']))
             # Delete attributes.
             DeleteAttributes(self.database_path, self.topic_map_identifier, self.identifier)
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:
+            if cursor:
+                cursor.close()
             if connection:
                 connection.close()

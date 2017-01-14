@@ -33,7 +33,7 @@ class GetAssociation:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -41,49 +41,38 @@ class GetAssociation:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier, instance_of, scope FROM topic WHERE topicmap_identifier = ? AND identifier = ? AND scope IS NOT NULL", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT IDENTIFIER, instance_of, scope FROM topic WHERE topicmap_identifier = ? AND IDENTIFIER = ? AND scope IS NOT NULL", (self.topic_map_identifier, self.identifier))
             association_record = cursor.fetchone()
             if association_record:
-                result = Association(
-                    identifier=association_record['identifier'],
-                    instance_of=association_record['instance_of'],
-                    scope=association_record['scope'])
+                result = Association(identifier=association_record['IDENTIFIER'], instance_of=association_record['instance_of'], scope=association_record['scope'])
                 result.clear_base_names()
                 if self.language is None:
-                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
+                    sql = "SELECT name, language, IDENTIFIER FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
                     bind_variables = (self.topic_map_identifier, self.identifier)
                 else:
-                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
-                    bind_variables = (self.topic_map_identifier, self.identifier,
-                                      self.language.name)
+                    sql = "SELECT name, language, IDENTIFIER FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
+                    bind_variables = (self.topic_map_identifier, self.identifier, self.language.name)
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
                     for base_name_record in base_name_records:
-                        result.add_base_name(
-                            BaseName(base_name_record['name'],
-                                     Language[base_name_record['language']],
-                                     base_name_record['identifier']))
+                        result.add_base_name(BaseName(base_name_record['name'], Language[base_name_record['language']], base_name_record['IDENTIFIER']))
                 cursor.execute("SELECT * FROM member WHERE topicmap_identifier = ? AND association_identifier_fk = ?", (self.topic_map_identifier, self.identifier))
                 member_records = cursor.fetchall()
                 if member_records:
                     for member_record in member_records:
                         role_spec = member_record['role_spec']
-                        cursor.execute("SELECT * FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?", (self.topic_map_identifier, member_record['identifier']))
+                        cursor.execute("SELECT * FROM topicref WHERE topicmap_identifier = ? AND member_identifier_fk = ?", (self.topic_map_identifier, member_record['IDENTIFIER']))
                         topic_ref_records = cursor.fetchall()
                         if topic_ref_records:
-                            member = Member(
-                                role_spec=role_spec,
-                                identifier=member_record['identifier'])
+                            member = Member(role_spec=role_spec, identifier=member_record['IDENTIFIER'])
                             for topic_ref_record in topic_ref_records:
                                 member.add_topic_ref(topic_ref_record['topic_ref'])
                             result.add_member(member)
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(GetAttributes(self.database_path,
-                                                        self.identifier).execute())
+                    result.add_attributes(GetAttributes(self.database_path, self.identifier).execute())
                 if self.resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(GetTopicOccurrences(self.database_path,
-                                                               self.identifier).execute())
+                    result.add_occurrences(GetTopicOccurrences(self.database_path, self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

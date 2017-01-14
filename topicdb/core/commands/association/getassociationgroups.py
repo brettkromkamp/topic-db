@@ -24,18 +24,16 @@ class GetAssociationGroups:
         self.associations = associations
 
     def execute(self):
-        # TODO: Review logic for lines 26-34.
+        # TODO: Review logic for lines 27-33.
         if self.identifier == '' and self.associations is None:
-            raise TopicStoreError(
-                "At least one of the 'identifier' or 'associations' parameters is required")
+            raise TopicStoreError("At least one of the 'IDENTIFIER' or 'associations' parameters is required")
 
         if self.associations is None and (self.database_path == '' or self.topic_map_identifier is None):
-            raise TopicStoreError("Missing 'database path' or 'topicmap identifier' parameters")
+            raise TopicStoreError("Missing 'database path' or 'topicmap IDENTIFIER' parameters")
 
         result = DoubleKeyDict()
         if not self.associations:
-            self.associations = GetTopicAssociations(self.database_path, self.topic_map_identifier,
-                                                     self.identifier).execute()
+            self.associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
 
         for association in self.associations:
             resolved_topic_refs = self._resolve_topic_refs(association)

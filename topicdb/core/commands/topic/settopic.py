@@ -35,22 +35,20 @@ class SetTopic:
             raise TopicStoreError("Missing 'topic' parameter")
 
         if self.ontology_mode is OntologyMode.STRICT:
-            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
-                                             self.topic.instance_of).execute()
+            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier, self.topic.instance_of).execute()
             if not instance_of_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, instance_of) VALUES (?, ?, ?)",
+                connection.execute("INSERT INTO topic (topicmap_identifier, IDENTIFIER, instance_of) VALUES (?, ?, ?)",
                                    (self.topic_map_identifier,
                                     self.topic.identifier,
                                     self.topic.instance_of))
                 for base_name in self.topic.base_names:
-                    connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
+                    connection.execute("INSERT INTO basename (topicmap_identifier, IDENTIFIER, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
                                        (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
@@ -58,8 +56,7 @@ class SetTopic:
                                         base_name.language.name))
             if not self.topic.get_attribute_by_name('creation-timestamp'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-timestamp', timestamp,
-                                                self.topic.identifier,
+                timestamp_attribute = Attribute('creation-timestamp', timestamp, self.topic.identifier,
                                                 data_type=DataType.timestamp,
                                                 scope='*',
                                                 language=Language.ENG)

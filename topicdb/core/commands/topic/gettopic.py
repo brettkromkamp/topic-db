@@ -32,7 +32,7 @@ class GetTopic:
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'identifier' parameter")
+            raise TopicStoreError("Missing 'IDENTIFIER' parameter")
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -40,33 +40,26 @@ class GetTopic:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier, instance_of FROM topic WHERE topicmap_identifier = ? AND identifier = ? AND scope IS NULL", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT IDENTIFIER, instance_of FROM topic WHERE topicmap_identifier = ? AND IDENTIFIER = ? AND scope IS NULL", (self.topic_map_identifier, self.identifier))
             topic_record = cursor.fetchone()
             if topic_record:
-                result = Topic(topic_record['identifier'], topic_record['instance_of'])
+                result = Topic(topic_record['IDENTIFIER'], topic_record['instance_of'])
                 result.clear_base_names()
                 if self.language is None:
-                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
+                    sql = "SELECT name, language, IDENTIFIER FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ?"
                     bind_variables = (self.topic_map_identifier, self.identifier)
                 else:
-                    sql = "SELECT name, language, identifier FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
+                    sql = "SELECT name, language, IDENTIFIER FROM basename WHERE topicmap_identifier = ? AND topic_identifier_fk = ? AND language = ?"
                     bind_variables = (self.topic_map_identifier, self.identifier, self.language.name)
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
                     for base_name_record in base_name_records:
-                        result.add_base_name(
-                            BaseName(base_name_record['name'],
-                                     Language[base_name_record['language']],
-                                     base_name_record['identifier']))
+                        result.add_base_name(BaseName(base_name_record['name'], [base_name_record['language']], base_name_record['IDENTIFIER']))
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(GetAttributes(self.database_path,
-                                                        self.topic_map_identifier,
-                                                        self.identifier).execute())
+                    result.add_attributes(GetAttributes(self.database_path, self.topic_map_identifier, self.identifier).execute())
                 if self.resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(GetTopicOccurrences(self.database_path,
-                                                               self.topic_map_identifier,
-                                                               self.identifier).execute())
+                    result.add_occurrences(GetTopicOccurrences(self.database_path, self.topic_map_identifier, self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

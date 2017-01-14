@@ -17,23 +17,19 @@ class GetTopicAssociations:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 instance_of=None,
-                 scope=None,
                  language=None,
                  resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
                  resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
-        self.instance_of = instance_of
-        self.scope = scope
         self.language = language
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
 
     def execute(self):
         if self.identifier == '':
-            raise TopicStoreError("Missing 'topic identifier' parameter")
+            raise TopicStoreError("Missing 'topic IDENTIFIER' parameter")
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -45,16 +41,16 @@ class GetTopicAssociations:
             topic_ref_records = cursor.fetchall()
             if topic_ref_records:
                 for topic_ref_record in topic_ref_records:
-                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND identifier = ?", (self.topic_map_identifier, topic_ref_record['member_identifier_fk']))
+                    cursor.execute("SELECT association_identifier_fk FROM member WHERE topicmap_identifier = ? AND IDENTIFIER = ?", (self.topic_map_identifier, topic_ref_record['member_identifier_fk']))
                     member_records = cursor.fetchall()
                     if member_records:
                         for member_record in member_records:
-                            # TODO: Optimize.
-                            association = GetAssociation(self.database_path, self.topic_map_identifier,
+                            association = GetAssociation(self.database_path,
+                                                         self.topic_map_identifier,
                                                          member_record['association_identifier_fk'],
-                                                         self.resolve_attributes,
-                                                         self.resolve_occurrences,
-                                                         self.language).execute()
+                                                         language=self.language,
+                                                         resolve_attributes=self.resolve_attributes,
+                                                         resolve_occurrences=self.resolve_occurrences).execute()
                             if association:
                                 result.append(association)
         except sqlite3.Error as error:

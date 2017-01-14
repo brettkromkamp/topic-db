@@ -39,17 +39,16 @@ class GetTopics:
         try:
 
             if self.instance_of is None:
-                sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
+                sql = "SELECT IDENTIFIER FROM topic WHERE topicmap_identifier = ? AND scope IS NULL ORDER BY IDENTIFIER LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.limit, self.offset)
             else:
-                sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND instance_of = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
+                sql = "SELECT IDENTIFIER FROM topic WHERE topicmap_identifier = ? AND instance_of = ? AND scope IS NULL ORDER BY IDENTIFIER LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.instance_of, self.limit, self.offset)
 
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
             for record in records:
-                result.append(GetTopic(self.database_path, self.topic_map_identifier,
-                                       record['identifier'],
+                result.append(GetTopic(self.database_path, self.topic_map_identifier, record['IDENTIFIER'],
                                        language=self.language,
                                        resolve_attributes=self.resolve_attributes).execute())
         except sqlite3.Error as error:
