@@ -38,9 +38,9 @@ class GetAttribute:
                     record['value'],
                     record['parent_identifier_fk'],
                     record['identifier'],
-                    DataType[record['data_type']],
+                    DataType[record['data_type'].upper()],
                     record['scope'],
-                    Language[record['language']])
+                    Language[record['language'].upper()])
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

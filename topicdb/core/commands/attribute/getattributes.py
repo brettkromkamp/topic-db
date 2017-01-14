@@ -41,14 +41,14 @@ class GetAttributes:
                     bind_variables = (self.topic_map_identifier, self.entity_identifier)
                 else:
                     sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND language = ?"
-                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.language.name)
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.language.name.lower())
             else:
                 if self.language is None:
                     sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ?"
                     bind_variables = (self.topic_map_identifier, self.entity_identifier, self.scope)
                 else:
                     sql = "SELECT * FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND scope = ? AND language = ?"
-                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.scope, self.language.name)
+                    bind_variables = (self.topic_map_identifier, self.entity_identifier, self.scope, self.language.name.lower())
 
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
@@ -58,9 +58,9 @@ class GetAttributes:
                     record['value'],
                     record['parent_identifier_fk'],
                     record['identifier'],
-                    DataType[record['data_type']],
+                    DataType[record['data_type'].upper()],
                     record['scope'],
-                    Language[record['language']])
+                    Language[record['language'].upper()])
                 result.append(attribute)
         except sqlite3.Error as error:
             raise TopicStoreError(error)

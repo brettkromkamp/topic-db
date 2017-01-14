@@ -51,14 +51,14 @@ class GetOccurrences:
                         bind_variables = (self.topic_map_identifier, )
                     else:
                         query_filter = " AND language = ?"
-                        bind_variables = (self.topic_map_identifier, self.language.name)
+                        bind_variables = (self.topic_map_identifier, self.language.name.lower())
                 else:
                     if self.language is None:
                         query_filter = " AND scope = ?"
                         bind_variables = (self.topic_map_identifier, self.scope)
                     else:
                         query_filter = " AND scope = ? AND language = ?"
-                        bind_variables = (self.topic_map_identifier, self.scope, self.language.name)
+                        bind_variables = (self.topic_map_identifier, self.scope, self.language.name.lower())
             else:
                 if self.scope is None:
                     if self.language is None:
@@ -66,14 +66,14 @@ class GetOccurrences:
                         bind_variables = (self.topic_map_identifier, self.instance_of)
                     else:
                         query_filter = " AND INSTANCE_OF = ? AND language = ?"
-                        bind_variables = (self.topic_map_identifier, self.instance_of, self.language.name)
+                        bind_variables = (self.topic_map_identifier, self.instance_of, self.language.name.lower())
                 else:
                     if self.language is None:
                         query_filter = " AND INSTANCE_OF = ? AND scope = ?"
                         bind_variables = (self.topic_map_identifier, self.instance_of, self.scope)
                     else:
                         query_filter = " AND INSTANCE_OF = ? AND scope = ? AND language = ?"
-                        bind_variables = (self.topic_map_identifier, self.instance_of, self.scope, self.language.name)
+                        bind_variables = (self.topic_map_identifier, self.instance_of, self.scope, self.language.name.lower())
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
@@ -87,7 +87,7 @@ class GetOccurrences:
                     record['scope'],
                     record['resource_ref'],
                     resource_data,
-                    Language[record['language']])
+                    Language[record['language'].upper()])
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     occurrence.add_attributes(GetAttributes(self.database_path, self.topic_map_identifier, occurrence.identifier).execute())
                 result.append(occurrence)

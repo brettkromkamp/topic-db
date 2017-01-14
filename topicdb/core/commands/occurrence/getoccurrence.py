@@ -50,7 +50,7 @@ class GetOccurrence:
                     record['scope'],
                     record['resource_ref'],
                     resource_data,
-                    Language[record['language']])
+                    Language[record['language'].upper()])
                 if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                     # TODO: Optimize.
                     result.add_attributes(GetAttributes(self.database_path,

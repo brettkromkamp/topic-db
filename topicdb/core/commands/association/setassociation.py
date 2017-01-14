@@ -52,15 +52,15 @@ class SetAssociation:
                                         base_name.identifier,
                                         base_name.name,
                                         self.association.identifier,
-                                        base_name.language.name))
+                                        base_name.language.name.lower()))
                 for member in self.association.members:
-                    connection.execute("INSERT INTO member (topicmap_identifier, identifier, ROLE_SPEC, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
+                    connection.execute("INSERT INTO member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
                     for topic_ref in member.topic_refs:
-                        connection.execute("INSERT INTO topicref (topicmap_identifier, TOPIC_REF, member_identifier_fk) VALUES (?, ?, ?)", (self.topic_map_identifier, topic_ref, member.identifier))
+                        connection.execute("INSERT INTO topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (?, ?, ?)", (self.topic_map_identifier, topic_ref, member.identifier))
 
-            if not self.association.get_attribute_by_name('creation-TIMESTAMP'):
+            if not self.association.get_attribute_by_name('creation-timestamp'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp,
+                timestamp_attribute = Attribute('creation-timestamp', timestamp,
                                                 self.association.identifier,
                                                 data_type=DataType.TIMESTAMP,
                                                 scope='*',

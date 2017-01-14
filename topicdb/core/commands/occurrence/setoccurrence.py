@@ -57,10 +57,10 @@ class SetOccurrence:
                                     self.occurrence.resource_ref,
                                     self.occurrence.resource_data,
                                     self.occurrence.topic_identifier,
-                                    self.occurrence.language.name))
-            if not self.occurrence.get_attribute_by_name('creation-TIMESTAMP'):
+                                    self.occurrence.language.name.lower()))
+            if not self.occurrence.get_attribute_by_name('creation-timestamp'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp,
+                timestamp_attribute = Attribute('creation-timestamp', timestamp,
                                                 self.occurrence.identifier,
                                                 data_type=DataType.TIMESTAMP,
                                                 scope='*',

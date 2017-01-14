@@ -53,10 +53,10 @@ class SetTopic:
                                         base_name.identifier,
                                         base_name.name,
                                         self.topic.identifier,
-                                        base_name.language.name))
-            if not self.topic.get_attribute_by_name('creation-TIMESTAMP'):
+                                        base_name.language.name.lower()))
+            if not self.topic.get_attribute_by_name('creation-timestamp'):
                 timestamp = str(datetime.now())
-                timestamp_attribute = Attribute('creation-TIMESTAMP', timestamp, self.topic.identifier,
+                timestamp_attribute = Attribute('creation-timestamp', timestamp, self.topic.identifier,
                                                 data_type=DataType.TIMESTAMP,
                                                 scope='*',
                                                 language=Language.ENG)

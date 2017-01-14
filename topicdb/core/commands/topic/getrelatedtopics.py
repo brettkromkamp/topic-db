@@ -32,5 +32,5 @@ class GetRelatedTopics:
                     for topic_ref in groups[instance_of, role]:
                         if topic_ref == self.identifier:
                             continue
-                        result.append(GetTopic(self.database_path, topic_ref).execute())
+                        result.append(GetTopic(self.database_path, self.topic_map_identifier, topic_ref).execute())
         return result

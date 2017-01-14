@@ -43,9 +43,9 @@ class SetAttribute:
                                     self.attribute.entity_identifier,
                                     self.attribute.name,
                                     self.attribute.value,
-                                    self.attribute.data_type.name,
+                                    self.attribute.data_type.name.lower(),
                                     self.attribute.scope,
-                                    self.attribute.language.name))
+                                    self.attribute.language.name.lower()))
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:
