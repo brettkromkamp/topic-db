@@ -5,8 +5,8 @@ August 29, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.topicstoreerror import TopicStoreError
 from topicdb.core.commands.tag.settag import SetTag
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class SetTags:

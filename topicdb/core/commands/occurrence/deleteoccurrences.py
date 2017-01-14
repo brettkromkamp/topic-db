@@ -7,8 +7,8 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
 from topicdb.core.commands.occurrence.deleteoccurrence import DeleteOccurrence
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class DeleteOccurrences:

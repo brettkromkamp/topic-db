@@ -9,9 +9,9 @@ import uuid
 
 from slugify import slugify
 
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class Attribute:

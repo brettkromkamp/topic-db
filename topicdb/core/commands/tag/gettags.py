@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
 from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetTags:

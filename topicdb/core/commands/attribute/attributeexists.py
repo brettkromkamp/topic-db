@@ -7,8 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class AttributeExists:

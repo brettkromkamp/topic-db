@@ -9,7 +9,7 @@ import sqlite3
 
 from topicdb.core.commands.ontologymode import OntologyMode
 from topicdb.core.commands.topic.topicexists import TopicExists
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class SetAttribute:

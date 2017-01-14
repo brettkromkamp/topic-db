@@ -5,10 +5,10 @@ August 29, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.topicstoreerror import TopicStoreError
 from topicdb.core.commands.association.setassociation import SetAssociation
-from topicdb.core.commands.topic.topicexists import TopicExists
 from topicdb.core.commands.topic.settopic import SetTopic
+from topicdb.core.commands.topic.topicexists import TopicExists
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.association import Association
 from topicdb.core.models.topic import Topic
 

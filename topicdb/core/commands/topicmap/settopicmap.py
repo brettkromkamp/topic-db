@@ -5,15 +5,15 @@ January 07, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-import sqlite3
 import os
+import sqlite3
 
 from topicdb.core.commands.ontologymode import OntologyMode
-from topicdb.core.commands.topic.topicexists import TopicExists
-from topicdb.core.models.topic import Topic
 from topicdb.core.commands.topic.settopic import SetTopic
+from topicdb.core.commands.topic.topicexists import TopicExists
 from topicdb.core.commands.topicmap.topicfield import TopicField
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
+from topicdb.core.models.topic import Topic
 
 
 class SetTopicMap:

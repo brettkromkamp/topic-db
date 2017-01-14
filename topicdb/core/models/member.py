@@ -9,7 +9,7 @@ import uuid
 
 from slugify import slugify
 
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class Member:

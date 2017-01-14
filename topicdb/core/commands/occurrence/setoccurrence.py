@@ -6,16 +6,15 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 import sqlite3
-
 from datetime import datetime
 
+from topicdb.core.commands.attribute.setattributes import SetAttributes
 from topicdb.core.commands.ontologymode import OntologyMode
 from topicdb.core.commands.topic.topicexists import TopicExists
-from topicdb.core.commands.attribute.setattributes import SetAttributes
-from topicdb.core.models.language import Language
-from topicdb.core.models.datatype import DataType
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.attribute import Attribute
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.models.datatype import DataType
+from topicdb.core.models.language import Language
 
 
 class SetOccurrence:

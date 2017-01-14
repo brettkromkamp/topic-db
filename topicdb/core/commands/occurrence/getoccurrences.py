@@ -10,9 +10,9 @@ import sqlite3
 from topicdb.core.commands.attribute.getattributes import GetAttributes
 from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
 from topicdb.core.commands.retrievaloption import RetrievalOption
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetOccurrences:

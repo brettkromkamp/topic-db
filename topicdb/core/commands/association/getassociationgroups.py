@@ -7,8 +7,8 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from topicdb.core.commands.associationfield import AssociationField
 from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.doublekeydict import DoubleKeyDict
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetAssociationGroups:
