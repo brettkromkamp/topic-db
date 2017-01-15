@@ -6,23 +6,22 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 import sqlite3
-
 from datetime import datetime
 
 from topicdb.core.commands.attribute.setattributes import SetAttributes
-from topicdb.core.commands.topic.topicexists import TopicExists
 from topicdb.core.commands.ontologymode import OntologyMode
-from topicdb.core.models.language import Language
-from topicdb.core.models.datatype import DataType
+from topicdb.core.commands.topic.topicexists import TopicExists
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.attribute import Attribute
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.models.datatype import DataType
+from topicdb.core.models.language import Language
 
 
 class SetAssociation:
 
     def __init__(self, database_path, topic_map_identifier,
                  association=None,
-                 ontology_mode=OntologyMode.strict):
+                 ontology_mode=OntologyMode.STRICT):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.association = association
@@ -32,31 +31,27 @@ class SetAssociation:
         if self.association is None:
             raise TopicStoreError("Missing 'association' parameter")
 
-        if self.ontology_mode is OntologyMode.strict:
-            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier,
-                                             self.association.instance_of).execute()
+        if self.ontology_mode is OntologyMode.STRICT:
+            instance_of_exists = TopicExists(self.database_path, self.topic_map_identifier, self.association.instance_of).execute()
             if not instance_of_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
 
-            scope_exists = TopicExists(self.database_path, self.topic_map_identifier,
-                                       self.association.scope).execute()
+            scope_exists = TopicExists(self.database_path, self.topic_map_identifier, self.association.scope).execute()
             if not scope_exists:
-                raise TopicStoreError(
-                    "Ontology mode 'strict' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
 
         try:
             with connection:
-                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, instance_of, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
+                connection.execute("INSERT INTO topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, self.association.identifier, self.association.instance_of, self.association.scope))
                 for base_name in self.association.base_names:
                     connection.execute("INSERT INTO basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (?, ?, ?, ?, ?)",
                                        (self.topic_map_identifier,
                                         base_name.identifier,
                                         base_name.name,
                                         self.association.identifier,
-                                        base_name.language.name))
+                                        base_name.language.name.lower()))
                 for member in self.association.members:
                     connection.execute("INSERT INTO member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (?, ?, ?, ?)", (self.topic_map_identifier, member.identifier, member.role_spec, self.association.identifier))
                     for topic_ref in member.topic_refs:
@@ -66,12 +61,11 @@ class SetAssociation:
                 timestamp = str(datetime.now())
                 timestamp_attribute = Attribute('creation-timestamp', timestamp,
                                                 self.association.identifier,
-                                                data_type=DataType.timestamp,
+                                                data_type=DataType.TIMESTAMP,
                                                 scope='*',
-                                                language=Language.eng)
+                                                language=Language.ENG)
                 self.association.add_attribute(timestamp_attribute)
-            SetAttributes(self.database_path, self.topic_map_identifier,
-                          self.association.attributes).execute()
+            SetAttributes(self.database_path, self.topic_map_identifier, self.association.attributes).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

@@ -7,23 +7,16 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class AttributeExists:
 
-    def __init__(self, database_path, topic_map_identifier,
-                 entity_identifier='',
-                 name='',
-                 scope='*',
-                 language=Language.eng):
+    def __init__(self, database_path, topic_map_identifier, entity_identifier='', name=''):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.entity_identifier = entity_identifier
         self.name = name
-        self.scope = scope
-        self.language = language
 
     def execute(self):
         if self.entity_identifier == '' or self.name == '':
@@ -35,7 +28,7 @@ class AttributeExists:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT identifier FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ? AND scope = ? AND language = ?", (self.topic_map_identifier, self.entity_identifier, self.name, self.scope, self.language))
+            cursor.execute("SELECT identifier FROM attribute WHERE topicmap_identifier = ? AND parent_identifier_fk = ? AND name = ?", (self.topic_map_identifier, self.entity_identifier, self.name))
             record = cursor.fetchone()
             if record:
                 result = True

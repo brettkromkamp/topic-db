@@ -9,23 +9,22 @@ import sqlite3
 
 from topicdb.core.commands.association.getassociation import GetAssociation
 from topicdb.core.commands.retrievaloption import RetrievalOption
-from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetTopicAssociations:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 resolve_occurrences=RetrievalOption.dont_resolve_occurrences,
-                 language=Language.eng):
+                 language=None,
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                 resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
+        self.language = language
         self.resolve_attributes = resolve_attributes
         self.resolve_occurrences = resolve_occurrences
-        self.language = language
 
     def execute(self):
         if self.identifier == '':
@@ -37,7 +36,7 @@ class GetTopicAssociations:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND topic_ref = ?", (self.topic_map_identifier, self.identifier))
+            cursor.execute("SELECT member_identifier_fk FROM topicref WHERE topicmap_identifier = ? AND TOPIC_REF = ?", (self.topic_map_identifier, self.identifier))
             topic_ref_records = cursor.fetchall()
             if topic_ref_records:
                 for topic_ref_record in topic_ref_records:
@@ -45,12 +44,12 @@ class GetTopicAssociations:
                     member_records = cursor.fetchall()
                     if member_records:
                         for member_record in member_records:
-                            # TODO: Optimize.
-                            association = GetAssociation(self.database_path, self.topic_map_identifier,
+                            association = GetAssociation(self.database_path,
+                                                         self.topic_map_identifier,
                                                          member_record['association_identifier_fk'],
-                                                         self.resolve_attributes,
-                                                         self.resolve_occurrences,
-                                                         self.language).execute()
+                                                         language=self.language,
+                                                         resolve_attributes=self.resolve_attributes,
+                                                         resolve_occurrences=self.resolve_occurrences).execute()
                             if association:
                                 result.append(association)
         except sqlite3.Error as error:

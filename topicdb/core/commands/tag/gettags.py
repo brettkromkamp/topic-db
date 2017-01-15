@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
 from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetTags:
@@ -22,8 +22,7 @@ class GetTags:
             raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
-        associations = GetTopicAssociations(
-            self.database_path, self.topic_map_identifier, self.identifier).execute()
+        associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
         if associations:
             groups = GetAssociationGroups(associations=associations).execute()
             for instance_of in groups.dict:

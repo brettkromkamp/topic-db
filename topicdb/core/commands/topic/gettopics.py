@@ -9,25 +9,24 @@ import sqlite3
 
 from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetTopics:
 
     def __init__(self, database_path, topic_map_identifier,
-                 instance_of='',
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 language=Language.eng,
+                 instance_of=None,
+                 language=None,
                  offset=0,
-                 limit=100):
+                 limit=100,
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.instance_of = instance_of
-        self.resolve_attributes = resolve_attributes
         self.language = language
         self.offset = offset
         self.limit = limit
+        self.resolve_attributes = resolve_attributes
 
     def execute(self):
         result = []
@@ -37,7 +36,8 @@ class GetTopics:
 
         cursor = connection.cursor()
         try:
-            if self.instance_of == '':
+
+            if self.instance_of is None:
                 sql = "SELECT identifier FROM topic WHERE topicmap_identifier = ? AND scope IS NULL ORDER BY identifier LIMIT ? OFFSET ?"
                 bind_variables = (self.topic_map_identifier, self.limit, self.offset)
             else:
@@ -47,7 +47,9 @@ class GetTopics:
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
             for record in records:
-                result.append(GetTopic(self.database_path, self.topic_map_identifier, record['identifier'], self.resolve_attributes, self.language).execute())
+                result.append(GetTopic(self.database_path, self.topic_map_identifier, record['identifier'],
+                                       language=self.language,
+                                       resolve_attributes=self.resolve_attributes).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

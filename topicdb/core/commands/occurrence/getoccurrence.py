@@ -10,18 +10,17 @@ import sqlite3
 from topicdb.core.commands.attribute.getattributes import GetAttributes
 from topicdb.core.commands.occurrence.getoccurrencedata import GetOccurrenceData
 from topicdb.core.commands.retrievaloption import RetrievalOption
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetOccurrence:
 
     def __init__(self, database_path, topic_map_identifier,
                  identifier='',
-                 inline_resource_data=RetrievalOption.dont_inline_resource_data,
-                 resolve_attributes=RetrievalOption.dont_resolve_attributes,
-                 language=Language.eng):
+                 inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
+                 resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
@@ -51,10 +50,11 @@ class GetOccurrence:
                     record['scope'],
                     record['resource_ref'],
                     resource_data,
-                    Language[record['language']])
-                if self.resolve_attributes is RetrievalOption.resolve_attributes:
-                    # TODO: Optimize.
-                    result.add_attributes(GetAttributes(self.database_path, self.topic_map_identifier, self.identifier).execute())
+                    Language[record['language'].upper()])
+                if self.resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                    result.add_attributes(GetAttributes(self.database_path,
+                                                        self.topic_map_identifier,
+                                                        self.identifier).execute())
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

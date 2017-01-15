@@ -5,8 +5,8 @@ July 13, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.topicstoreerror import TopicStoreError
 from topicdb.core.commands.attribute.setattribute import SetAttribute
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class SetAttributes:

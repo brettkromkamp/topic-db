@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS member (
     association_identifier_fk TEXT,
     PRIMARY KEY (topicmap_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS member_1_index ON member (topicmap_identifier, association_identifier_fk); /* Verified */
+CREATE INDEX IF NOT EXISTS member_1_index ON member (topicmap_identifier, association_identifier_fk);
 
 
 CREATE TABLE IF NOT EXISTS attribute (
@@ -19,9 +19,11 @@ CREATE TABLE IF NOT EXISTS attribute (
     language TEXT,
     PRIMARY KEY (topicmap_identifier, parent_identifier_fk, name, scope, language)
 );
-CREATE INDEX IF NOT EXISTS attribute_1_index ON attribute (topicmap_identifier, identifier); /* Verified */
-CREATE INDEX IF NOT EXISTS attribute_2_index ON attribute (topicmap_identifier, parent_identifier_fk); /* Verified */
-CREATE INDEX IF NOT EXISTS attribute_3_index ON attribute (topicmap_identifier, parent_identifier_fk, scope, language); /* Verified */
+CREATE INDEX IF NOT EXISTS attribute_1_index ON attribute (topicmap_identifier, identifier);
+CREATE INDEX IF NOT EXISTS attribute_2_index ON attribute (topicmap_identifier, parent_identifier_fk);
+CREATE INDEX IF NOT EXISTS attribute_3_index ON attribute (topicmap_identifier, parent_identifier_fk, language);
+CREATE INDEX IF NOT EXISTS attribute_4_index ON attribute (topicmap_identifier, parent_identifier_fk, scope);
+CREATE INDEX IF NOT EXISTS attribute_5_index ON attribute (topicmap_identifier, parent_identifier_fk, scope, language);
 
 
 CREATE TABLE IF NOT EXISTS occurrence (
@@ -35,9 +37,9 @@ CREATE TABLE IF NOT EXISTS occurrence (
     language TEXT,
     PRIMARY KEY (topicmap_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS occurrence_1_index ON occurrence (topicmap_identifier, topic_identifier_fk); /* Verified */
-CREATE INDEX IF NOT EXISTS occurrence_2_index ON occurrence (topicmap_identifier, topic_identifier_fk, scope, language); /* Verified */
-CREATE INDEX IF NOT EXISTS occurrence_3_index ON occurrence (topicmap_identifier, topic_identifier_fk, instance_of, scope, language); /* Verified */
+CREATE INDEX IF NOT EXISTS occurrence_1_index ON occurrence (topicmap_identifier, topic_identifier_fk);
+CREATE INDEX IF NOT EXISTS occurrence_2_index ON occurrence (topicmap_identifier, topic_identifier_fk, scope, language);
+CREATE INDEX IF NOT EXISTS occurrence_3_index ON occurrence (topicmap_identifier, topic_identifier_fk, instance_of, scope, language);
 
 
 CREATE TABLE IF NOT EXISTS topicref (
@@ -46,8 +48,8 @@ CREATE TABLE IF NOT EXISTS topicref (
     member_identifier_fk TEXT,
     PRIMARY KEY (topicmap_identifier, topic_ref, member_identifier_fk)
 );
-CREATE INDEX IF NOT EXISTS topicref_1_index ON topicref (topicmap_identifier, member_identifier_fk); /* Verified */
-CREATE INDEX IF NOT EXISTS topicref_2_index ON topicref (topicmap_identifier, topic_ref); /* Verified */
+CREATE INDEX IF NOT EXISTS topicref_1_index ON topicref (topicmap_identifier, member_identifier_fk);
+CREATE INDEX IF NOT EXISTS topicref_2_index ON topicref (topicmap_identifier, topic_ref);
 
 
 CREATE TABLE IF NOT EXISTS topic (
@@ -57,9 +59,9 @@ CREATE TABLE IF NOT EXISTS topic (
     scope TEXT,
     PRIMARY KEY (topicmap_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS topic_1_index ON topic (topicmap_identifier, identifier, scope); /* Verified */
-CREATE INDEX IF NOT EXISTS topic_2_index ON topic (topicmap_identifier, instance_of, scope); /* Verified */
-CREATE INDEX IF NOT EXISTS topic_3_index ON topic (topicmap_identifier, scope); /* Verified */
+CREATE INDEX IF NOT EXISTS topic_1_index ON topic (topicmap_identifier, identifier, scope);
+CREATE INDEX IF NOT EXISTS topic_2_index ON topic (topicmap_identifier, instance_of, scope);
+CREATE INDEX IF NOT EXISTS topic_3_index ON topic (topicmap_identifier, scope);
 
 
 CREATE TABLE IF NOT EXISTS basename (
@@ -70,7 +72,7 @@ CREATE TABLE IF NOT EXISTS basename (
     language TEXT,
     PRIMARY KEY (topicmap_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS basename_1_index ON basename (topicmap_identifier, topic_identifier_fk); /* Verified */
+CREATE INDEX IF NOT EXISTS basename_1_index ON basename (topicmap_identifier, topic_identifier_fk);
 
 
 CREATE TABLE IF NOT EXISTS topicmap (

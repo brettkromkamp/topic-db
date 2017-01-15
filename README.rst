@@ -70,15 +70,15 @@ First-Time Use
     print("Topic 'instance of': [{0}]".format(topic.instance_of))
     print("Topic (base) name: [{0}]".format(topic.first_base_name.name))
 
+Tutorial
+--------
+
+To get a better understanding of how to use TopicDB, check out the tutorial, here: `TopicDB Tutorial`_.
+
 Documentation
 -------------
 
 Documentation will be available soon.
-
-Tutorial
---------
-
-A tutorial will be available soon.
 
 How to Contribute
 -----------------
@@ -93,3 +93,4 @@ How to Contribute
 .. _Interactive Scene Browser for Stories: http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/
 .. _the repository: https://github.com/brettkromkamp/topic_db
 .. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
+.. _TopicDB Tutorial: https://github.com/brettkromkamp/topic_db/blob/master/TUTORIAL.rst

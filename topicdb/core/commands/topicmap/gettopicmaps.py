@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.topicmap import TopicMap
 
 
@@ -24,7 +24,7 @@ class GetTopicMaps:
 
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM topicmap")
+            cursor.execute("SELECT * FROM topicmap ORDER BY identifier")
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -36,4 +36,9 @@ class GetTopicMaps:
                 result.append(topic_map)
         except sqlite3.Error as error:
             raise TopicStoreError(error)
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
         return result

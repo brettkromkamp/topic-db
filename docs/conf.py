@@ -15,7 +15,7 @@
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
+# documentation ROOT, use os.path.abspath to make it absolute, like shown here.
 #
 # import os
 # import sys
@@ -37,7 +37,7 @@ extensions = []
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
-# You can specify multiple suffix as a list of string:
+# You can specify multiple suffix as a list of STRING:
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'

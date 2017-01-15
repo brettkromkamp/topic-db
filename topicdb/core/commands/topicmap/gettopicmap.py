@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.topicmap import TopicMap
 
 
@@ -38,4 +38,9 @@ class GetTopicMap:
                 result.identifier = record['identifier']
         except sqlite3.Error as error:
             raise TopicStoreError(error)
+        finally:
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
         return result

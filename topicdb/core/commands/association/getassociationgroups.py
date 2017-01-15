@@ -5,44 +5,37 @@ July 13, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from topicdb.core.commands.associationfield import AssociationField
 from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
-from topicdb.core.models.associationfield import AssociationField
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.doublekeydict import DoubleKeyDict
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class GetAssociationGroups:
 
-    def __init__(self,
-                 database_path='',
-                 topic_map_identifier=None,
-                 identifier='',
-                 associations=None):
+    def __init__(self, database_path='', topic_map_identifier=None, identifier='', associations=None):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.identifier = identifier
         self.associations = associations
 
     def execute(self):
-        # TODO: Review logic for lines 26-34.
         if self.identifier == '' and self.associations is None:
-            raise TopicStoreError(
-                "At least one of the 'identifier' or 'associations' parameters is required")
+            raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
         if self.associations is None and (self.database_path == '' or self.topic_map_identifier is None):
             raise TopicStoreError("Missing 'database path' or 'topicmap identifier' parameters")
 
         result = DoubleKeyDict()
         if not self.associations:
-            self.associations = GetTopicAssociations(self.database_path, self.topic_map_identifier,
-                                                     self.identifier).execute()
+            self.associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
 
         for association in self.associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
             for resolved_topic_ref in resolved_topic_refs:
-                instance_of = resolved_topic_ref[AssociationField.instance_of.value]
-                role_spec = resolved_topic_ref[AssociationField.role_spec.value]
-                topic_ref = resolved_topic_ref[AssociationField.topic_ref.value]
+                instance_of = resolved_topic_ref[AssociationField.INSTANCE_OF.value]
+                role_spec = resolved_topic_ref[AssociationField.ROLE_SPEC.value]
+                topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
                 if topic_ref != self.identifier:
                     if [instance_of, role_spec] in result:
                         topic_refs = result[instance_of, role_spec]

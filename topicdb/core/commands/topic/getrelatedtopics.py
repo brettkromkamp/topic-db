@@ -6,9 +6,9 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 from topicdb.core.commands.association.getassociationgroups import GetAssociationGroups
-from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
 from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topic.gettopicassociations import GetTopicAssociations
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetRelatedTopics:
@@ -32,5 +32,5 @@ class GetRelatedTopics:
                     for topic_ref in groups[instance_of, role]:
                         if topic_ref == self.identifier:
                             continue
-                        result.append(GetTopic(self.database_path, topic_ref).execute())
+                        result.append(GetTopic(self.database_path, self.topic_map_identifier, topic_ref).execute())
         return result

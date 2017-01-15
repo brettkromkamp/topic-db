@@ -7,8 +7,8 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
 from topicdb.core.commands.occurrence.deleteoccurrence import DeleteOccurrence
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class DeleteOccurrences:
@@ -30,10 +30,11 @@ class DeleteOccurrences:
             connection.execute("SELECT identifier FROM occurrence WHERE topicmap_identifier = ? AND topic_identifier_fk = ?", (self.topic_map_identifier, self.topic_identifier))
             records = cursor.fetchall()
             for record in records:
-                # TODO: Optimize.
                 DeleteOccurrence(self.database_path, self.topic_map_identifier, record['identifier']).execute()
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:
+            if cursor:
+                cursor.close()
             if connection:
                 connection.close()

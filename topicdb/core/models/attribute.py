@@ -9,18 +9,18 @@ import uuid
 
 from slugify import slugify
 
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
 
 
 class Attribute:
 
     def __init__(self, name, value, entity_identifier,
                  identifier='',
-                 data_type=DataType.string,
+                 data_type=DataType.STRING,
                  scope='*',
-                 language=Language.eng):
+                 language=Language.ENG):
         if entity_identifier == '*':  # Universal Scope.
             self.__entity_identifier = '*'
         else:
@@ -35,14 +35,14 @@ class Attribute:
         self.value = value
 
     def __repr__(self):
-        return("Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
+        return "Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
             self.name,
             self.value,
             self.__entity_identifier,
             self.__identifier,
             str(self.data_type),
             self.__scope,
-            str(self.language)))
+            str(self.language))
 
     @property
     def entity_identifier(self):

@@ -9,5 +9,5 @@ from enum import Enum
 
 
 class TopicField(Enum):
-    identifier = 0
-    base_name = 1
+    IDENTIFIER = 0
+    BASE_NAME = 1

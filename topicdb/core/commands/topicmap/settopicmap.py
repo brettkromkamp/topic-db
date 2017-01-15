@@ -5,15 +5,15 @@ January 07, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-import sqlite3
 import os
+import sqlite3
 
 from topicdb.core.commands.ontologymode import OntologyMode
-from topicdb.core.commands.topic.topicexists import TopicExists
-from topicdb.core.models.topic import Topic
 from topicdb.core.commands.topic.settopic import SetTopic
+from topicdb.core.commands.topic.topicexists import TopicExists
 from topicdb.core.commands.topicmap.topicfield import TopicField
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
+from topicdb.core.models.topic import Topic
 
 
 class SetTopicMap:
@@ -31,7 +31,7 @@ class SetTopicMap:
         # Create database schema.
         self._create_map()
 
-        # Bootstrap default topic topicmap (ontology).
+        # Bootstrap default topics (ontology).
         if not TopicExists(self.database_path, self.topic_map_identifier, 'genesis').execute():
             self._init_map()
 
@@ -107,13 +107,10 @@ class SetTopicMap:
             ('ita', 'Italian Language'),
             ('fra', 'French Language'),
             ('nld', 'Dutch Language'),
-            ('nob', 'Norwegian (Bokmål) Language')
-        }
+            ('nob', 'Norwegian (Bokmål) Language')}
 
-        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier,
-                                     ontology_mode=OntologyMode.lenient)
+        set_topic_command = SetTopic(self.database_path, self.topic_map_identifier, ontology_mode=OntologyMode.LENIENT)
         for item in self.items:
-            topic = Topic(identifier=item[TopicField.identifier.value],
-                          base_name=item[TopicField.base_name.value])
+            topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
             set_topic_command.topic = topic
             set_topic_command.execute()

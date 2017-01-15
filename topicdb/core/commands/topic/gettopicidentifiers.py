@@ -7,15 +7,12 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 
 
 class GetTopicIdentifiers:
 
-    def __init__(self, database_path, topic_map_identifier,
-                 query,
-                 offset=0,
-                 limit=100):
+    def __init__(self, database_path, topic_map_identifier, query, offset=0, limit=100):
         self.database_path = database_path
         self.topic_map_identifier = topic_map_identifier
         self.query = query

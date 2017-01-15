@@ -8,9 +8,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 class TopicMap:
 
-    def __init__(self, title, topic_map_identifier,
-                 entry_topic_identifier='genesis',
-                 description=''):
+    def __init__(self, title, topic_map_identifier, entry_topic_identifier='genesis', description=''):
         self.__identifier = None
         self.title = title
         self.topic_map_identifier = topic_map_identifier

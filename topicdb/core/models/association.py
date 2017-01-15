@@ -7,10 +7,10 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from slugify import slugify
 
-from topicdb.core.models.topic import Topic
-from topicdb.core.models.member import Member
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.language import Language
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.models.member import Member
+from topicdb.core.models.topic import Topic
 
 
 class Association(Topic):
@@ -19,7 +19,7 @@ class Association(Topic):
                  identifier='',
                  instance_of='association',
                  base_name='Undefined',
-                 language=Language.eng,
+                 language=Language.ENG,
                  scope='*',
                  src_topic_ref='',
                  dest_topic_ref='',
@@ -66,7 +66,7 @@ class Association(Topic):
             self.__members.append(member)
 
     def remove_member(self, identifier):
-        self.__members[:] = [x for x in self.__members if x.identifier != identifier]  # TODO: Verify.
+        self.__members[:] = [x for x in self.__members if x.identifier != identifier]
 
     def clear_members(self):
         del self.__members[:]

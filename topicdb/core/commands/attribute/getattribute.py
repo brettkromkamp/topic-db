@@ -7,10 +7,10 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import sqlite3
 
-from topicdb.core.models.language import Language
-from topicdb.core.models.datatype import DataType
+from topicdb.core.commands.topicstoreerror import TopicStoreError
 from topicdb.core.models.attribute import Attribute
-from topicdb.core.topicstoreerror import TopicStoreError
+from topicdb.core.models.datatype import DataType
+from topicdb.core.models.language import Language
 
 
 class GetAttribute:
@@ -38,9 +38,9 @@ class GetAttribute:
                     record['value'],
                     record['parent_identifier_fk'],
                     record['identifier'],
-                    DataType[record['data_type']],
+                    DataType[record['data_type'].upper()],
                     record['scope'],
-                    Language[record['language']])
+                    Language[record['language'].upper()])
         except sqlite3.Error as error:
             raise TopicStoreError(error)
         finally:

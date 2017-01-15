@@ -13,10 +13,10 @@ class Language(Enum):
     # https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
     # https://en.wikipedia.org/wiki/ISO_639-2
 
-    eng = 1  # English
-    spa = 2  # Spanish
-    deu = 3  # German
-    ita = 4  # Italian
-    fra = 5  # French
-    nld = 6  # Dutch
-    nob = 7  # Norwegian (Bokmål)
+    ENG = 1  # English
+    SPA = 2  # Spanish
+    DEU = 3  # German
+    ITA = 4  # Italian
+    FRA = 5  # French
+    NLD = 6  # Dutch
+    NOB = 7  # Norwegian (Bokmål)

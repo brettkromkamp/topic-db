@@ -9,6 +9,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import os
 
+from topicdb.core.commands.retrievaloption import RetrievalOption
 from topicdb.core.commands.topic.gettopic import GetTopic
 from topicdb.core.commands.topicmap.gettopicmap import GetTopicMap
 from topicdb.core.commands.topicmap.settopicmap import SetTopicMap
@@ -31,7 +32,7 @@ print("Map description: [{0}]".format(topic_map.description))
 print("Map entry topic: [{0}]".format(topic_map.entry_topic_identifier))
 
 print("\nGetting entry topic")
-topic = GetTopic(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, 'genesis').execute()
+topic = GetTopic(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, 'genesis', resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES).execute()
 
 print("Topic identifier: [{0}]".format(topic.identifier))
 print("Topic 'instance of': [{0}]".format(topic.instance_of))
