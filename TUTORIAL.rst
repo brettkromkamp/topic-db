@@ -38,9 +38,9 @@ model information and it makes sense to take a closer look at associations befor
 
 A topic map-based association is a multi-level concept. First of all, associations express a *type*
 of relationship. What's more, each topic plays a role in a relationship. Actually, it's a bit more
-nuanced than this: that is, associations are made up of two or more members which in turn consist of
-one or more topic references. Each member has a role indicating what role the topics it contains
-play within the context of the association.
+nuanced than that: associations are made up of two or more members which in turn consist of one or
+more topic references. Each member has a role indicating what role the topics it contains play
+within the context of the association.
 
 Let's take a closer look at the above diagram. Jane, for example, is part of four distinct
 relationships:
