@@ -25,5 +25,20 @@ appropriate ``Topic`` model class and subsequently create the topic objects them
     mary = Topic(identifier='mary', base_name='Mary')
 
 That's it. The accompanying topic objects have been created. The next step would be to create the
-associations to establish the different kind of relationships between the topics and the roles each
+associations to establish the different kinds of relationships between the topics and the roles each
 topic plays in the accompanying relationship.
+
+Associations, in many respects, are what make topic maps such a versatile and expressive tool to model
+information and it makes sense to take a closer look at associations before we continue.
+
+Topic map-based associations are a multi-level concept. First of all, associations express the *type* of
+relationship. Take a closer look at the above illustration. Jane, for example, is part of four distinct
+relationships:
+
+- Between Jane (in her role as *mother*) and Peter (her *son*).
+- Between Jane (again, in her role as *mother*) and Mary (her *daughter*).
+- Between Jane (in her role as *wife*) and John (her *husband*).
+- Between Jane (in her role as *employee*) and Acme Corporation (her *employer*).
+
+Each of these relationships is of a given type. In this case, three relationships are of type *family*
+and one is of type *employment*.
