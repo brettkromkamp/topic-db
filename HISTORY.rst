@@ -3,6 +3,20 @@
 Release History
 ---------------
 
+0.5.0 (2017-01-15)
+++++++++++++++++++
+
+**Improvements**
+
+- Refactored ``Get*`` command classes (i.e., ``instance_of``, ``scope``, and ``language`` parameters) for the purposes of consistency and flexibility.
+- Removed hard-code ``maximum-depth`` in ``GetTopicsHierarchy`` command class.
+- Renamed several command classes to more accurately reflect their purpose.
+- Refactored code to ensure better compliance with PEP 8 (Style Guide for Python Code).
+
+**Bugs**
+
+- Fixed several command classes with regards to not closing SQLite ``cursor`` objects.
+
 0.4.0 (2017-01-08)
 ++++++++++++++++++
 
@@ -24,7 +38,7 @@ Release History
 
 **Improvements**
 
-- Provided ``OntologyMode`` (either ``strict`` or ``lenient``).
+- Provided ``OntologyMode`` (either ``STRICT`` or ``LENIENT``).
 - Sanitized backing store (SQLite) indexes.
 
 0.1.1 (2016-12-26)
