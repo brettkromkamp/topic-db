@@ -1,6 +1,8 @@
 TopicDB Tutorial
 ================
 
+**Last update: January 15, 2017**
+
 The diagram below represents a simple topic map consisting of five topics and seven associations
 (that is, the relationships between the topics).
 
@@ -9,8 +11,8 @@ The diagram below represents a simple topic map consisting of five topics and se
 The five topics represent a family of four (Jane, Peter, John, and Mary) and the company that
 employs Jane (Acme Corporation), respectively.
 
-Let's create the accompanying topic models with TopicDB. First of all, we'll need to import the appropriate
-model classes and create (all of) the topic objects. Here goes:
+Let's create the accompanying topic models with TopicDB. First of all, we'll need to import the
+appropriate ``Topic`` model class and subsequently create the topic objects themselves. Here goes:
 
 .. code-block:: python
 
@@ -18,10 +20,10 @@ model classes and create (all of) the topic objects. Here goes:
 
     acme = Topic(identifier='acme', base_name='Acme Corporation')
     jane = Topic(identifier='jane', base_name='Jane')
-    acme = Topic(identifier='john', base_name='John')
-    acme = Topic(identifier='peter', base_name='Peter')
-    acme = Topic(identifier='mary', base_name='Mary')
+    john = Topic(identifier='john', base_name='John')
+    peter = Topic(identifier='peter', base_name='Peter')
+    mary = Topic(identifier='mary', base_name='Mary')
 
-That's it. The accompanying topic models have been created. The ``identifier`` parameter is what we'll
-be using to reference the accompanying topic model when establishing one or more relationships between
-topics (by means of associations, in topic map terminology).
+That's it. The accompanying topic objects have been created. The next step would be to create the
+associations to establish the different kind of relationships between the topics and the roles each
+topic plays in the accompanying relationship.
