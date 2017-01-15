@@ -3,8 +3,10 @@ TopicDB Tutorial
 
 **Last update: January 15, 2017**
 
-Before starting with the tutorial, I strongly recommend doing the tutorial using either the
-`iPython`_ REPL or `Ptpython`_ REPL. With that said, let's start.
+Before starting with the tutorial, I strongly recommend installing either the
+`iPython`_ or `Ptpython`_ REPLs (if you haven't already). By no means are either of these REPLs a
+pre-requisite for doing the tutorial. Nonetheless, using them does make the whole interactive
+Python "experience" much more pleasant. With that said, let's start.
 
 The diagram below represents a simple topic map consisting of five topics and seven associations
 (that is, the relationships between the topics).
@@ -62,8 +64,9 @@ off in the code above:
                                instance_of='employment')
 
 There is quite a lot going on in that last statement in particular. What does it all mean? We start
-by importing the ``Association`` class followed by creating the actual association itself
-(``association1``) by calling the constructor and passing in several keyword arguments:
+by importing the ``Association`` class followed by creating an association (``association1``) by
+calling the constructor and passing in several keyword arguments. Let's look at each keyword
+argument in turn:
 
 * The ``src_topic_ref`` keyword indicates ...
 
