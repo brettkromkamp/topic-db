@@ -8,8 +8,8 @@ The diagram below represents a simple topic map consisting of five topics and se
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2017/01/tutorial2.png
 
-The five topics represent a family of four (Jane, Peter, John, and Mary) and the company that
-employs Jane (Acme Corporation), respectively.
+The five topics represent the four people that make up a family (that is, *Jane*, *Peter*, *John*,
+and *Mary*) and a company (*Acme Corporation*), respectively.
 
 Let's create the accompanying topic models with TopicDB. First of all, we'll need to import the
 appropriate ``Topic`` model class and subsequently create the topic objects themselves. Here goes:
@@ -31,8 +31,8 @@ topic plays in the accompanying relationship.
 Associations, in many respects, are what make topic maps such a versatile and expressive tool to model
 information and it makes sense to take a closer look at associations before we continue.
 
-Topic map-based associations are a multi-level concept. First of all, associations express the *type* of
-relationship. Take a closer look at the above illustration. Jane, for example, is part of four distinct
+A topic map-based association is a multi-level concept. First of all, associations express a *type* of
+relationship. Take a closer look at the above diagram. Jane, for example, is part of four distinct
 relationships:
 
 - Between Jane (in her role as *mother*) and Peter (her *son*).
@@ -42,3 +42,5 @@ relationships:
 
 Each of these relationships is of a given type. In this case, three relationships are of type *family*
 and one is of type *employment*.
+
+**To be continued.**
