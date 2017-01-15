@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-
 """
-Tutorial (command-line) script. Part of the StoryTechnologies project.
+Tutorial. Part of the StoryTechnologies project.
 
 January 15, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
