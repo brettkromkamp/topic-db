@@ -44,11 +44,9 @@ Let's take a closer look at the above diagram. Jane, for example, is part of fou
 relationships:
 
 - The relationship of type *family* between Jane (in her role as *mother*) and Peter (her *son*).
-- The relationship of type *family* between Jane (again, in her role as *mother*) and Mary (her
-*daughter*).
+- The relationship of type *family* between Jane (again, in her role as *mother*) and Mary (her *daughter*).
 - The relationship of type *family* between Jane (in her role as *wife*) and John (her *husband*).
-- The relationship of type *employment* between Jane (in her role as *employee*) and Acme
-Corporation (her *employer*).
+- The relationship of type *employment* between Jane (in her role as *employee*) and Acme Corporation (her *employer*).
 
 Let's create the above four relationships using the ``Association`` class continuing where we left
 off in the code above:
