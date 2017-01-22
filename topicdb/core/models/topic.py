@@ -31,38 +31,11 @@ class Topic(Entity):
         return self.__occurrences
 
     @property
-    def first_base_name(self, language=Language.ENG):
-        result = None
-
-        # Does the base name exist in the requested language?
-        for base_name in self.__base_names:
-            if base_name.language is language:
-                result = base_name
-                break
-
-        # A base name for the requested language does not exist, fall back to the English base name.
-        if result is None:
-            for base_name in self.__base_names:
-                if base_name.language is Language.ENG:
-                    result = base_name
-                    break
-
-        # An English base name is not present either, hence return a base name of "Undefined" in the requested language.
-        if result is None:
-            if language is Language.SPA:
-                result = BaseName("Sin Definir", Language.SPA)
-            elif language is Language.DEU:
-                result = BaseName("Undefiniert", Language.DEU)
-            elif language is Language.ITA:
-                result = BaseName("Indefinito", Language.ITA)
-            elif language is Language.FRA:
-                result = BaseName("Indéfini", Language.FRA)
-            elif language is Language.NLD:
-                result = BaseName("Onbepaald", Language.NLD)
-            elif language is Language.NOB:
-                result = BaseName("Ikke Definert", Language.NOB)  # Norwegian (Bokmål)
-            else:
-                result = BaseName("Undefined", Language.ENG)
+    def first_base_name(self):
+        if len(self.__base_names) > 0:
+            result = self.__base_names[0]
+        else:
+            result = BaseName("Undefined", Language.ENG)
         return result
 
     def get_base_name(self, identifier):

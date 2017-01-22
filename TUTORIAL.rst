@@ -1,12 +1,16 @@
 TopicDB Tutorial
 ================
 
+TopicDB is a topic map-based graph (NoSQL) database.
+
+.. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
+
 **Last update: January 15, 2017**
 
-Before starting with the tutorial, I strongly recommend installing either the
-`iPython`_ or `Ptpython`_ REPLs (if you haven't already). By no means are either of these REPLs a
-pre-requisite for doing the tutorial. Nonetheless, using them does make the whole interactive
-Python "experience" much more pleasant. With that said, let's start.
+Before starting with the tutorial, I recommend installing either the `iPython`_ or `Ptpython`_ REPLs
+(if you haven't already). By no means are either of these REPLs a pre-requisite for doing the
+tutorial. Nonetheless, using them does make Python's interactive experience much more pleasant. With
+that said, let's start.
 
 The diagram below represents a simple topic map consisting of five topics and seven associations
 (that is, the relationships between the topics).
@@ -17,7 +21,7 @@ The five topics represent the four people that make up a family (that is, *Jane*
 and *Mary*) and a company (*Acme Corporation*), respectively.
 
 Let's create the accompanying topic models with TopicDB. First of all, we'll need to import the
-appropriate ``Topic`` class and subsequently create the topic objects themselves. Here goes:
+appropriate ``Topic`` class and subsequently create the topic objects. Here goes:
 
 .. code-block:: python
 
@@ -29,9 +33,8 @@ appropriate ``Topic`` class and subsequently create the topic objects themselves
     peter = Topic(identifier='peter', base_name='Peter')
     mary = Topic(identifier='mary', base_name='Mary')
 
-That's it. The accompanying topic objects have been created. The next step would be to create the
-associations to establish the different kinds of relationships between the topics and the roles each
-topic plays in the accompanying relationship.
+The next step would be to create the associations to establish the different kinds of relationships
+between the topics and the roles each topic plays in the accompanying relationship.
 
 Associations, in many respects, are what make topic maps such a versatile and expressive tool to
 model information and it makes sense to take a closer look at associations before we continue.
@@ -50,8 +53,7 @@ relationships:
 - The relationship of type *family* between Jane (in her role as *wife*) and John (her *husband*).
 - The relationship of type *employment* between Jane (in her role as *employee*) and Acme Corporation (her *employer*).
 
-Let's create the above four relationships using the ``Association`` class continuing where we left
-off in the code above:
+Let's create the above four relationships using the ``Association`` class:
 
 .. code-block:: python
 
@@ -63,10 +65,9 @@ off in the code above:
                                dest_role_spec='employee',
                                instance_of='employment')
 
-There is quite a lot going on in that last statement in particular. What does it all mean? We start
-by importing the ``Association`` class followed by creating an association (``association1``) by
-calling the constructor and passing in several keyword arguments. Let's look at each keyword
-argument in turn:
+We start by importing the ``Association`` class followed by creating an association
+(``association1``) object by calling the constructor and passing in several keyword arguments. Let's
+look at each keyword argument in turn:
 
 * The ``src_topic_ref`` keyword indicates ...
 

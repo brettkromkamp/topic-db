@@ -73,7 +73,7 @@ First-Time Use
 Tutorial
 --------
 
-To get a better understanding of how to use TopicDB, check out the tutorial, here: `TopicDB Tutorial`_.
+To get a better understanding of how to use TopicDB, check out the tutorial, here: `TopicDB Tutorial`_ (work-in-progress).
 
 Documentation
 -------------
