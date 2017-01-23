@@ -23,8 +23,7 @@ class GetRelatedTopics:
             raise TopicStoreError("Missing 'identifier' parameter")
         result = []
 
-        associations = GetTopicAssociations(
-            self.database_path, self.topic_map_identifier, self.identifier).execute()
+        associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
         if associations:
             groups = GetAssociationGroups(associations=associations).execute()
             for instance_of in groups.dict:

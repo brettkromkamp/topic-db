@@ -4,10 +4,12 @@ test_models.py file. Part of the StoryTechnologies project.
 January 22, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
-
+from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.models.association import Association
+from topicdb.core.models.attribute import Attribute
 
 
 class TestModels:
@@ -64,13 +66,38 @@ class TestModels:
         assert len(occurrence2.attributes) == 0
 
     def test_init_association1(self):
-        pass
+        association1 = Association()
+
+        assert association1.instance_of == 'association'
+        assert association1.scope == '*'
+        assert len(association1.base_names) == 1
+        assert association1.first_base_name.name == 'Undefined'
+        assert association1.first_base_name.language is Language.ENG
+        assert len(association1.attributes) == 0
+        assert len(association1.occurrences) == 0
+        assert len(association1.members) == 0
 
     def test_init_association2(self):
-        pass
+        association2 = Association(instance_of='test',
+                                   scope='test-scope',
+                                   src_topic_ref='test-topic1',
+                                   dest_topic_ref='test-topic2')
+
+        assert association2.instance_of == 'test'
+        assert association2.scope == 'test-scope'
+        assert len(association2.members) == 2
+        assert association2.members[0].role_spec == 'related'
+        assert association2.members[1].role_spec == 'related'
 
     def test_init_attribute1(self):
-        pass
+        attribute1 = Attribute('name', 'value', 'test-entity1')
+
+        assert attribute1.name == 'name'
+        assert attribute1.value == 'value'
+        assert attribute1.entity_identifier == 'test-entity1'
+        assert attribute1.scope == '*'
+        assert attribute1.data_type is DataType.STRING
+        assert attribute1.language is Language.ENG
 
     def test_init_attribute2(self):
         pass

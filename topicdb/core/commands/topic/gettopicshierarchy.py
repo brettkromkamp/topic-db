@@ -45,8 +45,7 @@ class GetTopicsHierarchy:
             nodes = self.accumulative_nodes
 
         if self.cumulative_depth <= self.maximum_depth:  # Exit case.
-            associations = GetTopicAssociations(
-                self.database_path, self.topic_map_identifier, self.identifier).execute()
+            associations = GetTopicAssociations(self.database_path, self.topic_map_identifier, self.identifier).execute()
             for association in associations:
                 resolved_topic_refs = GetAssociationGroups._resolve_topic_refs(association)
                 for resolved_topic_ref in resolved_topic_refs:
