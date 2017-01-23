@@ -4,6 +4,7 @@ test_models.py file. Part of the StoryTechnologies project.
 January 22, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
+
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
 from topicdb.core.models.topic import Topic
@@ -44,7 +45,7 @@ class TestModels:
 
         assert occurrence1.topic_identifier == ''
         assert occurrence1.instance_of == 'occurrence'
-        assert occurrence1.scope == '*'
+        assert occurrence1.scope == '*'  # Universal Scope.
         assert occurrence1.resource_ref == ''
         assert occurrence1.resource_data is None
         assert occurrence1.language is Language.ENG
@@ -69,7 +70,7 @@ class TestModels:
         association1 = Association()
 
         assert association1.instance_of == 'association'
-        assert association1.scope == '*'
+        assert association1.scope == '*'  # Universal Scope.
         assert len(association1.base_names) == 1
         assert association1.first_base_name.name == 'Undefined'
         assert association1.first_base_name.language is Language.ENG
@@ -85,6 +86,11 @@ class TestModels:
 
         assert association2.instance_of == 'test'
         assert association2.scope == 'test-scope'
+        assert len(association2.base_names) == 1
+        assert association2.first_base_name.name == 'Undefined'
+        assert association2.first_base_name.language is Language.ENG
+        assert len(association2.attributes) == 0
+        assert len(association2.occurrences) == 0
         assert len(association2.members) == 2
         assert association2.members[0].role_spec == 'related'
         assert association2.members[1].role_spec == 'related'
@@ -95,9 +101,19 @@ class TestModels:
         assert attribute1.name == 'name'
         assert attribute1.value == 'value'
         assert attribute1.entity_identifier == 'test-entity1'
-        assert attribute1.scope == '*'
+        assert attribute1.scope == '*'  # Universal Scope.
         assert attribute1.data_type is DataType.STRING
         assert attribute1.language is Language.ENG
 
     def test_init_attribute2(self):
-        pass
+        attribute2 = Attribute('name', 'true', 'test-entity1',
+                               scope='test-scope',
+                               data_type=DataType.BOOLEAN,
+                               language=Language.FRA)
+
+        assert attribute2.name == 'name'
+        assert attribute2.value == 'true'
+        assert attribute2.entity_identifier == 'test-entity1'
+        assert attribute2.scope == 'test-scope'
+        assert attribute2.data_type is DataType.BOOLEAN
+        assert attribute2.language is Language.FRA
