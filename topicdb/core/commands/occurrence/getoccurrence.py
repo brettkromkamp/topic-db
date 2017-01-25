@@ -41,8 +41,8 @@ class GetOccurrence:
             record = cursor.fetchone()
             if record:
                 resource_data = None
-                if self.inline_resource_data:
-                    resource_data = GetOccurrenceData(self.database_path, self.identifier).execute()
+                if self.inline_resource_data is RetrievalOption.INLINE_RESOURCE_DATA:
+                    resource_data = GetOccurrenceData(self.database_path, self.topic_map_identifier, identifier=self.identifier).execute()
                 result = Occurrence(
                     record['identifier'],
                     record['instance_of'],
