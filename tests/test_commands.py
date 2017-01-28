@@ -8,22 +8,22 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 import os
 import pytest
 
+from topicdb.core.commands.topicmap.settopicmap import SetTopicMap
 from topicdb.core.commands.association.getassociation import GetAssociation
 from topicdb.core.commands.association.setassociation import SetAssociation
 from topicdb.core.commands.attribute.getattribute import GetAttribute
 from topicdb.core.commands.attribute.setattribute import SetAttribute
 from topicdb.core.commands.occurrence.getoccurrence import GetOccurrence
+from topicdb.core.commands.occurrence.setoccurrence import SetOccurrence
+from topicdb.core.commands.topic.gettopic import GetTopic
+from topicdb.core.commands.topic.settopic import SetTopic
+
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
-
-from topicdb.core.commands.topicmap.settopicmap import SetTopicMap
-from topicdb.core.commands.topic.gettopic import GetTopic
-from topicdb.core.commands.topic.settopic import SetTopic
-from topicdb.core.commands.occurrence.setoccurrence import SetOccurrence
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), '../data/topicmap-test.db')
 TOPIC_MAP_IDENTIFIER = 1
@@ -35,7 +35,7 @@ DESCRIPTION = 'Default test topic map'
 def topic_map():
     if os.path.isfile(DATABASE_PATH):
         os.remove(DATABASE_PATH)
-        SetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
+    SetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
 
 
 def test_topic(topic_map):
