@@ -1,11 +1,11 @@
 TopicDB Tutorial
 ================
 
-TopicDB is a topic map-based graph (NoSQL) database.
+TopicDB is a topic map-based graph library (using SQLite for persistence).
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
 
-**Last update: January 15, 2017**
+**Last update: February 21, 2017**
 
 Before starting with the tutorial, I recommend installing either the `iPython`_ or `Ptpython`_ REPLs
 (if you haven't already). By no means are either of these REPLs a pre-requisite for doing the
