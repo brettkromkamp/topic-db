@@ -1,7 +1,7 @@
 TopicDB from StoryTechnologies
 ==============================
 
-TopicDB is a topic map-based graph library (and, currently using SQLite for persistence).
+TopicDB is a topic map-based graph library (using PostgreSQL for persistence).
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
 
