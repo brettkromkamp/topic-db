@@ -78,8 +78,10 @@ CREATE TABLE IF NOT EXISTS topicdb.basename (
 CREATE INDEX basename_1_index ON topicdb.basename (topicmap_identifier, topic_identifier_fk);
 
 
+CREATE SEQUENCE topicdb.topic_map_id_sequence;
+
 CREATE TABLE IF NOT EXISTS topicdb.topicmap (
-    identifier BIGINT NOT NULL,
+    identifier BIGINT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
     title TEXT NOT NULL,
     description TEXT,
     topicmap_identifier_fk BIGINT,
@@ -88,3 +90,5 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
 );
 CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier, topicmap_identifier_fk);
 CREATE INDEX topicmap_2_index ON topicdb.topicmap (identifier, topicmap_identifier_fk, entry_identifier_fk);
+
+ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
