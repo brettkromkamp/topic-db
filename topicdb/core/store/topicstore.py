@@ -9,12 +9,16 @@ import psycopg2
 
 from datetime import datetime
 
+from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.basename import BaseName
 from topicdb.core.models.datatype import DataType
+from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.models.language import Language
+from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
+from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
 from topicdb.core.store.topicfield import TopicField
@@ -43,11 +47,81 @@ class TopicStore:
     def delete_association(self):
         pass
 
-    def get_association(self):
-        pass
+    def get_association(self, topic_map_identifier, identifier,
+                        language=None,
+                        resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                        resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+        result = None
 
-    def get_association_groups(self):
-        pass
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL", (topic_map_identifier, identifier))
+                association_record = cursor.fetchone()
+                if association_record:
+                    result = Association(identifier=association_record['identifier'],
+                                         instance_of=association_record['instance_of'],
+                                         scope=association_record['scope'])
+                    result.clear_base_names()
+                    if language is None:
+                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier_fk = %s"
+                        bind_variables = (topic_map_identifier, identifier)
+                    else:
+                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier_fk = %s AND language = %s"
+                        bind_variables = (topic_map_identifier, identifier, language.name.lower())
+                    cursor.execute(sql, bind_variables)
+                    base_name_records = cursor.fetchall()
+                    if base_name_records:
+                        for base_name_record in base_name_records:
+                            result.add_base_name(BaseName(base_name_record['name'], Language[base_name_record['language'].upper()], base_name_record['identifier']))
+                    cursor.execute("SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s", (topic_map_identifier, identifier))
+                    member_records = cursor.fetchall()
+                    if member_records:
+                        for member_record in member_records:
+                            role_spec = member_record['role_spec']
+                            cursor.execute("SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s", (topic_map_identifier, member_record['identifier']))
+                            topic_ref_records = cursor.fetchall()
+                            if topic_ref_records:
+                                member = Member(role_spec=role_spec, identifier=member_record['identifier'])
+                                for topic_ref_record in topic_ref_records:
+                                    member.add_topic_ref(topic_ref_record['topic_ref'])
+                                result.add_member(member)
+                    if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                        result.add_attributes(self.get_attributes(topic_map_identifier, identifier))
+                    if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
+                        result.add_occurrences(self.get_topic_occurrences(topic_map_identifier, identifier))
+
+        return result
+
+    def get_association_groups(self, topic_map_identifier, identifier, associations=None):
+        result = DoubleKeyDict()
+
+        if not associations:
+            associations = self.get_topic_associations(topic_map_identifier, identifier)
+
+        for association in associations:
+            resolved_topic_refs = self._resolve_topic_refs(association)
+            for resolved_topic_ref in resolved_topic_refs:
+                instance_of = resolved_topic_ref[AssociationField.INSTANCE_OF.value]
+                role_spec = resolved_topic_ref[AssociationField.ROLE_SPEC.value]
+                topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
+                if topic_ref != identifier:
+                    if [instance_of, role_spec] in result:
+                        topic_refs = result[instance_of, role_spec]
+                        if topic_ref not in topic_refs:
+                            topic_refs.append(topic_ref)
+                        result[instance_of, role_spec] = topic_refs
+                    else:
+                        result[instance_of, role_spec] = [topic_ref]
+        return result
+
+    @staticmethod
+    def _resolve_topic_refs(association):
+        topic_refs = []
+        for member in association.members:
+            for topic_ref in member.topic_refs:
+                topic_refs.append([association.instance_of, member.role_spec, topic_ref])
+        return topic_refs
 
     def get_associations(self):
         pass
@@ -69,17 +143,23 @@ class TopicStore:
                     result = True
         return result
 
-    def delete_attribute(self):
-        pass
+    def delete_attribute(self, topic_map_identifier, identifier):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
 
-    def delete_attributes(self):
-        pass
+    def delete_attributes(self, topic_map_identifier, entity_identifier):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier_fk = %s", (topic_map_identifier, entity_identifier))
 
     def get_attribute(self, topic_map_identifier, identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (self.topic_map_identifier, self.identifier))
+                cursor.execute("SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     result = Attribute(
@@ -160,11 +240,21 @@ class TopicStore:
 
     # ========== OCCURRENCE ==========
 
-    def delete_occurrence(self):
-        pass
+    def delete_occurrence(self, topic_map_identifier, identifier):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+        self.delete_attributes(topic_map_identifier, identifier)
 
-    def delete_occurrences(self):
-        pass
+    def delete_occurrences(self, topic_map_identifier, topic_identifier):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier_fk = %s", (topic_map_identifier, topic_identifier))
+                records = cursor.fetchall()
+        for record in records:
+            self.delete_occurrence(topic_map_identifier, record['identifier'])
 
     def get_occurrence(self, topic_map_identifier, identifier,
                        inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
@@ -336,8 +426,19 @@ class TopicStore:
     def delete_topic(self):
         pass
 
-    def get_related_topics(self):
-        pass
+    def get_related_topics(self, topic_map_identifier, identifier):
+        result = []
+
+        associations = self.get_topic_associations(topic_map_identifier, identifier)
+        if associations:
+            groups = self.get_association_groups(associations=associations)
+            for instance_of in groups.dict:
+                for role in groups.dict[instance_of]:
+                    for topic_ref in groups[instance_of, role]:
+                        if topic_ref == self.identifier:
+                            continue
+                        result.append(self.get_topic(topic_map_identifier, topic_ref))
+        return result
 
     def get_topic(self, topic_map_identifier, identifier,
                   language=None,
@@ -371,8 +472,31 @@ class TopicStore:
 
         return result
 
-    def get_topic_associations(self):
-        pass
+    def get_topic_associations(self, topic_map_identifier, identifier,
+                               language=None,
+                               resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                               resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+        result = []
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT member_identifier_fk FROM topicdb.topicref WHERE topicmap_identifier = %s AND topic_ref = %s", (topic_map_identifier, identifier))
+                topic_ref_records = cursor.fetchall()
+                if topic_ref_records:
+                    for topic_ref_record in topic_ref_records:
+                        cursor.execute("SELECT association_identifier_fk FROM topicdb.member WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, topic_ref_record['member_identifier_fk']))
+                        member_records = cursor.fetchall()
+                        if member_records:
+                            for member_record in member_records:
+                                association = self.get_association(topic_map_identifier,
+                                                                   member_record['association_identifier_fk'],
+                                                                   language=language,
+                                                                   resolve_attributes=resolve_attributes,
+                                                                   resolve_occurrences=resolve_occurrences)
+                                if association:
+                                    result.append(association)
+        return result
 
     def get_topic_identifiers(self, topic_map_identifier, query, offset=0, limit=100):
         result = []
