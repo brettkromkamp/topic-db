@@ -6,6 +6,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 import psycopg2
+import psycopg2.extras
 
 from datetime import datetime
 
@@ -56,7 +57,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL", (topic_map_identifier, identifier))
                 association_record = cursor.fetchone()
                 if association_record:
@@ -142,7 +143,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)", (topic_map_identifier, association.identifier, association.instance_of, association.scope))
                 for base_name in association.base_names:
                     cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
@@ -195,7 +196,7 @@ class TopicStore:
     def get_attribute(self, topic_map_identifier, identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
@@ -229,7 +230,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(sql, bind_variables)
                 records = cursor.fetchall()
                 for record in records:
@@ -287,7 +288,7 @@ class TopicStore:
     def delete_occurrences(self, topic_map_identifier, topic_identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier_fk = %s", (topic_map_identifier, topic_identifier))
                 records = cursor.fetchall()
         for record in records:
@@ -300,7 +301,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
@@ -324,7 +325,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
@@ -374,7 +375,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(sql.format(query_filter), bind_variables)
                 records = cursor.fetchall()
                 for record in records:
@@ -519,7 +520,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NULL", (topic_map_identifier, identifier))
                 topic_record = cursor.fetchone()
                 if topic_record:
@@ -551,7 +552,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT member_identifier_fk FROM topicdb.topicref WHERE topicmap_identifier = %s AND topic_ref = %s", (topic_map_identifier, identifier))
                 topic_ref_records = cursor.fetchall()
                 if topic_ref_records:
@@ -576,7 +577,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier LIKE %s AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
                 cursor.execute(sql, (topic_map_identifier, query_string, limit, offset))
                 records = cursor.fetchall()
@@ -625,7 +626,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(sql.format(query_filter), bind_variables)
                 records = cursor.fetchall()
                 for record in records:
@@ -664,7 +665,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(sql, bind_variables)
                 records = cursor.fetchall()
                 for record in records:
@@ -728,7 +729,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT * FROM topicdb.topicmap WHERE topicmap_identifier_fk = %s", (identifier,))
                 record = cursor.fetchone()
                 if record:
@@ -745,7 +746,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor() as cursor:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT * FROM topicdb.topicmap ORDER BY identifier")
                 records = cursor.fetchall()
                 for record in records:
