@@ -340,7 +340,7 @@ class TopicStore:
                         inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
                         resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
         result = []
-        sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"
+        sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"  #  LIMIT %s OFFSET %s
         if instance_of is None:
             if scope is None:
                 if language is None:
@@ -502,11 +502,11 @@ class TopicStore:
 
         associations = self.get_topic_associations(topic_map_identifier, identifier)
         if associations:
-            groups = self.get_association_groups(associations=associations)
+            groups = self.get_association_groups(topic_map_identifier, associations=associations)
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
-                        if topic_ref == self.identifier:
+                        if topic_ref == identifier:
                             continue
                         result.append(self.get_topic(topic_map_identifier, topic_ref))
         return result
