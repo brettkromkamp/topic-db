@@ -18,6 +18,7 @@ from topicdb.core.models.language import Language
 from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
+from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
@@ -27,15 +28,15 @@ from topicdb.core.store.topicstoreerror import TopicStoreError
 
 class TopicStore:
 
-    def __init__(self, host, port, password):
+    def __init__(self, host, password, port=5432):
         self.host = host
-        self.port = port
         self.password = password
+        self.port = port
 
         self.connection = None
 
     def open(self):
-        connection_string = f"dbname='storytech' user='storytech' host={self.host} password={self.password}"
+        connection_string = "dbname='storytech' user='storytech' host={0} password={1}".format(self.host, self.password)
         self.connection = psycopg2.connect(connection_string)
 
     def close(self):
@@ -93,7 +94,10 @@ class TopicStore:
 
         return result
 
-    def get_association_groups(self, topic_map_identifier, identifier, associations=None):
+    def get_association_groups(self, topic_map_identifier, identifier='', associations=None):
+        if identifier == '' and associations is None:
+            raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
+
         result = DoubleKeyDict()
 
         if not associations:
@@ -126,8 +130,41 @@ class TopicStore:
     def get_associations(self):
         pass
 
-    def set_association(self):
-        pass
+    def set_association(self, topic_map_identifier, association, ontology_mode=OntologyMode.STRICT):
+        if ontology_mode is OntologyMode.STRICT:
+            instance_of_exists = self.topic_exists(topic_map_identifier, association.instance_of)
+            if not instance_of_exists:
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+
+            scope_exists = self.topic_exists(topic_map_identifier, association.scope)
+            if not scope_exists:
+                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)", (topic_map_identifier, association.identifier, association.instance_of, association.scope))
+                for base_name in association.base_names:
+                    cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
+                                   (topic_map_identifier,
+                                    base_name.identifier,
+                                    base_name.name,
+                                    association.identifier,
+                                    base_name.language.name.lower()))
+                for member in association.members:
+                    cursor.execute("INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (%s, %s, %s, %s)", (topic_map_identifier, member.identifier, member.role_spec, association.identifier))
+                    for topic_ref in member.topic_refs:
+                        cursor.execute("INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (%s, %s, %s)", (topic_map_identifier, topic_ref, member.identifier))
+
+            if not association.get_attribute_by_name('creation-timestamp'):
+                timestamp = str(datetime.now())
+                timestamp_attribute = Attribute('creation-timestamp', timestamp,
+                                                association.identifier,
+                                                data_type=DataType.TIMESTAMP,
+                                                scope='*',
+                                                language=Language.ENG)
+                association.add_attribute(timestamp_attribute)
+            self.set_attributes(topic_map_identifier, association.attributes)
 
     # ========== ATTRIBUTE ==========
 
@@ -412,14 +449,48 @@ class TopicStore:
 
     # ========== TAG ==========
 
-    def get_tags(self):
-        pass
+    def get_tags(self, topic_map_identifier, identifier):
+        result = []
 
-    def set_tag(self):
-        pass
+        associations = self.get_topic_associations(topic_map_identifier, identifier)
+        if associations:
+            groups = self.get_association_groups(topic_map_identifier, associations=associations)
+            for instance_of in groups.dict:
+                for role in groups.dict[instance_of]:
+                    for topic_ref in groups[instance_of, role]:
+                        if topic_ref == identifier:
+                            continue
+                        if instance_of == 'categorization':
+                            result.append(topic_ref)
+        return result
 
-    def set_tags(self):
-        pass
+    def set_tag(self, topic_map_identifier, identifier, tag):
+        if not self.topic_exists(topic_map_identifier, identifier):
+            identifier_topic = Topic(identifier=identifier, base_name=identifier.capitalize())
+            self.set_topic(topic_map_identifier, identifier_topic)
+
+        if not self.topic_exists(topic_map_identifier, tag):
+            tag_topic = Topic(identifier=tag, base_name=tag.capitalize())
+            self.set_topic(topic_map_identifier, tag_topic)
+
+        tag_association1 = Association(
+            instance_of='categorization',
+            src_topic_ref=identifier,
+            dest_topic_ref=tag,
+            src_role_spec='member',
+            dest_role_spec='category')
+        tag_association2 = Association(
+            instance_of='categorization',
+            src_topic_ref='tags',
+            dest_topic_ref=tag,
+            src_role_spec='broader',
+            dest_role_spec='narrower')
+        self.set_association(topic_map_identifier, tag_association1)
+        self.set_association(topic_map_identifier, tag_association2)
+
+    def set_tags(self, topic_map_identifier, identifier, tags):
+        for tag in tags:
+            self.set_tag(topic_map_identifier, identifier, tag)
 
     # ========== TOPIC ==========
 
@@ -652,13 +723,43 @@ class TopicStore:
     def delete_topic_map(self):
         pass
 
-    def get_topic_map(self):
-        pass
+    def get_topic_map(self, identifier):
+        result = None
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE topicmap_identifier_fk = %s", (identifier,))
+                record = cursor.fetchone()
+                if record:
+                    result = TopicMap(
+                        record['title'],
+                        record['topicmap_identifier_fk'],
+                        record['entry_identifier_fk'],
+                        record['description'])
+                    result.identifier = record['identifier']
+        return result
 
     def get_topic_maps(self):
-        pass
+        result = []
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap ORDER BY identifier")
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record['title'],
+                        record['topicmap_identifier_fk'],
+                        record['entry_identifier_fk'],
+                        record['description'])
+                    topic_map.identifier = record['identifier']
+                    result.append(topic_map)
+        return result
 
     def set_topic_map(self, topic_map_identifier, title, description='', entry_topic='genesis'):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk, entry_identifier_fk) VALUES (%s, %s, %s, %s)", (title, description, topic_map_identifier, entry_topic))
