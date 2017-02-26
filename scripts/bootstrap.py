@@ -9,5 +9,7 @@ from topicdb.core.store.topicstore import TopicStore
 
 store = TopicStore("localhost", "5t0ryt3ch!")
 store.open()
-store.set_topic_map(1, "Test Topic Map", "This is a topic map set up for testing purposes")
+store.set_topic_map(1, "The Doomsday Plans",
+                    "A soldier has to steal the plans for a secret weapon.")
+store.set_topic_map(2, "An Unexpected Meeting", "Two people meet ever so briefly.")
 store.close()

@@ -445,9 +445,12 @@ class TopicStore:
 
     def set_occurrence_data(self, topic_map_identifier, identifier, resource_data):
         # http://initd.org/psycopg/docs/usage.html#with-statement
+        resource_data = bytes(resource_data, 'utf-8')
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s", (resource_data, topic_map_identifier, identifier))
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
 
     # ========== TAG ==========
 
