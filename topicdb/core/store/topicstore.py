@@ -20,6 +20,7 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
+from topicdb.core.models.tree.tree import Tree
 from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
@@ -676,8 +677,42 @@ class TopicStore:
 
         return result
 
-    def get_topics_hierarchy(self):
-        pass
+    def get_topics_hierarchy(self, topic_map_identifier, identifier,
+                             maximum_depth=10,
+                             cumulative_depth=0,
+                             accumulative_tree=None,
+                             accumulative_nodes=None):
+        if accumulative_tree is None:
+            tree = Tree()
+            root_topic = self.get_topic(topic_map_identifier, identifier)
+            tree.add_node(identifier, parent=None, topic=root_topic)
+        else:
+            tree = accumulative_tree
+
+        if accumulative_nodes is None:
+            nodes = []
+        else:
+            nodes = accumulative_nodes
+
+        if cumulative_depth <= maximum_depth:  # Exit case.
+            associations = self.get_topic_associations(topic_map_identifier, identifier)
+            for association in associations:
+                resolved_topic_refs = self._resolve_topic_refs(association)
+                for resolved_topic_ref in resolved_topic_refs:
+                    topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
+                    if topic_ref != identifier and topic_ref not in nodes:
+                        topic = self.get_topic(topic_map_identifier, topic_ref)
+                        tree.add_node(topic_ref, parent=identifier, topic=topic)
+                    if topic_ref not in nodes:
+                        nodes.append(topic_ref)
+            children = tree[identifier].children
+            for child in children:
+                # Recursive call.
+                self.get_topics_hierarchy(topic_map_identifier, child,
+                                          cumulative_depth=cumulative_depth + 1,
+                                          accumulative_tree=tree,
+                                          accumulative_nodes=nodes)
+        return tree
 
     def set_topic(self, topic_map_identifier, topic, ontology_mode=OntologyMode.STRICT):
         if ontology_mode is OntologyMode.STRICT:
