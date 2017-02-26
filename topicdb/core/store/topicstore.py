@@ -5,10 +5,10 @@ February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from datetime import datetime
+
 import psycopg2
 import psycopg2.extras
-
-from datetime import datetime
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
@@ -143,7 +143,7 @@ class TopicStore:
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
-            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            with self.connection.cursor() as cursor:
                 cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)", (topic_map_identifier, association.identifier, association.instance_of, association.scope))
                 for base_name in association.base_names:
                     cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
@@ -258,14 +258,14 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("INSERT INTO topicdb.attribute (topicmap_identifier, identifier, parent_identifier_fk, name, value, data_type, scope, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                                        (topic_map_identifier,
-                                         attribute.identifier,
-                                         attribute.entity_identifier,
-                                         attribute.name,
-                                         attribute.value,
-                                         attribute.data_type.name.lower(),
-                                         attribute.scope,
-                                         attribute.language.name.lower()))
+                               (topic_map_identifier,
+                                attribute.identifier,
+                                attribute.entity_identifier,
+                                attribute.name,
+                                attribute.value,
+                                attribute.data_type.name.lower(),
+                                attribute.scope,
+                                attribute.language.name.lower()))
 
     def set_attributes(self, topic_map_identifier, attributes):
         for attribute in attributes:
@@ -341,7 +341,7 @@ class TopicStore:
                         inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
                         resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
         result = []
-        sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"  #  LIMIT %s OFFSET %s
+        sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"  # ORDER BY topic_identifier_fk, identifier LIMIT %s OFFSET %s
         if instance_of is None:
             if scope is None:
                 if language is None:
@@ -424,14 +424,14 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                                        (topic_map_identifier,
-                                         occurrence.identifier,
-                                         occurrence.instance_of,
-                                         occurrence.scope,
-                                         occurrence.resource_ref,
-                                         occurrence.resource_data,
-                                         occurrence.topic_identifier,
-                                         occurrence.language.name.lower()))
+                               (topic_map_identifier,
+                                occurrence.identifier,
+                                occurrence.instance_of,
+                                occurrence.scope,
+                                occurrence.resource_ref,
+                                occurrence.resource_data,
+                                occurrence.topic_identifier,
+                                occurrence.language.name.lower()))
         if not occurrence.get_attribute_by_name('creation-timestamp'):
             timestamp = str(datetime.now())
             timestamp_attribute = Attribute('creation-timestamp', timestamp,
@@ -540,7 +540,8 @@ class TopicStore:
                     if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(topic_map_identifier, identifier))
                     if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
-                        result.add_occurrences(self.get_occurrences(topic_map_identifier, identifier))
+                        result.add_occurrences(
+                            self.get_topic_occurrences(topic_map_identifier, identifier))
 
         return result
 

@@ -3,9 +3,9 @@ test_topicstore.py file. Part of the StoryTechnologies project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
-"""
 
-import pytest
+To run tests in the terminal: brettk@brettk-X550CC:~/Source/storytechnologies/topic_db$ python -m pytest -v
+"""
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
@@ -78,9 +78,91 @@ def test_occurrence():
     assert len(occurrence2.attributes) == 1
 
 
+def test_topic_occurrences():
+    # Instantiate and open topic store.
+    store = TopicStore("localhost", "5t0ryt3ch!")
+    store.open()
+
+    # Retrieve topic from store.
+    topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
+                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
+                             resolve_occurrences=RetrievalOption.RESOLVE_OCCURRENCES)
+
+    store.close()
+
+    assert topic2.identifier == 'test-topic1'
+    assert topic2.instance_of == 'topic'
+    assert len(topic2.base_names) == 1
+    assert topic2.first_base_name.name == 'Test Topic 1'
+    assert topic2.first_base_name.language is Language.SPA
+    assert len(topic2.attributes) == 1
+    assert len(topic2.occurrences) == 1
+
+    assert topic2.occurrences[0].identifier == 'test-occurrence1'
+    assert topic2.occurrences[0].topic_identifier == 'test-topic1'
+    assert topic2.occurrences[0].instance_of == 'occurrence'
+    assert topic2.occurrences[0].scope == '*'  # Universal scope.
+    assert topic2.occurrences[0].resource_ref == 'http://example.com/resource.pdf'
+    assert topic2.occurrences[0].resource_data is None
+    assert topic2.occurrences[0].language is Language.DEU
+    assert len(topic2.occurrences[0].attributes) == 0
+
+
 def test_association():
-    pass
+    association1 = Association(identifier='test-association1',
+                               src_topic_ref='test-topic1',
+                               dest_topic_ref='test-topic2')
+
+    # Instantiate and open topic store.
+    store = TopicStore("localhost", "5t0ryt3ch!")
+    store.open()
+
+    # Persist association to store.
+    if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-association1'):
+        store.set_association(TOPIC_MAP_IDENTIFIER, association1)
+
+    # Retrieve occurrence from store.
+    association2 = store.get_association(TOPIC_MAP_IDENTIFIER, 'test-association1',
+                                         resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
+
+    store.close()
+
+    assert association2.identifier == 'test-association1'
+    assert association2.instance_of == 'association'
+    assert association2.scope == '*'  # Universal scope.
+    assert len(association2.base_names) == 1
+    assert association2.first_base_name.name == 'Undefined'
+    assert association2.first_base_name.language is Language.ENG
+    assert len(association2.attributes) == 1
+    assert len(association2.occurrences) == 0
+    assert len(association2.members) == 2
+    assert association2.members[0].role_spec == 'related'
+    assert association2.members[1].role_spec == 'related'
 
 
 def test_attribute():
-    pass
+    attribute1 = Attribute('name', 'true', 'test-entity1',
+                           identifier='test-attribute1',
+                           data_type=DataType.BOOLEAN,
+                           language=Language.FRA)
+
+    # Instantiate and open topic store.
+    store = TopicStore("localhost", "5t0ryt3ch!")
+    store.open()
+
+    # Persist attribute to store.
+    if not store.attribute_exists(TOPIC_MAP_IDENTIFIER, 'test-entity1', 'name'):
+        store.set_attribute(TOPIC_MAP_IDENTIFIER, attribute1)
+
+    # Retrieve attribute from store.
+    attribute2 = store.get_attribute(TOPIC_MAP_IDENTIFIER, 'test-attribute1')
+
+    store.close()
+
+    assert attribute2.identifier == 'test-attribute1'
+    assert attribute2.name == 'name'
+    assert attribute2.value == 'true'
+    assert attribute2.entity_identifier == 'test-entity1'
+    assert attribute2.scope == '*'  # Universal scope.
+    assert attribute2.data_type is DataType.BOOLEAN
+    assert attribute2.language is Language.FRA
