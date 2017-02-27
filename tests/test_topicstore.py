@@ -129,7 +129,8 @@ def test_occurrence_resource_data():
 
     store.close()
 
-    assert occurrence2.resource_data == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
+    # Converting the resource data from bytes to string.
+    assert occurrence2.resource_data.decode("utf-8") == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
 
 
 def test_association():
