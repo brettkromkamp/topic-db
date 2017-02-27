@@ -29,16 +29,17 @@ from topicdb.core.store.topicstoreerror import TopicStoreError
 
 
 class TopicStore:
-
-    def __init__(self, host, password, port=5432):
+    def __init__(self, host, username, password, port=5432):
         self.host = host
+        self.username = username
         self.password = password
         self.port = port
 
         self.connection = None
 
     def open(self):
-        connection_string = "dbname='storytech' user='storytech' host={0} password={1}".format(self.host, self.password)
+        connection_string = "dbname='storytech' user='{0}' host={1} password={2}".format(
+            self.username, self.host, self.password)
         self.connection = psycopg2.connect(connection_string)
 
     def close(self):

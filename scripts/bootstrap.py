@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from topicdb.core.store.topicstore import TopicStore
 
-store = TopicStore("localhost", "5t0ryt3ch!")
+store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
 store.open()
 store.set_topic_map(1, "The Doomsday Plans",
                     "A soldier has to steal the plans for a secret weapon.")
