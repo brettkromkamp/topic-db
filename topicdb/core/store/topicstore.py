@@ -330,7 +330,7 @@ class TopicStore:
                 cursor.execute("SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
-                    result = record['resource_data']
+                    result = bytes(record['resource_data']).decode('utf-8')
         return result
 
     def get_occurrences(self, topic_map_identifier,
@@ -424,13 +424,15 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
+                if occurrence.resource_data is not None:
+                    resource_data = bytes(occurrence.resource_data)  # Default encoding is UTF-8
                 cursor.execute("INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                                (topic_map_identifier,
                                 occurrence.identifier,
                                 occurrence.instance_of,
                                 occurrence.scope,
                                 occurrence.resource_ref,
-                                occurrence.resource_data,
+                                psycopg2.Binary(resource_data),
                                 occurrence.topic_identifier,
                                 occurrence.language.name.lower()))
         if not occurrence.get_attribute_by_name('creation-timestamp'):
@@ -445,7 +447,7 @@ class TopicStore:
 
     def set_occurrence_data(self, topic_map_identifier, identifier, resource_data):
         # http://initd.org/psycopg/docs/usage.html#with-statement
-        resource_data = bytes(resource_data, 'utf-8')
+        resource_data = bytes(resource_data)  # Default encoding is UTF-8
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
