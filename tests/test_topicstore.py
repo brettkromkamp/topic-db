@@ -26,7 +26,7 @@ def test_topic():
                    language=Language.SPA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "5t0ryt3ch!")
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
     store.open()
 
     # Persist topic to store.
@@ -55,7 +55,7 @@ def test_occurrence():
                              language=Language.DEU)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "5t0ryt3ch!")
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
     store.open()
 
     # Persist occurrence to store.
@@ -80,7 +80,7 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "5t0ryt3ch!")
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
     store.open()
 
     # Retrieve topic from store.
@@ -96,7 +96,7 @@ def test_topic_occurrences():
     assert topic2.first_base_name.name == 'Test Topic 1'
     assert topic2.first_base_name.language is Language.SPA
     assert len(topic2.attributes) == 1
-    assert len(topic2.occurrences) == 1
+    assert len(topic2.occurrences) == 2
 
     assert topic2.occurrences[0].identifier == 'test-occurrence1'
     assert topic2.occurrences[0].topic_identifier == 'test-topic1'
@@ -108,13 +108,37 @@ def test_topic_occurrences():
     assert len(topic2.occurrences[0].attributes) == 0
 
 
+def test_occurrence_resource_data():
+    resource_data = '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
+    occurrence1 = Occurrence(identifier='test-occurrence2',
+                             topic_identifier='test-topic1',
+                             resource_data=resource_data)
+
+    # Instantiate and open topic store.
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store.open()
+
+    # Persist occurrence to store.
+    if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence2'):
+        store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
+
+    # Retrieve occurrence from store.
+    occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence2',
+                                       resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
+                                       inline_resource_data=RetrievalOption.INLINE_RESOURCE_DATA)
+
+    store.close()
+
+    assert occurrence2.resource_data == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
+
+
 def test_association():
     association1 = Association(identifier='test-association1',
                                src_topic_ref='test-topic1',
                                dest_topic_ref='test-topic2')
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "5t0ryt3ch!")
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
     store.open()
 
     # Persist association to store.
@@ -147,7 +171,7 @@ def test_attribute():
                            language=Language.FRA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "5t0ryt3ch!")
+    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
     store.open()
 
     # Persist attribute to store.

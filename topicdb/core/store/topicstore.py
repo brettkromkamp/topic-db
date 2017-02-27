@@ -332,7 +332,8 @@ class TopicStore:
                 record = cursor.fetchone()
                 if record:
                     # BYTEA field is returned as a 'memoryview'.
-                    result = bytes(record['resource_data']).decode('utf-8')
+                    if record['resource_data'] is not None:
+                        result = bytes(record['resource_data']).decode("utf-8")
         return result
 
     def get_occurrences(self, topic_map_identifier,
@@ -426,8 +427,11 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
+                resource_data = None
                 if occurrence.resource_data is not None:
-                    resource_data = bytes(occurrence.resource_data)  # Default encoding is UTF-8
+                    resource_data = occurrence.resource_data if isinstance(occurrence.resource_data,
+                                                                           bytes) else bytes(
+                        occurrence.resource_data, encoding="utf-8")
                 cursor.execute("INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                                (topic_map_identifier,
                                 occurrence.identifier,
@@ -449,7 +453,8 @@ class TopicStore:
 
     def set_occurrence_data(self, topic_map_identifier, identifier, resource_data):
         # http://initd.org/psycopg/docs/usage.html#with-statement
-        resource_data = bytes(resource_data)  # Default encoding is UTF-8
+        resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data,
+                                                                                     encoding="utf-8")
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
