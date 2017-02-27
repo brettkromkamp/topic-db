@@ -330,6 +330,7 @@ class TopicStore:
                 cursor.execute("SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
+                    # BYTEA field is returned as a 'memoryview'.
                     result = bytes(record['resource_data']).decode('utf-8')
         return result
 
