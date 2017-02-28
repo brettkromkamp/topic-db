@@ -133,6 +133,14 @@ def test_occurrence_resource_data():
     assert occurrence2.resource_data.decode("utf-8") == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
 
 
+def test_delete_resource():
+    pass
+
+
+def test_delete_resources():
+    pass
+
+
 def test_association():
     association1 = Association(identifier='test-association1',
                                src_topic_ref='test-topic1',
@@ -165,6 +173,10 @@ def test_association():
     assert association2.members[1].role_spec == 'related'
 
 
+def delete_association():
+    pass
+
+
 def test_attribute():
     attribute1 = Attribute('name', 'true', 'test-entity1',
                            identifier='test-attribute1',
@@ -191,3 +203,7 @@ def test_attribute():
     assert attribute2.scope == '*'  # Universal scope.
     assert attribute2.data_type is DataType.BOOLEAN
     assert attribute2.language is Language.FRA
+
+
+def delete_attribute():
+    pass
