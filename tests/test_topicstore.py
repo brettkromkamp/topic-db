@@ -133,11 +133,11 @@ def test_occurrence_resource_data():
     assert occurrence2.resource_data.decode("utf-8") == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
 
 
-def test_delete_resource():
+def test_delete_occurrence():
     pass
 
 
-def test_delete_resources():
+def test_delete_occurrences():
     pass
 
 
@@ -173,7 +173,7 @@ def test_association():
     assert association2.members[1].role_spec == 'related'
 
 
-def delete_association():
+def test_delete_association():
     pass
 
 
@@ -205,5 +205,5 @@ def test_attribute():
     assert attribute2.language is Language.FRA
 
 
-def delete_attribute():
+def test_delete_attribute():
     pass
