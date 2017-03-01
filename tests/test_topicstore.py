@@ -96,7 +96,7 @@ def test_topic_occurrences():
     assert topic2.first_base_name.name == 'Test Topic 1'
     assert topic2.first_base_name.language is Language.SPA
     assert len(topic2.attributes) == 1
-    assert len(topic2.occurrences) == 2
+    assert len(topic2.occurrences) >= 1
 
     assert topic2.occurrences[0].identifier == 'test-occurrence1'
     assert topic2.occurrences[0].topic_identifier == 'test-topic1'
