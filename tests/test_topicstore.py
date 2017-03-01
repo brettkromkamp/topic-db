@@ -7,6 +7,9 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 To run tests in the terminal: brettk@brettk-X550CC:~/Source/storytechnologies/topic_db$ python -m pytest -v
 """
 
+import configparser
+import os
+
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.datatype import DataType
@@ -14,8 +17,15 @@ from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.store.retrievaloption import RetrievalOption
-
 from topicdb.core.store.topicstore import TopicStore
+
+SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), '../settings.ini')
+
+config = configparser.ConfigParser()
+config.read(SETTINGS_FILE_PATH)
+
+username = config['DATABASE']['Username']
+password = config['DATABASE']['Password']
 
 TOPIC_MAP_IDENTIFIER = 1
 
@@ -26,7 +36,7 @@ def test_topic():
                    language=Language.SPA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Persist topic to store.
@@ -55,7 +65,7 @@ def test_occurrence():
                              language=Language.DEU)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Persist occurrence to store.
@@ -80,7 +90,7 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Retrieve topic from store.
@@ -115,7 +125,7 @@ def test_occurrence_resource_data():
                              resource_data=resource_data)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Persist occurrence to store.
@@ -147,7 +157,7 @@ def test_association():
                                dest_topic_ref='test-topic2')
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Persist association to store.
@@ -184,7 +194,7 @@ def test_attribute():
                            language=Language.FRA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "storytech", "5t0ryt3ch!")
+    store = TopicStore("localhost", username, password)
     store.open()
 
     # Persist attribute to store.

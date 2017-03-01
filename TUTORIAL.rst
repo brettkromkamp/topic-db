@@ -1,7 +1,7 @@
 TopicDB Tutorial
 ================
 
-TopicDB is a topic map-based graph library (using SQLite for persistence).
+TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
 
@@ -73,5 +73,6 @@ look at each keyword argument in turn:
 
 **To be continued.**
 
+.. _PostgreSQL: https://www.postgresql.org/
 .. _iPython: https://ipython.org/
 .. _Ptpython: https://github.com/jonathanslenders/ptpython
