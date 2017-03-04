@@ -96,3 +96,6 @@ ENV/
 
 # Visual Studio Code
 .vscode/
+
+# Application settings
+settings.ini

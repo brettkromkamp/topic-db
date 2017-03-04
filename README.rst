@@ -1,7 +1,7 @@
 TopicDB from StoryTechnologies
 ==============================
 
-TopicDB is a topic map-based graph library (and, currently using SQLite for persistence).
+TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
 .. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
 
@@ -38,37 +38,34 @@ First-Time Use
 
 .. code-block:: python
 
-    import os
+    from topicdb.core.store.topicstore import TopicStore
+    from topicdb.core.store.retrievaloption import RetrievalOption
 
-    from topicdb.core.commands.topic.gettopic import GetTopic
-    from topicdb.core.commands.topicmap.gettopicmap import GetTopicMap
-    from topicdb.core.commands.topicmap.settopicmap import SetTopicMap
+    from topicdb.core.models.topic import Topic
+    from topicdb.core.models.language import Language
 
-
-    DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'test-topicmap.db')
     TOPIC_MAP_IDENTIFIER = 1
-    TITLE = 'Topic Map'
-    DESCRIPTION = 'Default topic map'
 
-    print('Creating and initializing topic map')
-    SetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, TITLE, DESCRIPTION).execute()
+    # Instantiate and open topic store.
+    store = TopicStore("localhost", "username", "password")
+    store.open()
 
-    # Rest of the code is for testing purposes (e.g., to verify that the topic map has been created
-    # and that the 'entry' topic can be retrieved.
-    print("\nGetting topic map")
-    topic_map = GetTopicMap(DATABASE_PATH, TOPIC_MAP_IDENTIFIER).execute()
+    # Create the topic map and bootstrap default topics.
+    store.set_topic_map(TOPIC_MAP_IDENTIFIER, "Topic Map Test")
 
-    print("Map identifier: [{0}]".format(topic_map.identifier))
-    print("Map title: [{0}]".format(topic_map.title))
-    print("Map description: [{0}]".format(topic_map.description))
-    print("Map entry topic: [{0}]".format(topic_map.entry_topic_identifier))
+    topic1 = Topic(identifier='test-topic1',
+                   base_name='Tópico de Prueba',
+                   language=Language.SPA)
 
-    print("\nGetting entry topic")
-    topic = GetTopic(DATABASE_PATH, TOPIC_MAP_IDENTIFIER, 'genesis').execute()
+    # Persist topic to store.
+    if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
+        store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
 
-    print("Topic identifier: [{0}]".format(topic.identifier))
-    print("Topic 'instance of': [{0}]".format(topic.instance_of))
-    print("Topic (base) name: [{0}]".format(topic.first_base_name.name))
+    # Retrieve topic from store (with the accompanying topic attributes).
+    topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
+                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
+
+    store.close()
 
 Tutorial
 --------
@@ -87,6 +84,7 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
+.. _PostgreSQL: https://www.postgresql.org/
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _Story Engine: https://github.com/brettkromkamp/story_engine

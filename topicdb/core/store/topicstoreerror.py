@@ -7,6 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 
 class TopicStoreError(Exception):
+
     def __init__(self, value):
         self.value = value
 

@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 from slugify import slugify
 
-from topicdb.core.commands.topicstoreerror import TopicStoreError
+from topicdb.core.store.topicstoreerror import TopicStoreError
 from topicdb.core.models.entity import Entity
 from topicdb.core.models.language import Language
 
