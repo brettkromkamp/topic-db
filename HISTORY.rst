@@ -3,6 +3,14 @@
 Release History
 ---------------
 
+0.6.0 (2017-03-04)
+++++++++++++++++++
+
+**Improvements**
+
+- Moved away from SQLite to PostgreSQL as the persistence store.
+- Moved away from the 'command' pattern to the 'repository' pattern.
+
 0.5.0 (2017-01-15)
 ++++++++++++++++++
 
