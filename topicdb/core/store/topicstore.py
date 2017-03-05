@@ -68,9 +68,8 @@ class TopicStore:
                     for member_record in member_records:
                         # Delete topic refs.
                         self.connection.execute("DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s", (topic_map_identifier, member_record['identifier']))
-                        # Delete attributes.
-
-            self.delete_attributes(topic_map_identifier, identifier)
+        # Delete attributes.
+        self.delete_attributes(topic_map_identifier, identifier)
 
     def get_association(self, topic_map_identifier, identifier,
                         language=None,
@@ -188,7 +187,7 @@ class TopicStore:
                                                 scope='*',
                                                 language=Language.ENG)
                 association.add_attribute(timestamp_attribute)
-            self.set_attributes(topic_map_identifier, association.attributes)
+        self.set_attributes(topic_map_identifier, association.attributes)
 
     # ========== ATTRIBUTE ==========
 
