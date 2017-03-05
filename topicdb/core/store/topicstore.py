@@ -305,6 +305,7 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+        # Delete attributes.
         self.delete_attributes(topic_map_identifier, identifier)
 
     def delete_occurrences(self, topic_map_identifier, topic_identifier):
@@ -313,6 +314,7 @@ class TopicStore:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute("SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier_fk = %s", (topic_map_identifier, topic_identifier))
                 records = cursor.fetchall()
+        # Delete attributes for all of the topic's occurrences.
         for record in records:
             self.delete_occurrence(topic_map_identifier, record['identifier'])
 
@@ -474,9 +476,7 @@ class TopicStore:
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                    (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
+                cursor.execute("UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s", (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
 
     # ========== TAG ==========
 
@@ -570,8 +570,7 @@ class TopicStore:
                     if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(topic_map_identifier, identifier))
                     if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
-                        result.add_occurrences(
-                            self.get_topic_occurrences(topic_map_identifier, identifier))
+                        result.add_occurrences(self.get_topic_occurrences(topic_map_identifier, identifier))
 
         return result
 
@@ -673,8 +672,7 @@ class TopicStore:
                         resource_data,
                         Language[record['language'].upper()])
                     if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
-                        occurrence.add_attributes(
-                            self.get_attributes(topic_map_identifier, occurrence.identifier))
+                        occurrence.add_attributes(self.get_attributes(topic_map_identifier, occurrence.identifier))
                     result.append(occurrence)
 
         return result
