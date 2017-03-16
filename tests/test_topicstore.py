@@ -36,7 +36,7 @@ def test_topic():
                    language=Language.SPA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Persist topic to store.
@@ -65,7 +65,7 @@ def test_occurrence():
                              language=Language.DEU)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Persist occurrence to store.
@@ -90,7 +90,7 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Retrieve topic from store.
@@ -125,7 +125,7 @@ def test_occurrence_resource_data():
                              resource_data=resource_data)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Persist occurrence to store.
@@ -157,7 +157,7 @@ def test_association():
                                dest_topic_ref='test-topic2')
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Persist association to store.
@@ -194,7 +194,7 @@ def test_attribute():
                            language=Language.FRA)
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", username, password)
+    store = TopicStore(username, password)
     store.open()
 
     # Persist attribute to store.

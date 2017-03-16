@@ -19,7 +19,7 @@ username = config['DATABASE']['Username']
 password = config['DATABASE']['Password']
 
 # Instantiate and open topic store.
-store = TopicStore("localhost", username, password)
+store = TopicStore(username, password)
 store.open()
 
 store.set_topic_map(1, "The Doomsday Plans","A soldier has to steal the plans for a secret weapon.", entry_topic="outpost")
