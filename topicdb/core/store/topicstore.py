@@ -30,9 +30,9 @@ from topicdb.core.store.topicstoreerror import TopicStoreError
 
 class TopicStore:
     def __init__(self, username, password, host='localhost', port=5432):
-        self.host = host
         self.username = username
         self.password = password
+        self.host = host
         self.port = port
 
         self.connection = None
