@@ -38,8 +38,11 @@ class TopicStore:
         self.connection = None
 
     def open(self):
-        connection_string = "dbname='storytech' host={0} user='{1}' password={2}".format(self.host, self.username, self.password)
-        self.connection = psycopg2.connect(connection_string)
+        self.connection = psycopg2.connect(dbname="storytech",
+                                           user=self.username,
+                                           password=self.password,
+                                           host=self.host,
+                                           port=self.port)
 
     def close(self):
         if self.connection:
