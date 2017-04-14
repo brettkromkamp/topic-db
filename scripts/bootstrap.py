@@ -22,7 +22,7 @@ password = config['DATABASE']['Password']
 store = TopicStore(username, password)
 store.open()
 
-store.set_topic_map(1, "The Doomsday Plans","A soldier has to steal the plans for a secret weapon.", entry_topic="outpost")
+store.set_topic_map(1, "The Doomsday Plans", "A soldier has to steal the plans for a secret weapon.", entry_topic="outpost")
 store.set_topic_map(2, "An Unexpected Meeting", "Two people meet ever so briefly.", entry_topic="cafeteria")
 
 store.close()
