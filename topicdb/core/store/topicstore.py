@@ -801,7 +801,6 @@ class TopicStore:
                     result = TopicMap(
                         record['title'],
                         record['topicmap_identifier_fk'],
-                        record['entry_identifier_fk'],
                         record['description'])
                     result.identifier = record['identifier']
         return result
@@ -818,17 +817,16 @@ class TopicStore:
                     topic_map = TopicMap(
                         record['title'],
                         record['topicmap_identifier_fk'],
-                        record['entry_identifier_fk'],
                         record['description'])
                     topic_map.identifier = record['identifier']
                     result.append(topic_map)
         return result
 
-    def set_topic_map(self, topic_map_identifier, title, description='', entry_topic='genesis'):
+    def set_topic_map(self, topic_map_identifier, title, description=''):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk, entry_identifier_fk) VALUES (%s, %s, %s, %s)", (title, description, topic_map_identifier, entry_topic))
+                cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk) VALUES (%s, %s, %s)", (title, description, topic_map_identifier))
 
         if not self.topic_exists(topic_map_identifier, 'genesis'):
             items = {

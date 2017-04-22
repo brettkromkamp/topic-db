@@ -85,10 +85,8 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     title TEXT NOT NULL,
     description TEXT,
     topicmap_identifier_fk BIGINT,
-    entry_identifier_fk TEXT NOT NULL,
     PRIMARY KEY (identifier)
 );
 CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier, topicmap_identifier_fk);
-CREATE INDEX topicmap_2_index ON topicdb.topicmap (identifier, topicmap_identifier_fk, entry_identifier_fk);
 
 ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
