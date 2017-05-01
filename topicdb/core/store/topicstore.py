@@ -576,6 +576,55 @@ class TopicStore:
 
         return result
 
+    # def get_topic_associations(self, topic_map_identifier, identifier,
+    #                            instance_of=None,
+    #                            scope=None,
+    #                            language=None,
+    #                            resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+    #                            resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+    #     result = []
+    #     sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
+    #         (SELECT association_identifier_fk FROM topicdb.member \
+    #          WHERE topicmap_identifier = %s AND \
+    #          identifier IN (\
+    #             SELECT member_identifier_fk FROM topicdb.topicref \
+    #                 WHERE topicmap_identifier = %s \
+    #                 AND topic_ref = %s))
+    #     """
+    #     if instance_of is None:
+    #         if scope is None:
+    #             query_filter = ""
+    #             bind_variables = (topic_map_identifier, topic_map_identifier, topic_map_identifier, identifier)
+    #         else:
+    #             query_filter = " AND scope = %s"
+    #             bind_variables = (topic_map_identifier, scope, topic_map_identifier, topic_map_identifier, identifier)
+    #     else:
+    #         if scope is None:
+    #             query_filter = " AND instance_of = %s"
+    #             bind_variables = (
+    #             topic_map_identifier, instance_of, topic_map_identifier, topic_map_identifier, identifier)
+    #         else:
+    #             query_filter = " AND instance_of = %s AND scope = %s"
+    #             bind_variables = (
+    #             topic_map_identifier, instance_of, scope, topic_map_identifier, topic_map_identifier, identifier)
+    #
+    #     # http://initd.org/psycopg/docs/usage.html#with-statement
+    #     with self.connection:
+    #         with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+    #             cursor.execute(sql.format(query_filter), bind_variables)
+    #             records = cursor.fetchall()
+    #             if records:
+    #                 for record in records:
+    #                     association = self.get_association(topic_map_identifier,
+    #                                                        record['identifier'],
+    #                                                        language=language,
+    #                                                        resolve_attributes=resolve_attributes,
+    #                                                        resolve_occurrences=resolve_occurrences)
+    #                     if association:
+    #                         result.append(association)
+    #
+    #     return result
+
     def get_topic_associations(self, topic_map_identifier, identifier,
                                language=None,
                                resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
