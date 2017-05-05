@@ -20,7 +20,6 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
-from topicdb.core.models.tree.tree import Tree
 from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
@@ -119,14 +118,18 @@ class TopicStore:
 
         return result
 
-    def get_association_groups(self, topic_map_identifier, identifier='', associations=None):
+    def get_association_groups(self, topic_map_identifier,
+                               identifier='',
+                               associations=None,
+                               instance_of=None,
+                               scope=None):
         if identifier == '' and associations is None:
             raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
         result = DoubleKeyDict()
 
         if not associations:
-            associations = self.get_topic_associations(topic_map_identifier, identifier)
+            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
 
         for association in associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
@@ -485,7 +488,7 @@ class TopicStore:
     def get_tags(self, topic_map_identifier, identifier):
         result = []
 
-        associations = self.get_topic_associations(topic_map_identifier, identifier)
+        associations = self.get_topic_associations(topic_map_identifier, identifier, )
         if associations:
             groups = self.get_association_groups(topic_map_identifier, associations=associations)
             for instance_of in groups.dict:
@@ -530,10 +533,10 @@ class TopicStore:
     def delete_topic(self):
         pass
 
-    def get_related_topics(self, topic_map_identifier, identifier):
+    def get_related_topics(self, topic_map_identifier, identifier, instance_of=None, scope=None):
         result = []
 
-        associations = self.get_topic_associations(topic_map_identifier, identifier)
+        associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
         if associations:
             groups = self.get_association_groups(topic_map_identifier, associations=associations)
             for instance_of in groups.dict:
@@ -576,79 +579,51 @@ class TopicStore:
 
         return result
 
-    # def get_topic_associations(self, topic_map_identifier, identifier,
-    #                            instance_of=None,
-    #                            scope=None,
-    #                            language=None,
-    #                            resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-    #                            resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
-    #     result = []
-    #     sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
-    #         (SELECT association_identifier_fk FROM topicdb.member \
-    #          WHERE topicmap_identifier = %s AND \
-    #          identifier IN (\
-    #             SELECT member_identifier_fk FROM topicdb.topicref \
-    #                 WHERE topicmap_identifier = %s \
-    #                 AND topic_ref = %s))
-    #     """
-    #     if instance_of is None:
-    #         if scope is None:
-    #             query_filter = ""
-    #             bind_variables = (topic_map_identifier, topic_map_identifier, topic_map_identifier, identifier)
-    #         else:
-    #             query_filter = " AND scope = %s"
-    #             bind_variables = (topic_map_identifier, scope, topic_map_identifier, topic_map_identifier, identifier)
-    #     else:
-    #         if scope is None:
-    #             query_filter = " AND instance_of = %s"
-    #             bind_variables = (
-    #             topic_map_identifier, instance_of, topic_map_identifier, topic_map_identifier, identifier)
-    #         else:
-    #             query_filter = " AND instance_of = %s AND scope = %s"
-    #             bind_variables = (
-    #             topic_map_identifier, instance_of, scope, topic_map_identifier, topic_map_identifier, identifier)
-    #
-    #     # http://initd.org/psycopg/docs/usage.html#with-statement
-    #     with self.connection:
-    #         with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-    #             cursor.execute(sql.format(query_filter), bind_variables)
-    #             records = cursor.fetchall()
-    #             if records:
-    #                 for record in records:
-    #                     association = self.get_association(topic_map_identifier,
-    #                                                        record['identifier'],
-    #                                                        language=language,
-    #                                                        resolve_attributes=resolve_attributes,
-    #                                                        resolve_occurrences=resolve_occurrences)
-    #                     if association:
-    #                         result.append(association)
-    #
-    #     return result
-
     def get_topic_associations(self, topic_map_identifier, identifier,
+                               instance_of=None,
+                               scope=None,
                                language=None,
                                resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
                                resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
         result = []
+        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
+            (SELECT association_identifier_fk FROM topicdb.member \
+             WHERE topicmap_identifier = %s AND \
+             identifier IN (\
+                SELECT member_identifier_fk FROM topicdb.topicref \
+                    WHERE topicmap_identifier = %s \
+                    AND topic_ref = %s))
+        """
+        if instance_of is None:
+            if scope is None:
+                query_filter = ""
+                bind_variables = (topic_map_identifier, topic_map_identifier, topic_map_identifier, identifier)
+            else:
+                query_filter = " AND scope = %s"
+                bind_variables = (topic_map_identifier, scope, topic_map_identifier, topic_map_identifier, identifier)
+        else:
+            if scope is None:
+                query_filter = " AND instance_of = %s"
+                bind_variables = (topic_map_identifier, instance_of, topic_map_identifier, topic_map_identifier, identifier)
+            else:
+                query_filter = " AND instance_of = %s AND scope = %s"
+                bind_variables = (topic_map_identifier, instance_of, scope, topic_map_identifier, topic_map_identifier, identifier)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT member_identifier_fk FROM topicdb.topicref WHERE topicmap_identifier = %s AND topic_ref = %s", (topic_map_identifier, identifier))
-                topic_ref_records = cursor.fetchall()
-                if topic_ref_records:
-                    for topic_ref_record in topic_ref_records:
-                        cursor.execute("SELECT association_identifier_fk FROM topicdb.member WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, topic_ref_record['member_identifier_fk']))
-                        member_records = cursor.fetchall()
-                        if member_records:
-                            for member_record in member_records:
-                                association = self.get_association(topic_map_identifier,
-                                                                   member_record['association_identifier_fk'],
-                                                                   language=language,
-                                                                   resolve_attributes=resolve_attributes,
-                                                                   resolve_occurrences=resolve_occurrences)
-                                if association:
-                                    result.append(association)
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                if records:
+                    for record in records:
+                        association = self.get_association(topic_map_identifier,
+                                                           record['identifier'],
+                                                           language=language,
+                                                           resolve_attributes=resolve_attributes,
+                                                           resolve_occurrences=resolve_occurrences)
+                        if association:
+                            result.append(association)
+
         return result
 
     def get_topic_identifiers(self, topic_map_identifier, query, offset=0, limit=100):
@@ -754,43 +729,6 @@ class TopicStore:
                                                  resolve_attributes=resolve_attributes))
 
         return result
-
-    def get_topics_hierarchy(self, topic_map_identifier, identifier,
-                             maximum_depth=10,
-                             cumulative_depth=0,
-                             accumulative_tree=None,
-                             accumulative_nodes=None):
-        if accumulative_tree is None:
-            tree = Tree()
-            root_topic = self.get_topic(topic_map_identifier, identifier)
-            tree.add_node(identifier, parent=None, topic=root_topic)
-        else:
-            tree = accumulative_tree
-
-        if accumulative_nodes is None:
-            nodes = []
-        else:
-            nodes = accumulative_nodes
-
-        if cumulative_depth <= maximum_depth:  # Exit case.
-            associations = self.get_topic_associations(topic_map_identifier, identifier)
-            for association in associations:
-                resolved_topic_refs = self._resolve_topic_refs(association)
-                for resolved_topic_ref in resolved_topic_refs:
-                    topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
-                    if topic_ref != identifier and topic_ref not in nodes:
-                        topic = self.get_topic(topic_map_identifier, topic_ref)
-                        tree.add_node(topic_ref, parent=identifier, topic=topic)
-                    if topic_ref not in nodes:
-                        nodes.append(topic_ref)
-            children = tree[identifier].children
-            for child in children:
-                # Recursive call.
-                self.get_topics_hierarchy(topic_map_identifier, child,
-                                          cumulative_depth=cumulative_depth + 1,
-                                          accumulative_tree=tree,
-                                          accumulative_nodes=nodes)
-        return tree
 
     def set_topic(self, topic_map_identifier, topic, ontology_mode=OntologyMode.STRICT):
         if ontology_mode is OntologyMode.STRICT:
@@ -907,6 +845,7 @@ class TopicStore:
                 ('character', 'Character'),
                 ('image', 'Image'),
                 ('video', 'Video'),
+                ('sound', 'Sound'),
                 ('text', 'Text'),
                 ('html', 'HTML'),
                 ('annotation', 'Annotation'),
