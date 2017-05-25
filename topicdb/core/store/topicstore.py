@@ -740,16 +740,16 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of) VALUES (%s, %s, %s)",
-                                        (topic_map_identifier,
-                                         topic.identifier,
-                                         topic.instance_of))
+                               (topic_map_identifier,
+                                topic.identifier,
+                                topic.instance_of))
                 for base_name in topic.base_names:
                     cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
-                                            (topic_map_identifier,
-                                             base_name.identifier,
-                                             base_name.name,
-                                             topic.identifier,
-                                             base_name.language.name.lower()))
+                                   (topic_map_identifier,
+                                    base_name.identifier,
+                                    base_name.name,
+                                    topic.identifier,
+                                    base_name.language.name.lower()))
         if not topic.get_attribute_by_name('creation-timestamp'):
             timestamp = str(datetime.now())
             timestamp_attribute = Attribute('creation-timestamp', timestamp, topic.identifier,
@@ -813,7 +813,8 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk) VALUES (%s, %s, %s)", (title, description, topic_map_identifier))
+                cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk) VALUES (%s, %s, %s)",
+                               (title, description, topic_map_identifier))
 
         if not self.topic_exists(topic_map_identifier, 'genesis'):
             items = {
