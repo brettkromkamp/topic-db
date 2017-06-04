@@ -589,7 +589,7 @@ class TopicStore:
         result = []
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
             (SELECT association_identifier_fk FROM topicdb.member \
-             WHERE topicmap_identifier = %s AND \U
+             WHERE topicmap_identifier = %s AND \
              identifier IN (\
                 SELECT member_identifier_fk FROM topicdb.topicref \
                     WHERE topicmap_identifier = %s \
