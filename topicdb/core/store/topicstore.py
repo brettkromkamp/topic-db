@@ -20,6 +20,7 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
+from topicdb.core.models.tree.tree import Tree
 from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
@@ -588,7 +589,7 @@ class TopicStore:
         result = []
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
             (SELECT association_identifier_fk FROM topicdb.member \
-             WHERE topicmap_identifier = %s AND \
+             WHERE topicmap_identifier = %s AND \U
              identifier IN (\
                 SELECT member_identifier_fk FROM topicdb.topicref \
                     WHERE topicmap_identifier = %s \
@@ -602,12 +603,18 @@ class TopicStore:
                 query_filter = " AND scope = %s"
                 bind_variables = (topic_map_identifier, scope, topic_map_identifier, topic_map_identifier, identifier)
         else:
+            instance_of_in_condition = " AND instance_of IN ("
+            for index, value in enumerate(instance_of):
+                if (index + 1) != len(instance_of):
+                    instance_of_in_condition += "%s, "
+                else:
+                    instance_of_in_condition += "%s) "
             if scope is None:
-                query_filter = " AND instance_of = %s"
-                bind_variables = (topic_map_identifier, instance_of, topic_map_identifier, topic_map_identifier, identifier)
+                query_filter = instance_of_in_condition
+                bind_variables = (topic_map_identifier, ) + tuple(instance_of) + (topic_map_identifier, topic_map_identifier, identifier)
             else:
-                query_filter = " AND instance_of = %s AND scope = %s"
-                bind_variables = (topic_map_identifier, instance_of, scope, topic_map_identifier, topic_map_identifier, identifier)
+                query_filter = instance_of_in_condition + " AND scope = %s "
+                bind_variables = (topic_map_identifier, ) + tuple(instance_of) + (scope, topic_map_identifier, topic_map_identifier, identifier)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -625,6 +632,48 @@ class TopicStore:
                             result.append(association)
 
         return result
+
+    def get_topics_network(self, topic_map_identifier, identifier,
+                           maximum_depth=10,
+                           cumulative_depth=0,
+                           accumulative_tree=None,
+                           accumulative_nodes=None,
+                           instance_of=None,
+                           scope=None):
+        if accumulative_tree is None:
+            tree = Tree()
+            root_topic = self.get_topic(topic_map_identifier, identifier)
+            tree.add_node(identifier, parent=None, topic=root_topic)
+        else:
+            tree = accumulative_tree
+
+        if accumulative_nodes is None:
+            nodes = []
+        else:
+            nodes = accumulative_nodes
+
+        if cumulative_depth <= maximum_depth:  # Exit case.
+            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
+            for association in associations:
+                resolved_topic_refs = self._resolve_topic_refs(association)
+                for resolved_topic_ref in resolved_topic_refs:
+                    topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
+                    if (topic_ref != identifier) and (topic_ref not in nodes):
+                        topic = self.get_topic(topic_map_identifier, topic_ref)
+                        tree.add_node(topic_ref, parent=identifier, topic=topic)
+                    if topic_ref not in nodes:
+                        nodes.append(topic_ref)
+            children = tree[identifier].children
+
+            for child in children:
+                # Recursive call.
+                self.get_topics_network(topic_map_identifier, child,
+                                        cumulative_depth=cumulative_depth + 1,
+                                        accumulative_tree=tree,
+                                        accumulative_nodes=nodes,
+                                        instance_of=instance_of,
+                                        scope=scope)
+        return tree
 
     def get_topic_identifiers(self, topic_map_identifier, query, offset=0, limit=100):
         result = []
