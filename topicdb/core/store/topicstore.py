@@ -29,12 +29,12 @@ from topicdb.core.store.topicstoreerror import TopicStoreError
 
 
 class TopicStore:
-    def __init__(self, username, password, host='localhost', port=5432, dbname="storytech"):
+    def __init__(self, username, password, host='localhost', port=5432, dbname='storytech'):
         self.username = username
         self.password = password
         self.host = host
         self.port = port
-	self.dbname = dbname
+        self.dbname = dbname
 
         self.connection = None
 
@@ -56,21 +56,31 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 # Delete topic/association record.
-                self.connection.execute("DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL", (topic_map_identifier, identifier))
+                self.connection.execute(
+                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
+                    (topic_map_identifier, identifier))
 
                 # Delete base name record(s).
-                self.connection.execute("DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier_fk = %s", (topic_map_identifier, identifier))
+                self.connection.execute(
+                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier_fk = %s",
+                    (topic_map_identifier, identifier))
 
                 # Get members.
-                cursor.execute("SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s",
+                    (topic_map_identifier, identifier))
                 member_records = cursor.fetchall()
 
                 # Delete members.
-                self.connection.execute("DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s", (topic_map_identifier, identifier))
+                self.connection.execute(
+                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s",
+                    (topic_map_identifier, identifier))
                 if member_records:
                     for member_record in member_records:
                         # Delete topic refs.
-                        self.connection.execute("DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s", (topic_map_identifier, member_record['identifier']))
+                        self.connection.execute(
+                            "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s",
+                            (topic_map_identifier, member_record['identifier']))
         # Delete attributes.
         self.delete_attributes(topic_map_identifier, identifier)
 
@@ -83,7 +93,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
+                    (topic_map_identifier, identifier))
                 association_record = cursor.fetchone()
                 if association_record:
                     result = Association(identifier=association_record['identifier'],
@@ -100,13 +112,19 @@ class TopicStore:
                     base_name_records = cursor.fetchall()
                     if base_name_records:
                         for base_name_record in base_name_records:
-                            result.add_base_name(BaseName(base_name_record['name'], Language[base_name_record['language'].upper()], base_name_record['identifier']))
-                    cursor.execute("SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s", (topic_map_identifier, identifier))
+                            result.add_base_name(
+                                BaseName(base_name_record['name'], Language[base_name_record['language'].upper()],
+                                         base_name_record['identifier']))
+                    cursor.execute(
+                        "SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier_fk = %s",
+                        (topic_map_identifier, identifier))
                     member_records = cursor.fetchall()
                     if member_records:
                         for member_record in member_records:
                             role_spec = member_record['role_spec']
-                            cursor.execute("SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s", (topic_map_identifier, member_record['identifier']))
+                            cursor.execute(
+                                "SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier_fk = %s",
+                                (topic_map_identifier, member_record['identifier']))
                             topic_ref_records = cursor.fetchall()
                             if topic_ref_records:
                                 member = Member(role_spec=role_spec, identifier=member_record['identifier'])
@@ -131,7 +149,8 @@ class TopicStore:
         result = DoubleKeyDict()
 
         if not associations:
-            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
+            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of,
+                                                       scope=scope)
 
         for association in associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
@@ -173,18 +192,25 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)", (topic_map_identifier, association.identifier, association.instance_of, association.scope))
+                cursor.execute(
+                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)",
+                    (topic_map_identifier, association.identifier, association.instance_of, association.scope))
                 for base_name in association.base_names:
-                    cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
-                                   (topic_map_identifier,
-                                    base_name.identifier,
-                                    base_name.name,
-                                    association.identifier,
-                                    base_name.language.name.lower()))
+                    cursor.execute(
+                        "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
+                        (topic_map_identifier,
+                         base_name.identifier,
+                         base_name.name,
+                         association.identifier,
+                         base_name.language.name.lower()))
                 for member in association.members:
-                    cursor.execute("INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (%s, %s, %s, %s)", (topic_map_identifier, member.identifier, member.role_spec, association.identifier))
+                    cursor.execute(
+                        "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier_fk) VALUES (%s, %s, %s, %s)",
+                        (topic_map_identifier, member.identifier, member.role_spec, association.identifier))
                     for topic_ref in member.topic_refs:
-                        cursor.execute("INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (%s, %s, %s)", (topic_map_identifier, topic_ref, member.identifier))
+                        cursor.execute(
+                            "INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier_fk) VALUES (%s, %s, %s)",
+                            (topic_map_identifier, topic_ref, member.identifier))
 
             if not association.get_attribute_by_name('creation-timestamp'):
                 timestamp = str(datetime.now())
@@ -204,7 +230,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("SELECT identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier_fk = %s AND name = %s", (topic_map_identifier, entity_identifier, name))
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier_fk = %s AND name = %s",
+                    (topic_map_identifier, entity_identifier, name))
                 record = cursor.fetchone()
                 if record:
                     result = True
@@ -214,19 +242,23 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
+                               (topic_map_identifier, identifier))
 
     def delete_attributes(self, topic_map_identifier, entity_identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier_fk = %s", (topic_map_identifier, entity_identifier))
+                cursor.execute(
+                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier_fk = %s",
+                    (topic_map_identifier, entity_identifier))
 
     def get_attribute(self, topic_map_identifier, identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute("SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
+                               (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     result = Attribute(
@@ -286,15 +318,16 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.attribute (topicmap_identifier, identifier, parent_identifier_fk, name, value, data_type, scope, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                               (topic_map_identifier,
-                                attribute.identifier,
-                                attribute.entity_identifier,
-                                attribute.name,
-                                attribute.value,
-                                attribute.data_type.name.lower(),
-                                attribute.scope,
-                                attribute.language.name.lower()))
+                cursor.execute(
+                    "INSERT INTO topicdb.attribute (topicmap_identifier, identifier, parent_identifier_fk, name, value, data_type, scope, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (topic_map_identifier,
+                     attribute.identifier,
+                     attribute.entity_identifier,
+                     attribute.name,
+                     attribute.value,
+                     attribute.data_type.name.lower(),
+                     attribute.scope,
+                     attribute.language.name.lower()))
 
     def set_attributes(self, topic_map_identifier, attributes):
         for attribute in attributes:
@@ -311,7 +344,8 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute("DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                               (topic_map_identifier, identifier))
         # Delete attributes.
         self.delete_attributes(topic_map_identifier, identifier)
 
@@ -319,7 +353,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier_fk = %s", (topic_map_identifier, topic_identifier))
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier_fk = %s",
+                    (topic_map_identifier, topic_identifier))
                 records = cursor.fetchall()
         # Delete attributes for all of the topic's occurrences.
         for record in records:
@@ -333,7 +369,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier, instance_of, scope, resource_ref, topic_identifier_fk, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     resource_data = None
@@ -357,7 +395,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     # BYTEA field is returned as a 'memoryview' and needs to be converted to bytes.
@@ -434,7 +474,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     result = True
@@ -458,16 +500,18 @@ class TopicStore:
             with self.connection.cursor() as cursor:
                 resource_data = None
                 if occurrence.resource_data is not None:
-                    resource_data = occurrence.resource_data if isinstance(occurrence.resource_data, bytes) else bytes(occurrence.resource_data, encoding="utf-8")
-                cursor.execute("INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                               (topic_map_identifier,
-                                occurrence.identifier,
-                                occurrence.instance_of,
-                                occurrence.scope,
-                                occurrence.resource_ref,
-                                psycopg2.Binary(resource_data),
-                                occurrence.topic_identifier,
-                                occurrence.language.name.lower()))
+                    resource_data = occurrence.resource_data if isinstance(occurrence.resource_data, bytes) else bytes(
+                        occurrence.resource_data, encoding="utf-8")
+                cursor.execute(
+                    "INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (topic_map_identifier,
+                     occurrence.identifier,
+                     occurrence.instance_of,
+                     occurrence.scope,
+                     occurrence.resource_ref,
+                     psycopg2.Binary(resource_data),
+                     occurrence.topic_identifier,
+                     occurrence.language.name.lower()))
         if not occurrence.get_attribute_by_name('creation-timestamp'):
             timestamp = str(datetime.now())
             timestamp_attribute = Attribute('creation-timestamp', timestamp,
@@ -483,7 +527,9 @@ class TopicStore:
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s", (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
 
     # ========== TAG ==========
 
@@ -538,7 +584,8 @@ class TopicStore:
     def get_related_topics(self, topic_map_identifier, identifier, instance_of=None, scope=None):
         result = []
 
-        associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
+        associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of,
+                                                   scope=scope)
         if associations:
             groups = self.get_association_groups(topic_map_identifier, associations=associations)
             for instance_of in groups.dict:
@@ -558,7 +605,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NULL", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NULL",
+                    (topic_map_identifier, identifier))
                 topic_record = cursor.fetchone()
                 if topic_record:
                     result = Topic(topic_record['identifier'], topic_record['instance_of'])
@@ -573,7 +622,9 @@ class TopicStore:
                     base_name_records = cursor.fetchall()
                     if base_name_records:
                         for base_name_record in base_name_records:
-                            result.add_base_name(BaseName(base_name_record['name'], Language[base_name_record['language'].upper()], base_name_record['identifier']))
+                            result.add_base_name(
+                                BaseName(base_name_record['name'], Language[base_name_record['language'].upper()],
+                                         base_name_record['identifier']))
                     if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(topic_map_identifier, identifier))
                     if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
@@ -612,10 +663,10 @@ class TopicStore:
                     instance_of_in_condition += "%s) "
             if scope is None:
                 query_filter = instance_of_in_condition
-                bind_variables = (topic_map_identifier, ) + tuple(instance_of) + (topic_map_identifier, topic_map_identifier, identifier)
+                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (topic_map_identifier, topic_map_identifier, identifier)
             else:
                 query_filter = instance_of_in_condition + " AND scope = %s "
-                bind_variables = (topic_map_identifier, ) + tuple(instance_of) + (scope, topic_map_identifier, topic_map_identifier, identifier)
+                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (scope, topic_map_identifier, topic_map_identifier, identifier)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -654,7 +705,8 @@ class TopicStore:
             nodes = accumulative_nodes
 
         if cumulative_depth <= maximum_depth:  # Exit case.
-            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of, scope=scope)
+            associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of,
+                                                       scope=scope)
             for association in associations:
                 resolved_topic_refs = self._resolve_topic_refs(association)
                 for resolved_topic_ref in resolved_topic_refs:
@@ -676,16 +728,29 @@ class TopicStore:
                                         scope=scope)
         return tree
 
-    def get_topic_identifiers(self, topic_map_identifier, query, offset=0, limit=100):
+    def get_topic_identifiers(self, topic_map_identifier, query, instance_of=None, offset=0, limit=100):
         result = []
 
         query_string = "{0}%%".format(query)
+        sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier LIKE %s {0} AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
+
+        if instance_of is None:
+            query_filter = ""
+            bind_variables = (topic_map_identifier, query_string, limit, offset)
+        else:
+            instance_of_in_condition = " AND instance_of IN ("
+            for index, value in enumerate(instance_of):
+                if (index + 1) != len(instance_of):
+                    instance_of_in_condition += "%s, "
+                else:
+                    instance_of_in_condition += "%s) "
+            query_filter = instance_of_in_condition
+            bind_variables = (topic_map_identifier, query_string) + tuple(instance_of) + (limit, offset)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier LIKE %s AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
-                cursor.execute(sql, (topic_map_identifier, query_string, limit, offset))
+                cursor.execute(sql.format(query_filter), bind_variables)
                 records = cursor.fetchall()
                 for record in records:
                     result.append(record['identifier'])
@@ -789,17 +854,19 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of) VALUES (%s, %s, %s)",
-                               (topic_map_identifier,
-                                topic.identifier,
-                                topic.instance_of))
+                cursor.execute(
+                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of) VALUES (%s, %s, %s)",
+                    (topic_map_identifier,
+                     topic.identifier,
+                     topic.instance_of))
                 for base_name in topic.base_names:
-                    cursor.execute("INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
-                                   (topic_map_identifier,
-                                    base_name.identifier,
-                                    base_name.name,
-                                    topic.identifier,
-                                    base_name.language.name.lower()))
+                    cursor.execute(
+                        "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier_fk, language) VALUES (%s, %s, %s, %s, %s)",
+                        (topic_map_identifier,
+                         base_name.identifier,
+                         base_name.name,
+                         topic.identifier,
+                         base_name.language.name.lower()))
         if not topic.get_attribute_by_name('creation-timestamp'):
             timestamp = str(datetime.now())
             timestamp_attribute = Attribute('creation-timestamp', timestamp, topic.identifier,
@@ -815,7 +882,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s", (topic_map_identifier, identifier))
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_map_identifier, identifier))
                 record = cursor.fetchone()
                 if record:
                     result = True
@@ -863,8 +932,9 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk) VALUES (%s, %s, %s)",
-                               (title, description, topic_map_identifier))
+                cursor.execute(
+                    "INSERT INTO topicdb.topicmap (title, description, topicmap_identifier_fk) VALUES (%s, %s, %s)",
+                    (title, description, topic_map_identifier))
 
         if not self.topic_exists(topic_map_identifier, 'genesis'):
             items = {
