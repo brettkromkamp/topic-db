@@ -738,7 +738,7 @@ class TopicStore:
             query_filter = ""
             bind_variables = (topic_map_identifier, query_string, limit, offset)
         else:
-            instance_of_in_condition = " AND instance_of IN ("
+            instance_of_in_condition = " AND instance_of IN ("get
             for index, value in enumerate(instance_of):
                 if (index + 1) != len(instance_of):
                     instance_of_in_condition += "%s, "
