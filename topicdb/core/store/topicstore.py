@@ -663,10 +663,12 @@ class TopicStore:
                     instance_of_in_condition += "%s) "
             if scope is None:
                 query_filter = instance_of_in_condition
-                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (topic_map_identifier, topic_map_identifier, identifier)
+                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (
+                    topic_map_identifier, topic_map_identifier, identifier)
             else:
                 query_filter = instance_of_in_condition + " AND scope = %s "
-                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (scope, topic_map_identifier, topic_map_identifier, identifier)
+                bind_variables = (topic_map_identifier,) + tuple(instance_of) + (
+                    scope, topic_map_identifier, topic_map_identifier, identifier)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -738,7 +740,7 @@ class TopicStore:
             query_filter = ""
             bind_variables = (topic_map_identifier, query_string, limit, offset)
         else:
-            instance_of_in_condition = " AND instance_of IN ("get
+            instance_of_in_condition = " AND instance_of IN ("
             for index, value in enumerate(instance_of):
                 if (index + 1) != len(instance_of):
                     instance_of_in_condition += "%s, "
