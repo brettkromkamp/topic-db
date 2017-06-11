@@ -29,7 +29,7 @@ from topicdb.core.store.topicstoreerror import TopicStoreError
 
 
 class TopicStore:
-    def __init__(self, username, password, host='localhost', port=5432, dbnmae="storytech"):
+    def __init__(self, username, password, host='localhost', port=5432, dbname="storytech"):
         self.username = username
         self.password = password
         self.host = host
