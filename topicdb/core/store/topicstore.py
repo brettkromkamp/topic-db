@@ -44,10 +44,18 @@ class TopicStore:
                                            password=self.password,
                                            host=self.host,
                                            port=self.port)
+        return self.connection
 
     def close(self):
         if self.connection:
             self.connection.close()
+
+    # Context manager methods.
+    def __enter__(self):
+        return self.open()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     # ========== ASSOCIATION ==========
 
