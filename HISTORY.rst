@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+0.7.0 (2017-06-15)
+++++++++++++++++++
+
+**Improvements**
+
+- Various (API) improvements and fixes throughout the codebase (specifically, the ``TopicStore`` class) resulting in the bump of the project's development status (now *Beta*).
+
 0.6.0 (2017-03-04)
 ++++++++++++++++++
 
