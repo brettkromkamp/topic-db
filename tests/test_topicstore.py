@@ -36,18 +36,15 @@ def test_topic():
                    language=Language.SPA)
 
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Persist topic to store.
-    if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
-        store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
+        # Persist topic to store.
+        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
+            store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
 
-    # Retrieve topic from store.
-    topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
-
-    store.close()
+        # Retrieve topic from store.
+        topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
+                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
 
     assert topic2.identifier == 'test-topic1'
     assert topic2.instance_of == 'topic'
@@ -65,18 +62,15 @@ def test_occurrence():
                              language=Language.DEU)
 
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Persist occurrence to store.
-    if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence1'):
-        store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
+        # Persist occurrence to store.
+        if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence1'):
+            store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
 
-    # Retrieve occurrence from store.
-    occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence1',
-                                       resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
-
-    store.close()
+        # Retrieve occurrence from store.
+        occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence1',
+                                           resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
 
     assert occurrence2.identifier == 'test-occurrence1'
     assert occurrence2.topic_identifier == 'test-topic1'
@@ -90,15 +84,12 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Retrieve topic from store.
-    topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
-                             resolve_occurrences=RetrievalOption.RESOLVE_OCCURRENCES)
-
-    store.close()
+        # Retrieve topic from store.
+        topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
+                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
+                                 resolve_occurrences=RetrievalOption.RESOLVE_OCCURRENCES)
 
     assert topic2.identifier == 'test-topic1'
     assert topic2.instance_of == 'topic'
@@ -125,19 +116,16 @@ def test_occurrence_resource_data():
                              resource_data=resource_data)
 
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Persist occurrence to store.
-    if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence2'):
-        store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
+        # Persist occurrence to store.
+        if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence2'):
+            store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
 
-    # Retrieve occurrence from store.
-    occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence2',
-                                       resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
-                                       inline_resource_data=RetrievalOption.INLINE_RESOURCE_DATA)
-
-    store.close()
+        # Retrieve occurrence from store.
+        occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence2',
+                                           resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
+                                           inline_resource_data=RetrievalOption.INLINE_RESOURCE_DATA)
 
     # Converting the resource data from bytes to string.
     assert occurrence2.resource_data.decode("utf-8") == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
@@ -157,18 +145,16 @@ def test_association():
                                dest_topic_ref='test-topic2')
 
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Persist association to store.
-    if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-association1'):
-        store.set_association(TOPIC_MAP_IDENTIFIER, association1)
+        # Associations are topics, as well (in TopicDB). For that reason, to check for the existence of an
+        # association we can use the *topic_exists* method.
+        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-association1'):
+            store.set_association(TOPIC_MAP_IDENTIFIER, association1)  # Persist association to store.
 
-    # Retrieve occurrence from store.
-    association2 = store.get_association(TOPIC_MAP_IDENTIFIER, 'test-association1',
-                                         resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
-
-    store.close()
+        # Retrieve occurrence from store.
+        association2 = store.get_association(TOPIC_MAP_IDENTIFIER, 'test-association1',
+                                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
 
     assert association2.identifier == 'test-association1'
     assert association2.instance_of == 'association'
@@ -194,17 +180,14 @@ def test_attribute():
                            language=Language.FRA)
 
     # Instantiate and open topic store.
-    store = TopicStore(username, password)
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Persist attribute to store.
-    if not store.attribute_exists(TOPIC_MAP_IDENTIFIER, 'test-entity1', 'name'):
-        store.set_attribute(TOPIC_MAP_IDENTIFIER, attribute1)
+        # Persist attribute to store.
+        if not store.attribute_exists(TOPIC_MAP_IDENTIFIER, 'test-entity1', 'name'):
+            store.set_attribute(TOPIC_MAP_IDENTIFIER, attribute1)
 
-    # Retrieve attribute from store.
-    attribute2 = store.get_attribute(TOPIC_MAP_IDENTIFIER, 'test-attribute1')
-
-    store.close()
+        # Retrieve attribute from store.
+        attribute2 = store.get_attribute(TOPIC_MAP_IDENTIFIER, 'test-attribute1')
 
     assert attribute2.identifier == 'test-attribute1'
     assert attribute2.name == 'name'

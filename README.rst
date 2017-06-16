@@ -3,7 +3,7 @@ TopicDB from StoryTechnologies
 
 TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
-.. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
+.. image:: http://www.storytechnologies.com/wp-content/uploads/2017/06/topic-db-logo3.png
 
 For a more in-depth introduction to topic maps, I recommend reading the excellent introductory
 article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although
@@ -47,25 +47,22 @@ First-Time Use
     TOPIC_MAP_IDENTIFIER = 1
 
     # Instantiate and open topic store.
-    store = TopicStore("localhost", "username", "password")
-    store.open()
+    with TopicStore(username, password) as store:
 
-    # Create the topic map and bootstrap default topics.
-    store.set_topic_map(TOPIC_MAP_IDENTIFIER, "Topic Map Test")
+        # Create the topic map and bootstrap default topics.
+        store.set_topic_map(TOPIC_MAP_IDENTIFIER, "Topic Map Test")
 
-    topic1 = Topic(identifier='test-topic1',
-                   base_name='Tópico de Prueba',
-                   language=Language.SPA)
+        topic1 = Topic(identifier='test-topic1',
+                       base_name='Tópico de Prueba',
+                       language=Language.SPA)
 
-    # Persist topic to store.
-    if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
-        store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
+        # Persist topic to store.
+        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
+            store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
 
-    # Retrieve topic from store (with the accompanying topic attributes).
-    topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
-
-    store.close()
+        # Retrieve topic from store (with the accompanying topic attributes).
+        topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
+                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
 
 Tutorial
 --------

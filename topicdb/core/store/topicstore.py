@@ -44,7 +44,7 @@ class TopicStore:
                                            password=self.password,
                                            host=self.host,
                                            port=self.port)
-        return self.connection
+        return self
 
     def close(self):
         if self.connection:
