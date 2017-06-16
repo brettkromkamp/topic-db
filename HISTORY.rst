@@ -3,6 +3,18 @@
 Release History
 ---------------
 
+0.7.1 (2017-06-16)
+++++++++++++++++++
+
+**Improvements**
+
+- Refactored code base (specifically, the unit tests) to use the topic store as a context manager.
+- Updated ``pytest`` dependency (to latest version).
+
+**Bugs**
+
+- Fixed a context manager-related bug (in the ``TopicStore`` class).
+
 0.7.0 (2017-06-15)
 ++++++++++++++++++
 
