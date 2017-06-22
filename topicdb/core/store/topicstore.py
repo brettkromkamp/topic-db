@@ -5,6 +5,7 @@ February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from collections import namedtuple
 from datetime import datetime
 
 import psycopg2
@@ -21,7 +22,6 @@ from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.models.tree.tree import Tree
-from topicdb.core.store.associationfield import AssociationField
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
 from topicdb.core.store.topicfield import TopicField
@@ -163,9 +163,9 @@ class TopicStore:
         for association in associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
             for resolved_topic_ref in resolved_topic_refs:
-                instance_of = resolved_topic_ref[AssociationField.INSTANCE_OF.value]
-                role_spec = resolved_topic_ref[AssociationField.ROLE_SPEC.value]
-                topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
+                instance_of = resolved_topic_ref.instance_of
+                role_spec = resolved_topic_ref.role_spec
+                topic_ref = resolved_topic_ref.topic_ref
                 if topic_ref != identifier:
                     if [instance_of, role_spec] in result:
                         topic_refs = result[instance_of, role_spec]
@@ -179,9 +179,12 @@ class TopicStore:
     @staticmethod
     def _resolve_topic_refs(association):
         topic_refs = []
+
+        TopicRefs = namedtuple('TopicRefs', ['instance_of', 'role_spec', 'topic_ref'])
+
         for member in association.members:
             for topic_ref in member.topic_refs:
-                topic_refs.append([association.instance_of, member.role_spec, topic_ref])
+                topic_refs.append(TopicRefs(association.instance_of, member.role_spec, topic_ref))
         return topic_refs
 
     def get_associations(self):
@@ -720,7 +723,7 @@ class TopicStore:
             for association in associations:
                 resolved_topic_refs = self._resolve_topic_refs(association)
                 for resolved_topic_ref in resolved_topic_refs:
-                    topic_ref = resolved_topic_ref[AssociationField.TOPIC_REF.value]
+                    topic_ref = resolved_topic_ref.topic_ref
                     if (topic_ref != identifier) and (topic_ref not in nodes):
                         topic = self.get_topic(topic_map_identifier, topic_ref)
                         tree.add_node(topic_ref, parent=identifier, topic=topic)
