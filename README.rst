@@ -47,7 +47,7 @@ First-Time Use
     TOPIC_MAP_IDENTIFIER = 1
 
     # Instantiate and open topic store.
-    with TopicStore(username, password) as store:
+    with TopicStore('username', 'password') as store:
 
         # Create the topic map and bootstrap default topics.
         store.set_topic_map(TOPIC_MAP_IDENTIFIER, "Topic Map Test")

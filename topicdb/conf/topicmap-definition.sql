@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     identifier BIGINT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
     title TEXT NOT NULL,
     description TEXT,
-    topicmap_identifier_fk BIGINT,
+    topicmap_identifier_fk BIGINT UNIQUE,
     PRIMARY KEY (identifier)
 );
 CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier, topicmap_identifier_fk);
