@@ -982,6 +982,8 @@ class TopicStore:
                 ('sound', 'Sound'),
                 ('text', 'Text'),
                 ('html', 'HTML'),
+                ('augmented-reality', 'Augmented Reality (AR)'),
+                ('virtual-reality', 'Virtual Reality (VR)'),
                 ('annotation', 'Annotation'),
                 ('dialogue', 'Dialogue'),
                 ('up', 'Up'),

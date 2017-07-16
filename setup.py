@@ -5,18 +5,21 @@ December 21, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+import os
+
 from setuptools import setup, find_packages
 
-with open('README.rst', encoding='utf-8') as f:
-    readme = f.read()
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    README = f.read()
 
-with open('HISTORY.rst', encoding='utf-8') as f:
-    history = f.read()
+with open(os.path.join(here, 'HISTORY.rst'), encoding='utf-8') as f:
+    HISTORY = f.read()
 
 setup(name='topic-db',
       version='0.7.1',  # Bump version NUMBER *after* starting (git flow) release.
       description='TopicDB is a topic map-based graph library (using PostgreSQL for persistence).',
-      long_description=readme + '\n\n' + history,
+      long_description=README + '\n\n' + HISTORY,
       keywords='topic map, concept map, graph database, semantic, knowledge management, unstructured data',
       url='https://github.com/brettkromkamp/topic_db',
       author='Brett Alistair Kromkamp',
