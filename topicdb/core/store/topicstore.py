@@ -547,7 +547,7 @@ class TopicStore:
     def get_tags(self, topic_map_identifier, identifier):
         result = []
 
-        associations = self.get_topic_associations(topic_map_identifier, identifier, )
+        associations = self.get_topic_associations(topic_map_identifier, identifier)
         if associations:
             groups = self.get_association_groups(topic_map_identifier, associations=associations)
             for instance_of in groups.dict:
