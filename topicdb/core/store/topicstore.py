@@ -589,8 +589,14 @@ class TopicStore:
 
     # ========== TOPIC ==========
 
-    def delete_topic(self):
+    def delete_topic(self, topic_map_identifier, identifier):
         pass
+
+        # Order of deletion of related 'entities':
+        #   1. associations
+        #   2. occurrences
+        #   3. attributes
+        #   4. topic
 
     def get_related_topics(self, topic_map_identifier, identifier, instance_of=None, scope=None):
         result = []

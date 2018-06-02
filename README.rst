@@ -17,7 +17,7 @@ application.
 Why?
 ----
 
-I build (story) worlds. TopicDB plays a crucial role in that endeavour: `Interactive Scene Browser for Stories`_.
+I build (story) worlds. TopicDB plays a crucial role in that endeavour.
 
 Feature Support
 ---------------
@@ -85,7 +85,6 @@ How to Contribute
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _Story Engine: https://github.com/brettkromkamp/story_engine
-.. _Interactive Scene Browser for Stories: http://www.storytechnologies.com/2016/10/interactive-scene-browser-for-stories/
 .. _the repository: https://github.com/brettkromkamp/topic_db
 .. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
 .. _TopicDB Tutorial: https://github.com/brettkromkamp/topic_db/blob/master/TUTORIAL.rst
