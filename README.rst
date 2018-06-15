@@ -3,8 +3,6 @@ TopicDB from StoryTechnologies
 
 TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
-.. image:: http://www.storytechnologies.com/wp-content/uploads/2017/06/topic-db-logo3.png
-
 For a more in-depth introduction to topic maps, I recommend reading the excellent introductory
 article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although
 TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of
