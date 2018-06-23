@@ -23,3 +23,4 @@ with TopicStore(username, password) as store:
 
     store.set_topic_map(1, "The Doomsday Weapon", "A soldier has to infiltrate behind enemy lines to steal the plans for a secret doomsday weapon.")
     store.set_topic_map(2, "An Unexpected Meeting", "Two people meet ever so briefly. A chance encounter that changes their lives forever.")
+    store.set_topic_map(3, "Test Story", "A story for testing purposes.")
