@@ -3,19 +3,12 @@ TopicDB Tutorial
 
 TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
-.. image:: http://www.storytechnologies.com/wp-content/uploads/2016/12/topic-db-logo.png
-
 **Last update: February 21, 2017**
 
 Before starting with the tutorial, I recommend installing either the `iPython`_ or `Ptpython`_ REPLs
 (if you haven't already). By no means are either of these REPLs a pre-requisite for doing the
 tutorial. Nonetheless, using them does make Python's interactive experience much more pleasant. With
 that said, let's start.
-
-The diagram below represents a simple topic map consisting of five topics and seven associations
-(that is, the relationships between the topics).
-
-.. image:: http://www.storytechnologies.com/wp-content/uploads/2017/01/tutorial2.png
 
 The five topics represent the four people that make up a family (that is, *Jane*, *Peter*, *John*,
 and *Mary*) and a company (*Acme Corporation*), respectively.
