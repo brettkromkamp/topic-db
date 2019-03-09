@@ -8,17 +8,16 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 class TopicMap:
 
-    def __init__(self, title, topic_map_identifier, description=''):
-        self.__identifier = None
+    def __init__(self, user_identifier, identifier, title, description=''):
+        self.__user_identifier = user_identifier
+        self.__identifier = identifier
         self.title = title
-        self.topic_map_identifier = topic_map_identifier
         self.description = description
+
+    @property
+    def user_identifier(self):
+        return self.__user_identifier
 
     @property
     def identifier(self):
         return self.__identifier
-
-    @identifier.setter
-    def identifier(self, value):
-        if self.__identifier is None:
-            self.__identifier = value

@@ -15,11 +15,11 @@ SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), '../settings.ini')
 config = configparser.ConfigParser()
 config.read(SETTINGS_FILE_PATH)
 
-username = config['DATABASE']['Username']
-password = config['DATABASE']['Password']
+database_username = config['DATABASE']['Username']
+database_password = config['DATABASE']['Password']
+database_schema = config['DATABASE']['Schema']
 
 # Instantiate and open topic store.
-with TopicStore(username, password) as store:
-
-    store.set_topic_map(1, "The Doomsday Weapon", "A soldier has to infiltrate behind enemy lines to steal the plans for a secret doomsday weapon.")
-    store.set_topic_map(2, "An Unexpected Meeting", "Two people meet ever so briefly. A chance encounter that changes their lives forever.")
+with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    store.set_topic_map(1, 1, "Topic Map 1", "Topic Map 1 description.")
+    store.set_topic_map(1, 2, "Topic Map 2", "Topic Map 2 description.")
