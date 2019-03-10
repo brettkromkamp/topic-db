@@ -8,10 +8,10 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 class TopicMap:
 
-    def __init__(self, user_identifier, identifier, title, description='', public=False):
+    def __init__(self, user_identifier, identifier, name, description='', public=False):
         self.__user_identifier = user_identifier
         self.__identifier = identifier
-        self.title = title
+        self.name = name
         self.description = description
         self.public = public
 

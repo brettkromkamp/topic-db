@@ -91,7 +91,7 @@ CREATE SEQUENCE topicdb.topic_map_id_sequence;
 CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     user_identifier INT NOT NULL,
     identifier INT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
-    title TEXT NOT NULL,
+    name TEXT NOT NULL,
     description TEXT,
     public BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (user_identifier, identifier)
