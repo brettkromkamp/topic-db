@@ -27,7 +27,7 @@ config.read(SETTINGS_FILE_PATH)
 
 database_username = config['DATABASE']['Username']
 database_password = config['DATABASE']['Password']
-database_schema = config['DATABASE']['Schema']
+database_name = config['DATABASE']['Database']
 
 TOPIC_MAP_IDENTIFIER = 1
 
@@ -38,7 +38,7 @@ def test_topic():
                    language=Language.SPA)
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Persist topic to store.
         if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
@@ -64,7 +64,7 @@ def test_occurrence():
                              language=Language.DEU)
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Persist occurrence to store.
         if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence1'):
@@ -86,7 +86,7 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Retrieve topic from store.
         topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
@@ -118,7 +118,7 @@ def test_occurrence_resource_data():
                              resource_data=resource_data)
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Persist occurrence to store.
         if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, 'test-occurrence2'):
@@ -147,7 +147,7 @@ def test_association():
                                dest_topic_ref='test-topic2')
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Associations are topics, as well (in TopicDB). For that reason, to check for the existence of an
         # association we can use the *topic_exists* method.
@@ -182,7 +182,7 @@ def test_attribute():
                            language=Language.FRA)
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_schema) as store:
+    with TopicStore(database_username, database_password, dbname=database_name) as store:
 
         # Persist attribute to store.
         if not store.attribute_exists(TOPIC_MAP_IDENTIFIER, 'test-entity1', 'name'):

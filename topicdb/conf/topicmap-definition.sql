@@ -4,7 +4,7 @@ CREATE SCHEMA IF NOT EXISTS topicdb;
 
 /* ========== MEMBER ========== */
 CREATE TABLE IF NOT EXISTS topicdb.member (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     role_spec TEXT NOT NULL,
     association_identifier TEXT NOT NULL,
@@ -15,7 +15,7 @@ CREATE INDEX member_1_index ON topicdb.member (topicmap_identifier, association_
 
 /* ========== ATTRIBUTE ========== */
 CREATE TABLE IF NOT EXISTS topicdb.attribute (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     parent_identifier TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -34,7 +34,7 @@ CREATE INDEX attribute_5_index ON topicdb.attribute (topicmap_identifier, parent
 
 /* ========== OCCURRENCE ========== */
 CREATE TABLE IF NOT EXISTS topicdb.occurrence (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
     scope TEXT NOT NULL,
@@ -51,7 +51,7 @@ CREATE INDEX occurrence_3_index ON topicdb.occurrence (topicmap_identifier, topi
 
 /* ========== TOPICREF ========== */
 CREATE TABLE IF NOT EXISTS topicdb.topicref (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     topic_ref TEXT NOT NULL,
     member_identifier TEXT NOT NULL,
     PRIMARY KEY (topicmap_identifier, topic_ref, member_identifier)
@@ -62,7 +62,7 @@ CREATE INDEX topicref_2_index ON topicdb.topicref (topicmap_identifier, topic_re
 
 /* ========== TOPIC ========== */
 CREATE TABLE IF NOT EXISTS topicdb.topic (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
     scope TEXT,
@@ -75,7 +75,7 @@ CREATE INDEX topic_3_index ON topicdb.topic (topicmap_identifier, scope);
 
 /* ========== BASENAME ========== */
 CREATE TABLE IF NOT EXISTS topicdb.basename (
-    topicmap_identifier BIGINT NOT NULL,
+    topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     name TEXT NOT NULL,
     topic_identifier TEXT NOT NULL,
@@ -90,9 +90,10 @@ CREATE SEQUENCE topicdb.topic_map_id_sequence;
 
 CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     user_identifier INT NOT NULL,
-    identifier BIGINT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
+    identifier INT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
     title TEXT NOT NULL,
     description TEXT,
+    public BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (user_identifier, identifier)
 );
 

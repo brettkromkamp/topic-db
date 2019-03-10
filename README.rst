@@ -9,8 +9,8 @@ TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an
 the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications, and currently does not provide a web
-interface to the API. `Story Engine`_ is a good example of TopicDB being used by another
-application.
+interface to the API. `Story Engine`_ and `Knowledge Builder`_ are good examples of TopicDB being used
+by another applications.
 
 Why?
 ----
@@ -25,7 +25,7 @@ Feature Support
 Installation
 ------------
 
-TopicDB officially supports Python 3.3–3.6. To install TopicDB, simply:
+TopicDB officially supports Python 3.3–3.7. To install TopicDB, simply:
 
 .. code-block:: bash
 
@@ -82,7 +82,8 @@ How to Contribute
 .. _PostgreSQL: https://www.postgresql.org/
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
-.. _Story Engine: https://github.com/brettkromkamp/story_engine
-.. _the repository: https://github.com/brettkromkamp/topic_db
-.. _AUTHORS: https://github.com/brettkromkamp/topic_db/blob/master/AUTHORS.rst
-.. _TopicDB Tutorial: https://github.com/brettkromkamp/topic_db/blob/master/TUTORIAL.rst
+.. _Story Engine: https://github.com/brettkromkamp/story-engine
+.. _Knowledge Builder: https://github.com/brettkromkamp/knowledge-builder
+.. _the repository: https://github.com/brettkromkamp/topic-db
+.. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
+.. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
