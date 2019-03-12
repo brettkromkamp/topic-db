@@ -1021,13 +1021,13 @@ class TopicStore:
                 topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
                 self.set_topic(topic_map_identifier, topic, OntologyMode.LENIENT)
 
-    def update_topic_map(self, user_identifier, topic_map_identifier, name, description='', public=False):
+    def update_topic_map(self, topic_map_identifier, name, description='', public=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE topicdb.topicmap SET name = %s, description = %s, public = %s WHERE user_identifier = %s AND identifier = %s",
-                    (name, description, public, user_identifier, topic_map_identifier))
+                    "UPDATE topicdb.topicmap SET name = %s, description = %s, public = %s WHERE identifier = %s",
+                    (name, description, public, topic_map_identifier))
 
     def is_topic_map_owner(self, user_identifier, topic_map_identifier):
         result = False
