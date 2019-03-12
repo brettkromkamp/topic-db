@@ -911,20 +911,20 @@ class TopicStore:
 
     # ========== TOPICMAP ==========
 
-    def delete_topic_map(self, user_identifier, identifier):
+    def delete_topic_map(self, identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
-                cursor.execute("DELETE FROM topicdb.topicmap WHERE user_identifier = %s AND identifier = %s",
-                               (user_identifier, identifier))
+                cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s",
+                               (identifier,))
 
-    def get_topic_map(self, user_identifier, identifier):
+    def get_topic_map(self, identifier):
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.topicmap WHERE user_identifier = %s AND identifier = %s", (user_identifier, identifier))
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE identifier = %s", (identifier,))
                 record = cursor.fetchone()
                 if record:
                     result = TopicMap(
