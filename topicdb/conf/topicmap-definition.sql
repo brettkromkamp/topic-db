@@ -93,6 +93,8 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     identifier INT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
     name TEXT NOT NULL,
     description TEXT,
+    image_path TEXT,
+    initialised BOOLEAN DEFAULT FALSE NOT NULL,
     public BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (user_identifier, identifier)
 );

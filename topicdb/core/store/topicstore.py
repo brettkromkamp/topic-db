@@ -932,6 +932,8 @@ class TopicStore:
                         record['identifier'],
                         record['name'],
                         description=record['description'],
+                        image_path=record['image_path'],
+                        initialised=record['initialised'],
                         public=record['public'])
         return result
 
@@ -949,17 +951,19 @@ class TopicStore:
                         record['identifier'],
                         record['name'],
                         description=record['description'],
+                        image_path=record['image_path'],
+                        initialised=record['initialised'],
                         public=record['public'])
                     result.append(topic_map)
         return result
 
-    def set_topic_map(self, user_identifier, name, description='', public=False):
+    def set_topic_map(self, user_identifier, name, description='', image_path='', initialised=False, public=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, public) VALUES (%s, %s, %s, %s)",
-                    (user_identifier, name, description, public))
+                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, public) VALUES (%s, %s, %s, %s, %s, %s)",
+                    (user_identifier, name, description, image_path, initialised, public))
 
     def populate_topic_map(self, topic_map_identifier):
         if not self.topic_exists(topic_map_identifier, 'genesis'):
@@ -1021,13 +1025,13 @@ class TopicStore:
                 topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
                 self.set_topic(topic_map_identifier, topic, OntologyMode.LENIENT)
 
-    def update_topic_map(self, topic_map_identifier, name, description='', public=False):
+    def update_topic_map(self, topic_map_identifier, name, description='', image_path='', initialised=False, public=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE topicdb.topicmap SET name = %s, description = %s, public = %s WHERE identifier = %s",
-                    (name, description, public, topic_map_identifier))
+                    "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, public = %s WHERE identifier = %s",
+                    (name, description, image_path, initialised, public, topic_map_identifier))
 
     def is_topic_map_owner(self, user_identifier, topic_map_identifier):
         result = False
