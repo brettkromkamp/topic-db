@@ -911,20 +911,20 @@ class TopicStore:
 
     # ========== TOPICMAP ==========
 
-    def delete_topic_map(self, identifier):
+    def delete_topic_map(self, topic_map_identifier):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s",
-                               (identifier,))
+                               (topic_map_identifier,))
 
-    def get_topic_map(self, identifier):
+    def get_topic_map(self, topic_map_identifier):
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.topicmap WHERE identifier = %s", (identifier,))
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE identifier = %s", (topic_map_identifier,))
                 record = cursor.fetchone()
                 if record:
                     result = TopicMap(
@@ -965,8 +965,10 @@ class TopicStore:
                     "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, public) VALUES (%s, %s, %s, %s, %s, %s)",
                     (user_identifier, name, description, image_path, initialised, public))
 
-    def populate_topic_map(self, topic_map_identifier):
-        if not self.topic_exists(topic_map_identifier, 'genesis'):
+    def initialise_topic_map(self, topic_map_identifier):
+        topic_map = self.get_topic_map(topic_map_identifier)
+
+        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'genesis'):
             items = {
                 ('entity', 'Entity'),
                 ('topic', 'Topic'),
@@ -1024,6 +1026,12 @@ class TopicStore:
             for item in items:
                 topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
                 self.set_topic(topic_map_identifier, topic, OntologyMode.LENIENT)
+
+            # http://initd.org/psycopg/docs/usage.html#with-statement
+            with self.connection:
+                with self.connection.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (topic_map_identifier,))
 
     def update_topic_map(self, topic_map_identifier, name, description='', image_path='', initialised=False, public=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
