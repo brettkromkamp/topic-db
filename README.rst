@@ -25,7 +25,7 @@ Feature Support
 Installation
 ------------
 
-TopicDB officially supports Python 3.3–3.7. To install TopicDB, simply:
+TopicDB officially supports Python 3.4–3.7. To install TopicDB, simply:
 
 .. code-block:: bash
 

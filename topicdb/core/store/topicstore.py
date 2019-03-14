@@ -943,7 +943,27 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.topicmap  WHERE user_identifier = %s ORDER BY identifier", (user_identifier,))
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE user_identifier = %s ORDER BY identifier", (user_identifier,))
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record['user_identifier'],
+                        record['identifier'],
+                        record['name'],
+                        description=record['description'],
+                        image_path=record['image_path'],
+                        initialised=record['initialised'],
+                        public=record['public'])
+                    result.append(topic_map)
+        return result
+
+    def get_public_topic_maps(self):
+        result = []
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE public = TRUE ORDER BY identifier")
                 records = cursor.fetchall()
                 for record in records:
                     topic_map = TopicMap(
