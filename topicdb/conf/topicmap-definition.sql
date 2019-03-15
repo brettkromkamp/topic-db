@@ -98,5 +98,7 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     public BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (user_identifier, identifier)
 );
+CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier);
+CREATE INDEX topicmap_2_index ON topicdb.topicmap (public);
 
 ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
