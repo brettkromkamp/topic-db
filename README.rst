@@ -10,12 +10,12 @@ the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications, and currently does not provide a web
 interface to the API. `Story Engine`_ and `Knowledge Builder`_ are good examples of TopicDB being used
-by another applications.
+by other applications.
 
 Why?
 ----
 
-I build (story) worlds. TopicDB plays a crucial role in that endeavour.
+I build (story) worlds and knowledge management applications. TopicDB plays a crucial role in both those endeavours.
 
 Feature Support
 ---------------
