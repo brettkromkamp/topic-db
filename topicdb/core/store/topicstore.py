@@ -988,14 +988,14 @@ class TopicStore:
     def initialise_topic_map(self, topic_map_identifier):
         topic_map = self.get_topic_map(topic_map_identifier)
 
-        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'genesis'):
+        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'frontpage'):
             items = {
                 ('entity', 'Entity'),
                 ('topic', 'Topic'),
                 ('association', 'Association'),
                 ('occurrence', 'Occurrence'),
                 ('*', 'Universal Scope'),
-                ('genesis', 'Genesis'),
+                ('front-page', 'Front Page'),
                 ('navigation', 'Navigation'),
                 ('member', 'Member'),
                 ('category', 'Category'),
@@ -1040,8 +1040,7 @@ class TopicStore:
                 ('deu', 'German Language'),
                 ('ita', 'Italian Language'),
                 ('fra', 'French Language'),
-                ('nld', 'Dutch Language'),
-                ('nob', 'Norwegian (Bokmål) Language')}
+                ('nld', 'Dutch Language')}
 
             for item in items:
                 topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
