@@ -9,8 +9,7 @@ TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an
 the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API.
-`Contextualise`_, currently in active development, will provide a complete web-based front-end user interface for
-TopicDB.
+`Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
 
 Why?
 ----
