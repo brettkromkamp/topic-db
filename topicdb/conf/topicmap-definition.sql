@@ -95,10 +95,12 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     description TEXT,
     image_path TEXT,
     initialised BOOLEAN DEFAULT FALSE NOT NULL,
-    public BOOLEAN DEFAULT FALSE NOT NULL,
+    shared BOOLEAN DEFAULT FALSE NOT NULL,
+    promoted BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (user_identifier, identifier)
 );
 CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier);
-CREATE INDEX topicmap_2_index ON topicdb.topicmap (public);
+CREATE INDEX topicmap_2_index ON topicdb.topicmap (shared);
+CREATE INDEX topicmap_3_index ON topicdb.topicmap (promoted);
 
 ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;

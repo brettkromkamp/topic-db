@@ -934,7 +934,8 @@ class TopicStore:
                         description=record['description'],
                         image_path=record['image_path'],
                         initialised=record['initialised'],
-                        public=record['public'])
+                        shared=record['shared'],
+                        promoted=record['promoted'])
         return result
 
     def get_topic_maps(self, user_identifier):
@@ -943,7 +944,8 @@ class TopicStore:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.topicmap WHERE user_identifier = %s ORDER BY identifier", (user_identifier,))
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE user_identifier = %s ORDER BY identifier",
+                               (user_identifier,))
                 records = cursor.fetchall()
                 for record in records:
                     topic_map = TopicMap(
@@ -953,17 +955,18 @@ class TopicStore:
                         description=record['description'],
                         image_path=record['image_path'],
                         initialised=record['initialised'],
-                        public=record['public'])
+                        shared=record['shared'],
+                        promoted=record['promoted'])
                     result.append(topic_map)
         return result
 
-    def get_public_topic_maps(self):
+    def get_shared_topic_maps(self):
         result = []
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM topicdb.topicmap WHERE public = TRUE ORDER BY identifier")
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE shared = TRUE ORDER BY identifier")
                 records = cursor.fetchall()
                 for record in records:
                     topic_map = TopicMap(
@@ -973,17 +976,40 @@ class TopicStore:
                         description=record['description'],
                         image_path=record['image_path'],
                         initialised=record['initialised'],
-                        public=record['public'])
+                        shared=record['shared'],
+                        promoted=record['promoted'])
                     result.append(topic_map)
         return result
 
-    def set_topic_map(self, user_identifier, name, description='', image_path='', initialised=False, public=False):
+    def get_promoted_topic_maps(self):
+        result = []
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record['user_identifier'],
+                        record['identifier'],
+                        record['name'],
+                        description=record['description'],
+                        image_path=record['image_path'],
+                        initialised=record['initialised'],
+                        shared=record['shared'],
+                        promoted=record['promoted'])
+                    result.append(topic_map)
+        return result
+
+    def set_topic_map(self, user_identifier, name, description='', image_path='', initialised=False, shared=False,
+                      promoted=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, public) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (user_identifier, name, description, image_path, initialised, public))
+                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (user_identifier, name, description, image_path, initialised, shared, promoted))
 
     def initialise_topic_map(self, topic_map_identifier):
         topic_map = self.get_topic_map(topic_map_identifier)
@@ -1043,13 +1069,14 @@ class TopicStore:
                     cursor.execute(
                         "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (topic_map_identifier,))
 
-    def update_topic_map(self, topic_map_identifier, name, description='', image_path='', initialised=False, public=False):
+    def update_topic_map(self, topic_map_identifier, name, description='', image_path='', initialised=False,
+                         shared=False, promoted=False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, public = %s WHERE identifier = %s",
-                    (name, description, image_path, initialised, public, topic_map_identifier))
+                    "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, shared = %s, promoted = %s WHERE identifier = %s",
+                    (name, description, image_path, initialised, shared, promoted, topic_map_identifier))
 
     def is_topic_map_owner(self, user_identifier, topic_map_identifier):
         result = False
@@ -1058,7 +1085,8 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT * FROM topicdb.topicmap WHERE user_identifier = %s AND identifier = %s", (user_identifier, topic_map_identifier))
+                    "SELECT * FROM topicdb.topicmap WHERE user_identifier = %s AND identifier = %s",
+                    (user_identifier, topic_map_identifier))
                 record = cursor.fetchone()
                 if record:
                     result = True
