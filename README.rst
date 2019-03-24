@@ -8,9 +8,9 @@ article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that 
 TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of
 the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
-TopicDB is intended to be used by other Python applications, and currently does not provide a web
-interface to the API. `Story Engine`_ and `Knowledge Builder`_ are good examples of TopicDB being used
-by other applications.
+TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API.
+`Contextualise`_, currently in active development, will provide a complete web-based front-end user interface for
+TopicDB.
 
 Why?
 ----
@@ -83,7 +83,7 @@ How to Contribute
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _Story Engine: https://github.com/brettkromkamp/story-engine
-.. _Knowledge Builder: https://github.com/brettkromkamp/knowledge-builder
+.. _Contextualise: https://github.com/brettkromkamp/contextualise
 .. _the repository: https://github.com/brettkromkamp/topic-db
 .. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
 .. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
