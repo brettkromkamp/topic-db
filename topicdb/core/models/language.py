@@ -19,4 +19,3 @@ class Language(Enum):
     ITA = 4  # Italian
     FRA = 5  # French
     NLD = 6  # Dutch
-    NOB = 7  # Norwegian (Bokmål)

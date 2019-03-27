@@ -346,7 +346,7 @@ class TopicStore:
 
     # ========== METRIC ==========
 
-    def get_metrics(self):
+    def get_statistics(self):
         pass
 
     # ========== OCCURRENCE ==========
@@ -894,6 +894,14 @@ class TopicStore:
                                             language=Language.ENG)
             topic.add_attribute(timestamp_attribute)
         self.set_attributes(topic_map_identifier, topic.attributes)
+
+    def update_topic_instance_of(self, topic_map_identifier, identifier, instance_of):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.topic SET instance_of = %s WHERE topic_map_identifier = %s AND identifier = %s",
+                    (instance_of, topic_map_identifier, identifier))
 
     def topic_exists(self, topic_map_identifier, identifier):
         result = False
