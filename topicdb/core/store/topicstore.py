@@ -900,7 +900,7 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE topicdb.topic SET instance_of = %s WHERE topic_map_identifier = %s AND identifier = %s",
+                    "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (instance_of, topic_map_identifier, identifier))
 
     def topic_exists(self, topic_map_identifier, identifier):
