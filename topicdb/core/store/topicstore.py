@@ -344,7 +344,15 @@ class TopicStore:
         for attribute in attributes:
             self.set_attribute(topic_map_identifier, attribute)
 
-    # ========== METRIC ==========
+    def update_attribute_value(self, topic_map_identifier, identifier, value):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.attribute SET value = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (value, topic_map_identifier, identifier))
+
+    # ========== STATISTICS ==========
 
     def get_statistics(self):
         pass
@@ -533,7 +541,7 @@ class TopicStore:
             occurrence.add_attribute(timestamp_attribute)
         self.set_attributes(topic_map_identifier, occurrence.attributes)
 
-    def set_occurrence_data(self, topic_map_identifier, identifier, resource_data):
+    def update_occurrence_data(self, topic_map_identifier, identifier, resource_data):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
         with self.connection:
@@ -541,6 +549,14 @@ class TopicStore:
                 cursor.execute(
                     "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
+
+    def update_occurrence_scope(self, topic_map_identifier, identifier, scope):
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET scope = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (scope, topic_map_identifier, identifier))
 
     # ========== TAG ==========
 
@@ -1053,13 +1069,15 @@ class TopicStore:
                 ('image', 'Image'),
                 ('video', 'Video'),
                 ('sound', 'Sound'),
+                ('note', 'Note'),
+                ('attachment', 'Attachment'),
+                ('url', 'URL'),
                 ('dialogue', 'Dialogue'),
                 ('text', 'Text'),
                 ('html', 'HTML'),
                 ('augmented-reality', 'Augmented Reality (AR)'),
                 ('virtual-reality', 'Virtual Reality (VR)'),
                 ('annotation', 'Annotation'),
-                ('note', 'Note'),
                 ('eng', 'English Language'),
                 ('spa', 'Spanish Language'),
                 ('deu', 'German Language'),
