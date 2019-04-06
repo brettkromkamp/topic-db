@@ -1070,7 +1070,7 @@ class TopicStore:
                 ('video', 'Video'),
                 ('sound', 'Sound'),
                 ('note', 'Note'),
-                ('attachment', 'Attachment'),
+                ('file', 'File'),
                 ('url', 'URL'),
                 ('dialogue', 'Dialogue'),
                 ('text', 'Text'),
