@@ -3,18 +3,21 @@ TopicDB from StoryTechnologies
 
 TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
-For a more in-depth introduction to topic maps, I recommend reading the excellent introductory
-article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although
-TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of
-the `ISO/IEC 13250 Topic Maps`_ data model standard.
+For a more in-depth introduction to topic maps, I recommend reading the excellent introductory article on topic maps
+over at MSDN: `An Introduction to Topic Maps`_. With that being said, although TopicDB is inspired by the topic maps
+paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API.
-`Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
+
+.. image:: resources/render.png
+   :alt: Render by Brett Kromkamp
+
+*Render by Brett Alistair Kromkamp*
 
 Why?
 ----
 
-I build (story) worlds and knowledge management applications. TopicDB plays a crucial role in both those endeavours.
+I build (story) worlds and knowledge management systems. TopicDB plays a crucial role in both those endeavours.
 
 Feature Support
 ---------------
@@ -81,8 +84,6 @@ How to Contribute
 .. _PostgreSQL: https://www.postgresql.org/
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
-.. _Story Engine: https://github.com/brettkromkamp/story-engine
-.. _Contextualise: https://github.com/brettkromkamp/contextualise
 .. _the repository: https://github.com/brettkromkamp/topic-db
 .. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
 .. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
