@@ -265,6 +265,8 @@ class TopicStore:
                     (topic_map_identifier, entity_identifier))
 
     def get_attribute(self, topic_map_identifier, identifier):
+        result = None
+
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
