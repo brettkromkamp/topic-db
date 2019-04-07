@@ -1038,10 +1038,10 @@ class TopicStore:
     def initialise_topic_map(self, topic_map_identifier):
         topic_map = self.get_topic_map(topic_map_identifier)
 
-        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'frontpage'):
+        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'home'):
             items = {
                 ('*', 'Universal Scope'),
-                ('front-page', 'Front Page'),
+                ('home', 'Home'),
                 ('entity', 'Entity'),
                 ('topic', 'Topic'),
                 ('association', 'Association'),
