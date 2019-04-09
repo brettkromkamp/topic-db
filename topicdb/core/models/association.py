@@ -5,30 +5,32 @@ July 03, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from slugify import slugify
+from typing import List
 
-from topicdb.core.store.topicstoreerror import TopicStoreError
+from slugify import slugify  # type: ignore
+
 from topicdb.core.models.language import Language
 from topicdb.core.models.member import Member
 from topicdb.core.models.topic import Topic
+from topicdb.core.store.topicstoreerror import TopicStoreError
 
 
 class Association(Topic):
 
     def __init__(self,
-                 identifier='',
-                 instance_of='association',
-                 base_name='Undefined',
-                 language=Language.ENG,
-                 scope='*',
-                 src_topic_ref='',
-                 dest_topic_ref='',
-                 src_role_spec='related',
-                 dest_role_spec='related'):
+                 identifier: str = '',
+                 instance_of: str = 'association',
+                 base_name: str = 'Undefined',
+                 language: Language = Language.ENG,
+                 scope: str = '*',
+                 src_topic_ref: str = '',
+                 dest_topic_ref: str = '',
+                 src_role_spec: str = 'related',
+                 dest_role_spec: str = 'related') -> None:
         super().__init__(identifier, instance_of, base_name, language)
 
         self.__scope = scope if scope == '*' else slugify(str(scope))
-        self.__members = []
+        self.__members: List[Member] = []
 
         if src_topic_ref != '' and src_role_spec != '' and dest_topic_ref != '' and dest_role_spec != '':
             src_member = Member(src_topic_ref, src_role_spec)
@@ -37,36 +39,37 @@ class Association(Topic):
             self.__members.append(dest_member)
 
     @property
-    def scope(self):
+    def scope(self) -> str:
         return self.__scope
 
     @scope.setter
-    def scope(self, value):
+    def scope(self, value: str) -> None:
         if value == '':
             raise TopicStoreError("Empty 'scope' parameter")
         self.__scope = value if value == '*' else slugify(str(value))
 
     @property
-    def members(self):
+    def members(self) -> List[Member]:
         return self.__members
 
-    def create_member(self, topic_ref, role_spec='related'):
+    def create_member(self, topic_ref: str, role_spec: str = 'related') -> None:
         member = Member(topic_ref, role_spec)
         self.add_member(member)
 
-    def create_members(self, src_topic_ref, dest_topic_ref, src_role_spec='related', dest_role_spec='related'):
+    def create_members(self, src_topic_ref: str, dest_topic_ref: str, src_role_spec: str = 'related',
+                       dest_role_spec: str = 'related') -> None:
         members = [Member(src_topic_ref, src_role_spec), Member(dest_topic_ref, dest_role_spec)]
         self.add_members(members)
 
-    def add_member(self, member):
+    def add_member(self, member: Member) -> None:
         self.__members.append(member)
 
-    def add_members(self, members):
+    def add_members(self, members: List[Member]) -> None:
         for member in members:
             self.__members.append(member)
 
-    def remove_member(self, identifier):
+    def remove_member(self, identifier: str) -> None:
         self.__members[:] = [x for x in self.__members if x.identifier != identifier]
 
-    def clear_members(self):
+    def clear_members(self) -> None:
         del self.__members[:]

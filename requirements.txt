@@ -1,3 +1,4 @@
 psycopg2>=2.8.1
 python-slugify>=3.0.2
 pytest>=4.4.0
+mypy>=0.700

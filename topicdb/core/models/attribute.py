@@ -7,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 import uuid
 
-from slugify import slugify
+from slugify import slugify  # type: ignore
 
 from topicdb.core.store.topicstoreerror import TopicStoreError
 from topicdb.core.models.datatype import DataType
@@ -16,11 +16,11 @@ from topicdb.core.models.language import Language
 
 class Attribute:
 
-    def __init__(self, name, value, entity_identifier,
-                 identifier='',
-                 data_type=DataType.STRING,
-                 scope='*',
-                 language=Language.ENG):
+    def __init__(self, name: str, value: str, entity_identifier: str,
+                 identifier: str = '',
+                 data_type: DataType = DataType.STRING,
+                 scope: str = '*',
+                 language: Language = Language.ENG) -> None:
         if entity_identifier == '*':  # Universal Scope.
             self.__entity_identifier = '*'
         else:
@@ -34,7 +34,7 @@ class Attribute:
         self.language = language
         self.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
             self.name,
             self.value,
@@ -45,11 +45,11 @@ class Attribute:
             str(self.language))
 
     @property
-    def entity_identifier(self):
+    def entity_identifier(self) -> str:
         return self.__entity_identifier
 
     @entity_identifier.setter
-    def entity_identifier(self, value):
+    def entity_identifier(self, value: str) -> None:
         if value == '':
             raise TopicStoreError("Empty 'value' parameter")
         elif value == '*':  # Universal Scope.
@@ -58,15 +58,15 @@ class Attribute:
             self.__entity_identifier = slugify(str(value))
 
     @property
-    def identifier(self):
+    def identifier(self) -> str:
         return self.__identifier
 
     @property
-    def scope(self):
+    def scope(self) -> str:
         return self.__scope
 
     @scope.setter
-    def scope(self, value):
+    def scope(self, value: str) -> None:
         if value == '':
             raise TopicStoreError("Empty 'value' parameter")
         self.__scope = value if value == '*' else slugify(str(value))

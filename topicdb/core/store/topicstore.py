@@ -5,11 +5,14 @@ February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from __future__ import annotations
+
 from collections import namedtuple
 from datetime import datetime
+from typing import Optional, List, Union
 
-import psycopg2
-import psycopg2.extras
+import psycopg2  # type: ignore
+import psycopg2.extras  # type: ignore
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
@@ -27,9 +30,12 @@ from topicdb.core.store.retrievaloption import RetrievalOption
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.store.topicstoreerror import TopicStoreError
 
+TopicRefs = namedtuple('TopicRefs', ['instance_of', 'role_spec', 'topic_ref'])
+
 
 class TopicStore:
-    def __init__(self, username, password, host='localhost', port=5432, dbname='storytech'):
+    def __init__(self, username: str, password: str, host: str = 'localhost', port: int = 5432,
+                 dbname: str = 'storytech') -> None:
         self.username = username
         self.password = password
         self.host = host
@@ -38,7 +44,7 @@ class TopicStore:
 
         self.connection = None
 
-    def open(self):
+    def open(self) -> TopicStore:
         self.connection = psycopg2.connect(dbname=self.dbname,
                                            user=self.username,
                                            password=self.password,
@@ -46,20 +52,20 @@ class TopicStore:
                                            port=self.port)
         return self
 
-    def close(self):
+    def close(self) -> None:
         if self.connection:
             self.connection.close()
 
     # Context manager methods.
-    def __enter__(self):
+    def __enter__(self) -> TopicStore:
         return self.open()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
 
     # ========== ASSOCIATION ==========
 
-    def delete_association(self, topic_map_identifier, identifier):
+    def delete_association(self, topic_map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -92,10 +98,11 @@ class TopicStore:
         # Delete attributes.
         self.delete_attributes(topic_map_identifier, identifier)
 
-    def get_association(self, topic_map_identifier, identifier,
-                        language=None,
-                        resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                        resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+    def get_association(self, topic_map_identifier: int, identifier: str,
+                        language: Language = None,
+                        resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                        resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) \
+            -> Optional[Association]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -146,11 +153,11 @@ class TopicStore:
 
         return result
 
-    def get_association_groups(self, topic_map_identifier,
-                               identifier='',
-                               associations=None,
-                               instance_of=None,
-                               scope=None):
+    def get_association_groups(self, topic_map_identifier: int,
+                               identifier: str = '',
+                               associations: List[Association] = None,
+                               instance_of: str = None,
+                               scope: str = None) -> DoubleKeyDict:
         if identifier == '' and associations is None:
             raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
 
@@ -177,20 +184,19 @@ class TopicStore:
         return result
 
     @staticmethod
-    def _resolve_topic_refs(association):
-        topic_refs = []
-
-        TopicRefs = namedtuple('TopicRefs', ['instance_of', 'role_spec', 'topic_ref'])
+    def _resolve_topic_refs(association: Association) -> List[Optional[TopicRefs]]:
+        result: List[Optional[TopicRefs]] = []
 
         for member in association.members:
             for topic_ref in member.topic_refs:
-                topic_refs.append(TopicRefs(association.instance_of, member.role_spec, topic_ref))
-        return topic_refs
+                result.append(TopicRefs(association.instance_of, member.role_spec, topic_ref))
+        return result
 
     def get_associations(self):
         pass
 
-    def set_association(self, topic_map_identifier, association, ontology_mode=OntologyMode.STRICT):
+    def set_association(self, topic_map_identifier: int, association: Association,
+                        ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(topic_map_identifier, association.instance_of)
             if not instance_of_exists:
@@ -235,7 +241,7 @@ class TopicStore:
 
     # ========== ATTRIBUTE ==========
 
-    def attribute_exists(self, topic_map_identifier, entity_identifier, name):
+    def attribute_exists(self, topic_map_identifier: int, entity_identifier: str, name: str) -> bool:
         result = False
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -249,14 +255,14 @@ class TopicStore:
                     result = True
         return result
 
-    def delete_attribute(self, topic_map_identifier, identifier):
+    def delete_attribute(self, topic_map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
                                (topic_map_identifier, identifier))
 
-    def delete_attributes(self, topic_map_identifier, entity_identifier):
+    def delete_attributes(self, topic_map_identifier: int, entity_identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -264,7 +270,7 @@ class TopicStore:
                     "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s",
                     (topic_map_identifier, entity_identifier))
 
-    def get_attribute(self, topic_map_identifier, identifier):
+    def get_attribute(self, topic_map_identifier: int, identifier: str) -> Optional[Attribute]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -284,7 +290,8 @@ class TopicStore:
                         Language[record['language'].upper()])
         return result
 
-    def get_attributes(self, topic_map_identifier, entity_identifier, scope=None, language=None):
+    def get_attributes(self, topic_map_identifier: int, entity_identifier: str, scope: str = None,
+                       language: Language = None) -> List[Attribute]:
         result = []
 
         if scope is None:
@@ -319,7 +326,8 @@ class TopicStore:
                     result.append(attribute)
         return result
 
-    def set_attribute(self, topic_map_identifier, attribute, ontology_mode=OntologyMode.LENIENT):
+    def set_attribute(self, topic_map_identifier: int, attribute: Attribute,
+                      ontology_mode: OntologyMode = OntologyMode.LENIENT) -> None:
         if attribute.entity_identifier == '':
             raise TopicStoreError("Attribute has an empty 'entity identifier' property")
 
@@ -342,11 +350,11 @@ class TopicStore:
                      attribute.scope,
                      attribute.language.name.lower()))
 
-    def set_attributes(self, topic_map_identifier, attributes):
+    def set_attributes(self, topic_map_identifier: int, attributes: List[Attribute]) -> None:
         for attribute in attributes:
             self.set_attribute(topic_map_identifier, attribute)
 
-    def update_attribute_value(self, topic_map_identifier, identifier, value):
+    def update_attribute_value(self, topic_map_identifier: int, identifier: str, value: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -361,7 +369,7 @@ class TopicStore:
 
     # ========== OCCURRENCE ==========
 
-    def delete_occurrence(self, topic_map_identifier, identifier):
+    def delete_occurrence(self, topic_map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -370,7 +378,7 @@ class TopicStore:
         # Delete attributes.
         self.delete_attributes(topic_map_identifier, identifier)
 
-    def delete_occurrences(self, topic_map_identifier, topic_identifier):
+    def delete_occurrences(self, topic_map_identifier: int, topic_identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -382,9 +390,10 @@ class TopicStore:
         for record in records:
             self.delete_occurrence(topic_map_identifier, record['identifier'])
 
-    def get_occurrence(self, topic_map_identifier, identifier,
-                       inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                       resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
+    def get_occurrence(self, topic_map_identifier: int, identifier: str,
+                       inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
+                       resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+            -> Optional[Occurrence]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -410,7 +419,7 @@ class TopicStore:
                         result.add_attributes(self.get_attributes(topic_map_identifier, identifier))
         return result
 
-    def get_occurrence_data(self, topic_map_identifier, identifier):
+    def get_occurrence_data(self, topic_map_identifier: int, identifier: str) -> Optional[bytes]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -426,14 +435,15 @@ class TopicStore:
                         result = bytes(record['resource_data'])
         return result
 
-    def get_occurrences(self, topic_map_identifier,
-                        instance_of=None,
-                        scope=None,
-                        language=None,
-                        offset=0,
-                        limit=100,
-                        inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                        resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
+    def get_occurrences(self, topic_map_identifier: int,
+                        instance_of: str = None,
+                        scope: str = None,
+                        language: Language = None,
+                        offset: int = 0,
+                        limit: int = 100,
+                        inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
+                        resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+            -> List[Occurrence]:
         result = []
         sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"  # ORDER BY topic_identifier, identifier LIMIT %s OFFSET %s
         if instance_of is None:
@@ -489,7 +499,7 @@ class TopicStore:
                     result.append(occurrence)
         return result
 
-    def occurrence_exists(self, topic_map_identifier, identifier):
+    def occurrence_exists(self, topic_map_identifier: int, identifier: str) -> bool:
         result = False
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -503,7 +513,8 @@ class TopicStore:
                     result = True
         return result
 
-    def set_occurrence(self, topic_map_identifier, occurrence, ontology_mode=OntologyMode.STRICT):
+    def set_occurrence(self, topic_map_identifier: int, occurrence: Occurrence,
+                       ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
         if occurrence.topic_identifier == '':
             raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
 
@@ -543,7 +554,8 @@ class TopicStore:
             occurrence.add_attribute(timestamp_attribute)
         self.set_attributes(topic_map_identifier, occurrence.attributes)
 
-    def update_occurrence_data(self, topic_map_identifier, identifier, resource_data):
+    def update_occurrence_data(self, topic_map_identifier: int, identifier: str,
+                               resource_data: Union[str, bytes]) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
         with self.connection:
@@ -552,7 +564,7 @@ class TopicStore:
                     "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (psycopg2.Binary(resource_data), topic_map_identifier, identifier))
 
-    def update_occurrence_scope(self, topic_map_identifier, identifier, scope):
+    def update_occurrence_scope(self, topic_map_identifier: int, identifier: str, scope: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -562,7 +574,7 @@ class TopicStore:
 
     # ========== TAG ==========
 
-    def get_tags(self, topic_map_identifier, identifier):
+    def get_tags(self, topic_map_identifier: int, identifier: str) -> List[Optional[str]]:
         result = []
 
         associations = self.get_topic_associations(topic_map_identifier, identifier)
@@ -577,7 +589,7 @@ class TopicStore:
                             result.append(topic_ref)
         return result
 
-    def set_tag(self, topic_map_identifier, identifier, tag):
+    def set_tag(self, topic_map_identifier: int, identifier: str, tag: str) -> None:
         if not self.topic_exists(topic_map_identifier, identifier):
             identifier_topic = Topic(identifier=identifier, base_name=identifier.capitalize())
             self.set_topic(topic_map_identifier, identifier_topic)
@@ -601,14 +613,14 @@ class TopicStore:
         self.set_association(topic_map_identifier, tag_association1)
         self.set_association(topic_map_identifier, tag_association2)
 
-    def set_tags(self, topic_map_identifier, identifier, tags):
+    def set_tags(self, topic_map_identifier: int, identifier: str, tags: List[str]) -> None:
         for tag in tags:
             self.set_tag(topic_map_identifier, identifier, tag)
 
     # ========== TOPIC ==========
 
-    def delete_topic(self, topic_map_identifier, identifier):
-        pass
+    def delete_topic(self, topic_map_identifier: int, identifier: str) -> None:
+        ...
 
         # Order of deletion of related 'entities':
         #   1. associations
@@ -616,7 +628,8 @@ class TopicStore:
         #   3. attributes
         #   4. topic
 
-    def get_related_topics(self, topic_map_identifier, identifier, instance_of=None, scope=None):
+    def get_related_topics(self, topic_map_identifier: int, identifier: str, instance_of: str = None,
+                           scope: str = None) -> List[Optional[Topic]]:
         result = []
 
         associations = self.get_topic_associations(topic_map_identifier, identifier, instance_of=instance_of,
@@ -631,10 +644,10 @@ class TopicStore:
                         result.append(self.get_topic(topic_map_identifier, topic_ref))
         return result
 
-    def get_topic(self, topic_map_identifier, identifier,
-                  language=None,
-                  resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                  resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+    def get_topic(self, topic_map_identifier: int, identifier: str,
+                  language: Language = None,
+                  resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                  resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) -> Optional[Topic]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -667,12 +680,13 @@ class TopicStore:
 
         return result
 
-    def get_topic_associations(self, topic_map_identifier, identifier,
-                               instance_of=None,
-                               scope=None,
-                               language=None,
-                               resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                               resolve_occurrences=RetrievalOption.DONT_RESOLVE_OCCURRENCES):
+    def get_topic_associations(self, topic_map_identifier: int, identifier: str,
+                               instance_of: str = None,
+                               scope: str = None,
+                               language: Language = None,
+                               resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
+                               resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) \
+            -> List[Association]:
         result = []
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
             (SELECT association_identifier FROM topicdb.member \
@@ -722,13 +736,13 @@ class TopicStore:
 
         return result
 
-    def get_topics_network(self, topic_map_identifier, identifier,
-                           maximum_depth=10,
-                           cumulative_depth=0,
-                           accumulative_tree=None,
-                           accumulative_nodes=None,
-                           instance_of=None,
-                           scope=None):
+    def get_topics_network(self, topic_map_identifier: int, identifier: str,
+                           maximum_depth: int = 10,
+                           cumulative_depth: int = 0,
+                           accumulative_tree: Tree = None,
+                           accumulative_nodes: List[str] = None,
+                           instance_of: str = None,
+                           scope: str = None):
         if accumulative_tree is None:
             tree = Tree()
             root_topic = self.get_topic(topic_map_identifier, identifier)
@@ -737,7 +751,7 @@ class TopicStore:
             tree = accumulative_tree
 
         if accumulative_nodes is None:
-            nodes = []
+            nodes: List[str] = []
         else:
             nodes = accumulative_nodes
 
@@ -765,7 +779,8 @@ class TopicStore:
                                         scope=scope)
         return tree
 
-    def get_topic_identifiers(self, topic_map_identifier, query, instance_of=None, offset=0, limit=100):
+    def get_topic_identifiers(self, topic_map_identifier: int, query: str, instance_of: str = None, offset: int = 0,
+                              limit: int = 100) -> List[str]:
         result = []
 
         query_string = "{0}%%".format(query)
@@ -793,12 +808,13 @@ class TopicStore:
                     result.append(record['identifier'])
         return result
 
-    def get_topic_occurrences(self, topic_map_identifier, identifier,
-                              instance_of=None,
-                              scope=None,
-                              language=None,
-                              inline_resource_data=RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                              resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
+    def get_topic_occurrences(self, topic_map_identifier: int, identifier: str,
+                              instance_of: str = None,
+                              scope: str = None,
+                              language: Language = None,
+                              inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
+                              resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+            -> List[Occurrence]:
         result = []
         sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier = %s {0}"
         if instance_of is None:
@@ -855,12 +871,12 @@ class TopicStore:
 
         return result
 
-    def get_topics(self, topic_map_identifier,
-                   instance_of=None,
-                   language=None,
-                   offset=0,
-                   limit=100,
-                   resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES):
+    def get_topics(self, topic_map_identifier: int,
+                   instance_of: str = None,
+                   language: Language = None,
+                   offset: int = 0,
+                   limit: int = 100,
+                   resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
         result = []
 
         if instance_of is None:
@@ -882,7 +898,8 @@ class TopicStore:
 
         return result
 
-    def set_topic(self, topic_map_identifier, topic, ontology_mode=OntologyMode.STRICT):
+    def set_topic(self, topic_map_identifier: int, topic: Topic,
+                  ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(topic_map_identifier, topic.instance_of)
             if not instance_of_exists:
@@ -913,7 +930,7 @@ class TopicStore:
             topic.add_attribute(timestamp_attribute)
         self.set_attributes(topic_map_identifier, topic.attributes)
 
-    def update_topic_instance_of(self, topic_map_identifier, identifier, instance_of):
+    def update_topic_instance_of(self, topic_map_identifier: int, identifier: str, instance_of: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -921,7 +938,7 @@ class TopicStore:
                     "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (instance_of, topic_map_identifier, identifier))
 
-    def topic_exists(self, topic_map_identifier, identifier):
+    def topic_exists(self, topic_map_identifier: int, identifier: str) -> bool:
         result = False
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -937,14 +954,14 @@ class TopicStore:
 
     # ========== TOPICMAP ==========
 
-    def delete_topic_map(self, topic_map_identifier):
+    def delete_topic_map(self, topic_map_identifier: int) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s",
                                (topic_map_identifier,))
 
-    def get_topic_map(self, topic_map_identifier):
+    def get_topic_map(self, topic_map_identifier: int) -> Optional[TopicMap]:
         result = None
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -964,7 +981,7 @@ class TopicStore:
                         promoted=record['promoted'])
         return result
 
-    def get_topic_maps(self, user_identifier):
+    def get_topic_maps(self, user_identifier: int) -> List[TopicMap]:
         result = []
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -986,7 +1003,7 @@ class TopicStore:
                     result.append(topic_map)
         return result
 
-    def get_shared_topic_maps(self):
+    def get_shared_topic_maps(self) -> List[TopicMap]:
         result = []
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -1007,7 +1024,7 @@ class TopicStore:
                     result.append(topic_map)
         return result
 
-    def get_promoted_topic_maps(self):
+    def get_promoted_topic_maps(self) -> List[TopicMap]:
         result = []
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
@@ -1028,8 +1045,9 @@ class TopicStore:
                     result.append(topic_map)
         return result
 
-    def set_topic_map(self, user_identifier, name, description='', image_path='', initialised=False, shared=False,
-                      promoted=False):
+    def set_topic_map(self, user_identifier: int, name: str, description: str = '', image_path: str = '',
+                      initialised: bool = False, shared: bool = False,
+                      promoted: bool = False) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -1037,10 +1055,10 @@ class TopicStore:
                     "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                     (user_identifier, name, description, image_path, initialised, shared, promoted))
 
-    def initialise_topic_map(self, topic_map_identifier):
+    def initialise_topic_map(self, topic_map_identifier: int) -> None:
         topic_map = self.get_topic_map(topic_map_identifier)
 
-        if not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'home'):
+        if topic_map and not topic_map.initialised and not self.topic_exists(topic_map_identifier, 'home'):
             items = {
                 ('*', 'Universal Scope'),
                 ('home', 'Home'),
@@ -1083,8 +1101,9 @@ class TopicStore:
                     cursor.execute(
                         "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (topic_map_identifier,))
 
-    def update_topic_map(self, topic_map_identifier, name, description='', image_path='', initialised=False,
-                         shared=False, promoted=False):
+    def update_topic_map(self, topic_map_identifier: int, name: str, description: str = '', image_path: str = '',
+                         initialised: bool = False,
+                         shared: bool = False, promoted: bool = False):
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
@@ -1092,7 +1111,7 @@ class TopicStore:
                     "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, shared = %s, promoted = %s WHERE identifier = %s",
                     (name, description, image_path, initialised, shared, promoted, topic_map_identifier))
 
-    def is_topic_map_owner(self, user_identifier, topic_map_identifier):
+    def is_topic_map_owner(self, user_identifier: int, topic_map_identifier: int) -> bool:
         result = False
 
         # http://initd.org/psycopg/docs/usage.html#with-statement

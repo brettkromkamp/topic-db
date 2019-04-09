@@ -99,3 +99,6 @@ ENV/
 
 # Application settings
 settings.ini
+
+# MyPy
+.mypy_cache/
