@@ -11,6 +11,7 @@ Release History
 - Extended functionality in relation to the management of the top-level topic map objects. This resulted in changes in both the ``TopicMap`` and ``TopicStore`` classes, respectively.
 - Refactored and cleaned-up the definition of the database schema (including a change in the naming convention of field names).
 - Added several convenience methods to the ``TopicStore`` class for the purpose of updating occurrences and attributes.
+- Added static typing annotations (Mypy) for the majority of classes.
 - Updated dependencies (to latest versions).
 
 0.7.1 (2017-06-16)
