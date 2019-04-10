@@ -742,7 +742,7 @@ class TopicStore:
                            accumulative_tree: Tree = None,
                            accumulative_nodes: List[str] = None,
                            instance_ofs: Optional[List[str]] = None,
-                           scope: str = None):
+                           scope: str = None) -> Tree:
         if accumulative_tree is None:
             tree = Tree()
             root_topic = self.get_topic(map_identifier, identifier)
@@ -1104,7 +1104,7 @@ class TopicStore:
 
     def update_topic_map(self, map_identifier: int, name: str, description: str = '', image_path: str = '',
                          initialised: bool = False,
-                         shared: bool = False, promoted: bool = False):
+                         shared: bool = False, promoted: bool = False) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
