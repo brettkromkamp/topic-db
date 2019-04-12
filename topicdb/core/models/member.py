@@ -1,5 +1,5 @@
 """
-Member class. Part of the StoryTechnologies Builder project.
+Member class. Part of the StoryTechnologies project.
 
 July 03, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

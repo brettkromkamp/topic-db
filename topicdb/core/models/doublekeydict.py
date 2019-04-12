@@ -1,5 +1,5 @@
 """
-DoubleKeyDict(ionary) class. Part of the StoryTechnologies Builder project.
+DoubleKeyDict(ionary) class. Part of the StoryTechnologies project.
 
 July 02, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

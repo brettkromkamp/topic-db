@@ -1,5 +1,5 @@
 """
-BaseName class. Part of the StoryTechnologies Builder project.
+BaseName class. Part of the StoryTechnologies project.
 
 June 12, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
