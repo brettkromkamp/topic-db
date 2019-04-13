@@ -112,7 +112,7 @@ def test_topic_occurrences():
 
 
 def test_occurrence_resource_data():
-    resource_data = '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
+    resource_data = b'<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
     occurrence1 = Occurrence(identifier='test-occurrence2',
                              topic_identifier='test-topic1',
                              resource_data=resource_data)

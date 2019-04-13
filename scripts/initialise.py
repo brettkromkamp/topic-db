@@ -1,9 +1,9 @@
-'''
+"""
 initialise.py file. Part of the StoryTechnologies project.
 
 February 25, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
-'''
+"""
 
 import configparser
 import os
