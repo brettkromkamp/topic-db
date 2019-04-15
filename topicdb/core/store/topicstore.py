@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections import namedtuple
 from datetime import datetime
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
@@ -361,11 +361,6 @@ class TopicStore:
                 cursor.execute(
                     "UPDATE topicdb.attribute SET value = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (value, map_identifier, identifier))
-
-    # ========== STATISTICS ==========
-
-    def get_statistics(self):
-        pass
 
     # ========== OCCURRENCE ==========
 
@@ -1083,7 +1078,7 @@ class TopicStore:
                 ('included-in', 'Is Included In'),
                 ('image', 'Image'),
                 ('video', 'Video'),
-                ('sound', 'Sound'),
+                ('audio', 'Audio'),
                 ('note', 'Note'),
                 ('file', 'File'),
                 ('url', 'URL'),
@@ -1124,4 +1119,26 @@ class TopicStore:
                 record = cursor.fetchone()
                 if record:
                     result = True
+        return result
+
+    # ========== STATISTICS ==========
+
+    def get_topic_occurrence_statistics(self, map_identifier: int, identifier: str) -> Dict:
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        result = {
+            'image': 0,
+            'video': 0,
+            'audio': 0,
+            'note': 0,
+            'file': 0,
+            'url': 0,
+            'text': 0}
+        with self.connection:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of HAVING topicmap_identifier = %s AND topic_identifier = %s",
+                    (map_identifier, identifier))
+                records = cursor.fetchall()
+                for record in records:
+                    result[record['instance_of']] = record['count']
         return result
