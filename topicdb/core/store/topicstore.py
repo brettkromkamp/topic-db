@@ -1123,7 +1123,7 @@ class TopicStore:
 
     # ========== STATISTICS ==========
 
-    def get_topic_occurrence_statistics(self, map_identifier: int, identifier: str) -> Dict:
+    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str) -> Dict:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         result = {
             'image': 0,
