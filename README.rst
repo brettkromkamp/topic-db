@@ -8,6 +8,8 @@ over at MSDN: `An Introduction to Topic Maps`_. With that being said, although T
 paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API.
+`Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
+
 
 .. image:: resources/render.png
    :alt: Render by Brett Kromkamp
@@ -86,5 +88,6 @@ How to Contribute
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _the repository: https://github.com/brettkromkamp/topic-db
+.. _Contextualise: https://github.com/brettkromkamp/contextualise
 .. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
 .. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
