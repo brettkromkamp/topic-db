@@ -25,7 +25,7 @@ database_name = config['DATABASE']['Database']
 # Instantiate and open topic store, create and subsequently populate topic maps.
 with TopicStore(database_username, database_password, dbname=database_name) as store:
     store.set_topic_map(USER_IDENTIFIER_1, 'Bacon Ipsum Dolor', 'Bacon ipsum dolor amet in ham esse sirloin turducken kevin occaecat qui kielbasa eiusmod cow anim andouille proident pig. Laborum tail id tempor voluptate.')
-    store.set_topic_map(USER_IDENTIFIER_1, 'Fatback Alcatra Short', 'Fatback alcatra short loin, ribeye sirloin duis swine cupidatat. Biltong lorem in tail ut shank et. Pastrami culpa salami, aliquip alcatra enim short loin.', shared=True)
+    store.set_topic_map(USER_IDENTIFIER_2, 'Fatback Alcatra Short', 'Fatback alcatra short loin, ribeye sirloin duis swine cupidatat. Biltong lorem in tail ut shank et. Pastrami culpa salami, aliquip alcatra enim short loin.', shared=True)
     store.set_topic_map(USER_IDENTIFIER_2, 'Officia Sed Irure', 'Officia sed irure, beef ham ham hock sunt ex ball tip in elit nulla magna duis aliquip. Est kielbasa ullamco meatloaf cupidatat magna tempor sausage id beef ribs commodo duis sint cow.')
 
     # Populate topic maps (with pre-defined topics) for 'USER_IDENTIFIER_1'.

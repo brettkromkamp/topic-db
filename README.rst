@@ -1,5 +1,5 @@
-TopicDB from StoryTechnologies
-==============================
+TopicDB by Brett Kromkamp
+=========================
 
 TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence).
 
