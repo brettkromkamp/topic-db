@@ -13,7 +13,7 @@ from typing import Optional, List, Union, Dict
 
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
-from typedtree.tree import Tree
+from typedtree.tree import Tree  # type: ignore
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
