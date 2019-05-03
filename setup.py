@@ -27,7 +27,7 @@ setup(name='topic-db',
       license='MIT',
       packages=find_packages(exclude=['docs', 'tests*', 'scripts']),
       package_data={'': ['LICENSE']},
-      install_requires=['psycopg2', 'python-slugify'],
+      install_requires=['psycopg2', 'python-slugify', 'typed-tree'],
       include_package_data=True,
       zip_safe=False,
       classifiers=[

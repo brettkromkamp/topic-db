@@ -13,6 +13,7 @@ from typing import Optional, List, Union, Dict
 
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
+from typedtree.tree import Tree
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
@@ -24,7 +25,6 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
-from topicdb.core.models.tree.tree import Tree
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
 from topicdb.core.store.topicfield import TopicField
@@ -741,7 +741,7 @@ class TopicStore:
         if accumulative_tree is None:
             tree = Tree()
             root_topic = self.get_topic(map_identifier, identifier)
-            tree.add_node(identifier, parent=None, topic=root_topic)
+            tree.add_node(identifier, node_type=root_topic.instance_of, payload=root_topic)
         else:
             tree = accumulative_tree
 
@@ -759,14 +759,15 @@ class TopicStore:
                     topic_ref = resolved_topic_ref.topic_ref
                     if (topic_ref != identifier) and (topic_ref not in nodes):
                         topic = self.get_topic(map_identifier, topic_ref)
-                        tree.add_node(topic_ref, parent=identifier, topic=topic)
+                        tree.add_node(topic_ref, parent_pointer=identifier, node_type=topic.instance_of,
+                                      edge_type=association.instance_of, payload=topic)
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)
             children = tree[identifier].children
 
             for child in children:
                 # Recursive call.
-                self.get_topics_network(map_identifier, child,
+                self.get_topics_network(map_identifier, child.pointer,
                                         cumulative_depth=cumulative_depth + 1,
                                         accumulative_tree=tree,
                                         accumulative_nodes=nodes,
