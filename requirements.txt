@@ -1,5 +1,5 @@
 psycopg2>=2.8.2
 python-slugify>=3.0.2
-pytest>=4.4.1
+pytest>=4.4.2
 mypy>=0.701
 typed-tree>=0.0.1
