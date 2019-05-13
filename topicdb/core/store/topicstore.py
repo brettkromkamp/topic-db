@@ -70,12 +70,12 @@ class TopicStore:
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 # Delete topic/association record.
-                self.connection.execute(
+                cursor.execute(
                     "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
                     (map_identifier, identifier))
 
                 # Delete base name record(s).
-                self.connection.execute(
+                cursor.execute(
                     "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s",
                     (map_identifier, identifier))
 
@@ -86,13 +86,13 @@ class TopicStore:
                 member_records = cursor.fetchall()
 
                 # Delete members.
-                self.connection.execute(
+                cursor.execute(
                     "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
                     (map_identifier, identifier))
                 if member_records:
                     for member_record in member_records:
                         # Delete topic refs.
-                        self.connection.execute(
+                        cursor.execute(
                             "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
                             (map_identifier, member_record['identifier']))
         # Delete attributes.
