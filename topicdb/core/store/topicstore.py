@@ -567,6 +567,14 @@ class TopicStore:
                     "UPDATE topicdb.occurrence SET scope = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (scope, map_identifier, identifier))
 
+    def update_occurrence_topic_identifier(self, map_identifier: int, identifier: str, topic_identifier: str) -> None:
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET topic_identifier = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_identifier, map_identifier, identifier))
+
     # ========== TAG ==========
 
     def get_tags(self, map_identifier: int, identifier: str) -> List[Optional[str]]:
@@ -1068,6 +1076,7 @@ class TopicStore:
                 ('category', 'Category'),
                 ('categorization', 'Categorization'),
                 ('tags', 'Tags'),
+                ('notes', 'Notes'),
                 ('broader', 'Broader'),
                 ('narrower', 'Narrower'),
                 ('related', 'Related'),
