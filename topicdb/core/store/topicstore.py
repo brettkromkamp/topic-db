@@ -943,6 +943,14 @@ class TopicStore:
                     "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
                     (instance_of, map_identifier, identifier))
 
+    def update_basename_name(self, map_identifier: int, identifier: str, name: str) -> None:
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.basename SET name = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (name, map_identifier, identifier))
+
     def topic_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
 
