@@ -1141,7 +1141,7 @@ class TopicStore:
 
     # ========== STATISTICS ==========
 
-    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str) -> Dict:
+    def get_topic_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         result = {
             'image': 0,
@@ -1150,13 +1150,20 @@ class TopicStore:
             'note': 0,
             'file': 0,
             'url': 0,
-            'text': 0}
+            'text': 0,
+            'association': 0}
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(
-                    "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of HAVING topicmap_identifier = %s AND topic_identifier = %s",
-                    (map_identifier, identifier))
-                records = cursor.fetchall()
+                if scope:
+                    cursor.execute(
+                        "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of, scope HAVING topicmap_identifier = %s AND topic_identifier = %s AND scope = %s",
+                        (map_identifier, identifier, scope))
+                    records = cursor.fetchall()
+                else:
+                    cursor.execute(
+                        "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of HAVING topicmap_identifier = %s AND topic_identifier = %s",
+                        (map_identifier, identifier))
+                    records = cursor.fetchall()
                 for record in records:
                     result[record['instance_of']] = record['count']
         return result
