@@ -117,12 +117,12 @@ class TopicStore:
                                          instance_of=association_record['instance_of'],
                                          scope=association_record['scope'])
                     result.clear_base_names()
-                    if language is None:
-                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s"
-                        bind_variables = (map_identifier, identifier)
-                    else:
+                    if language:
                         sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s AND language = %s"
                         bind_variables = (map_identifier, identifier, language.name.lower())
+                    else:
+                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s"
+                        bind_variables = (map_identifier, identifier)
                     cursor.execute(sql, bind_variables)
                     base_name_records = cursor.fetchall()
                     if base_name_records:
@@ -294,21 +294,20 @@ class TopicStore:
                        language: Language = None) -> List[Attribute]:
         result = []
 
-        if scope is None:
-            if language is None:
-                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s"
-                bind_variables = (map_identifier, entity_identifier)
-            else:
-                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND language = %s"
-                bind_variables = (map_identifier, entity_identifier, language.name.lower())
-        else:
-            if language is None:
-                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND scope = %s"
-                bind_variables = (map_identifier, entity_identifier, scope)
-            else:
+        if scope:
+            if language:
                 sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND scope = %s AND language = %s"
                 bind_variables = (map_identifier, entity_identifier, scope, language.name.lower())
-
+            else:
+                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND scope = %s"
+                bind_variables = (map_identifier, entity_identifier, scope)
+        else:
+            if language:
+                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND language = %s"
+                bind_variables = (map_identifier, entity_identifier, language.name.lower())
+            else:
+                sql = "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s"
+                bind_variables = (map_identifier, entity_identifier)
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -441,36 +440,36 @@ class TopicStore:
             -> List[Occurrence]:
         result = []
         sql = "SELECT * FROM topicdb.occurrence WHERE topicmap_identifier = %s {0}"  # ORDER BY topic_identifier, identifier LIMIT %s OFFSET %s
-        if instance_of is None:
-            if scope is None:
-                if language is None:
-                    query_filter = ""
-                    bind_variables = (map_identifier,)
-                else:
-                    query_filter = " AND language = %s"
-                    bind_variables = (map_identifier, language.name.lower())
-            else:
-                if language is None:
-                    query_filter = " AND scope = %s"
-                    bind_variables = (map_identifier, scope)
-                else:
-                    query_filter = " AND scope = %s AND language = %s"
-                    bind_variables = (map_identifier, scope, language.name.lower())
-        else:
-            if scope is None:
-                if language is None:
-                    query_filter = " AND instance_of = %s"
-                    bind_variables = (map_identifier, instance_of)
-                else:
-                    query_filter = " AND instance_of = %s AND language = %s"
-                    bind_variables = (map_identifier, instance_of, language.name.lower())
-            else:
-                if language is None:
-                    query_filter = " AND instance_of = %s AND scope = %s"
-                    bind_variables = (map_identifier, instance_of, scope)
-                else:
+        if instance_of:
+            if scope:
+                if language:
                     query_filter = " AND instance_of = %s AND scope = %s AND language = %s"
                     bind_variables = (map_identifier, instance_of, scope, language.name.lower())
+                else:
+                    query_filter = " AND instance_of = %s AND scope = %s"
+                    bind_variables = (map_identifier, instance_of, scope)
+            else:
+                if language:
+                    query_filter = " AND instance_of = %s AND language = %s"
+                    bind_variables = (map_identifier, instance_of, language.name.lower())
+                else:
+                    query_filter = " AND instance_of = %s"
+                    bind_variables = (map_identifier, instance_of)
+        else:
+            if scope:
+                if language:
+                    query_filter = " AND scope = %s AND language = %s"
+                    bind_variables = (map_identifier, scope, language.name.lower())
+                else:
+                    query_filter = " AND scope = %s"
+                    bind_variables = (map_identifier, scope)
+            else:
+                if language:
+                    query_filter = " AND language = %s"
+                    bind_variables = (map_identifier, language.name.lower())
+                else:
+                    query_filter = ""
+                    bind_variables = (map_identifier,)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -663,12 +662,12 @@ class TopicStore:
                 if topic_record:
                     result = Topic(topic_record['identifier'], topic_record['instance_of'])
                     result.clear_base_names()
-                    if language is None:
-                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s"
-                        bind_variables = (map_identifier, identifier)
-                    else:
+                    if language:
                         sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s AND language = %s"
                         bind_variables = (map_identifier, identifier, language.name.lower())
+                    else:
+                        sql = "SELECT name, language, identifier FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s"
+                        bind_variables = (map_identifier, identifier)
                     cursor.execute(sql, bind_variables)
                     base_name_records = cursor.fetchall()
                     if base_name_records:
@@ -699,29 +698,28 @@ class TopicStore:
                     WHERE topicmap_identifier = %s \
                     AND topic_ref = %s))
         """
-        if instance_ofs is None:
-            if scope is None:
-                query_filter = ""
-                bind_variables = (map_identifier, map_identifier, map_identifier, identifier)
-            else:
-                query_filter = " AND scope = %s"
-                bind_variables = (map_identifier, scope, map_identifier, map_identifier, identifier)
-        else:
+        if instance_ofs:
             instance_of_in_condition = " AND instance_of IN ("
             for index, value in enumerate(instance_ofs):
                 if (index + 1) != len(instance_ofs):
                     instance_of_in_condition += "%s, "
                 else:
                     instance_of_in_condition += "%s) "
-            if scope is None:
-                query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (
-                    map_identifier, map_identifier, identifier)
-            else:
+            if scope:
                 query_filter = instance_of_in_condition + " AND scope = %s "
                 bind_variables = (map_identifier,) + tuple(instance_ofs) + (
                     scope, map_identifier, map_identifier, identifier)
-
+            else:
+                query_filter = instance_of_in_condition
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (
+                    map_identifier, map_identifier, identifier)
+        else:
+            if scope:
+                query_filter = " AND scope = %s"
+                bind_variables = (map_identifier, scope, map_identifier, map_identifier, identifier)
+            else:
+                query_filter = ""
+                bind_variables = (map_identifier, map_identifier, map_identifier, identifier)
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -791,10 +789,7 @@ class TopicStore:
         query_string = "{0}%%".format(query)
         sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier LIKE %s {0} AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
 
-        if instance_ofs is None:
-            query_filter = ""
-            bind_variables = (map_identifier, query_string, limit, offset)
-        else:
+        if instance_ofs:
             instance_of_in_condition = " AND instance_of IN ("
             for index, value in enumerate(instance_ofs):
                 if (index + 1) != len(instance_ofs):
@@ -803,6 +798,9 @@ class TopicStore:
                     instance_of_in_condition += "%s) "
             query_filter = instance_of_in_condition
             bind_variables = (map_identifier, query_string) + tuple(instance_ofs) + (limit, offset)
+        else:
+            query_filter = ""
+            bind_variables = (map_identifier, query_string, limit, offset)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -822,36 +820,36 @@ class TopicStore:
             -> List[Occurrence]:
         result = []
         sql = "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier = %s {0}"
-        if instance_of is None:
-            if scope is None:
-                if language is None:
-                    query_filter = ""
-                    bind_variables = (map_identifier, identifier)
-                else:
-                    query_filter = " AND language = %s"
-                    bind_variables = (map_identifier, identifier, language.name.lower())
-            else:
-                if language is None:
-                    query_filter = " AND scope = %s"
-                    bind_variables = (map_identifier, identifier, scope)
-                else:
-                    query_filter = " AND scope = %s AND language = %s"
-                    bind_variables = (map_identifier, identifier, scope, language.name.lower())
-        else:
-            if scope is None:
-                if language is None:
-                    query_filter = " AND instance_of = %s"
-                    bind_variables = (map_identifier, identifier, instance_of)
-                else:
-                    query_filter = " AND instance_of = %s AND language = %s"
-                    bind_variables = (map_identifier, identifier, instance_of, language.name.lower())
-            else:
-                if language is None:
-                    query_filter = " AND instance_of = %s AND scope = %s"
-                    bind_variables = (map_identifier, identifier, instance_of, scope)
-                else:
+        if instance_of:
+            if scope:
+                if language:
                     query_filter = " AND instance_of = %s AND scope = %s AND language = %s"
                     bind_variables = (map_identifier, identifier, instance_of, scope, language.name.lower())
+                else:
+                    query_filter = " AND instance_of = %s AND scope = %s"
+                    bind_variables = (map_identifier, identifier, instance_of, scope)
+            else:
+                if language:
+                    query_filter = " AND instance_of = %s AND language = %s"
+                    bind_variables = (map_identifier, identifier, instance_of, language.name.lower())
+                else:
+                    query_filter = " AND instance_of = %s"
+                    bind_variables = (map_identifier, identifier, instance_of)
+        else:
+            if scope:
+                if language:
+                    query_filter = " AND scope = %s AND language = %s"
+                    bind_variables = (map_identifier, identifier, scope, language.name.lower())
+                else:
+                    query_filter = " AND scope = %s"
+                    bind_variables = (map_identifier, identifier, scope)
+            else:
+                if language:
+                    query_filter = " AND language = %s"
+                    bind_variables = (map_identifier, identifier, language.name.lower())
+                else:
+                    query_filter = ""
+                    bind_variables = (map_identifier, identifier)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -884,12 +882,12 @@ class TopicStore:
                    resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
         result = []
 
-        if instance_of is None:
-            sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
-            bind_variables = (map_identifier, limit, offset)
-        else:
+        if instance_of:
             sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND instance_of = %s AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
             bind_variables = (map_identifier, instance_of, limit, offset)
+        else:
+            sql = "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND scope IS NULL ORDER BY identifier LIMIT %s OFFSET %s"
+            bind_variables = (map_identifier, limit, offset)
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
