@@ -1141,7 +1141,7 @@ class TopicStore:
 
     # ========== STATISTICS ==========
 
-    def get_topic_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
+    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         result = {
             'image': 0,
@@ -1150,8 +1150,8 @@ class TopicStore:
             'note': 0,
             'file': 0,
             'url': 0,
-            'text': 0,
-            'association': 0}
+            'text': 0
+        }
         with self.connection:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 if scope:
