@@ -33,6 +33,10 @@ Installation
 
     $ pip install topic-db
 
+After having installed the TopicDB library itself, you would have to separately install and configure the database.
+Brief instructions on how to do so are provided, here: `Setting up the TopicDB database`_. You need to ensure that the
+database username, password and database name match with the ``settings.ini`` file in the project's root folder.
+
 Install the Development Version
 -------------------------------
 
@@ -110,6 +114,7 @@ How to Contribute
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _the repository: https://github.com/brettkromkamp/topic-db
-.. _Contextualise: https://github.com/brettkromkamp/contextualise
+.. _Contextualise: https://trello.com/b/43ZVFVWE/contextualise-application
 .. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
 .. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
+.. _Setting up the TopicDB database: https://gist.github.com/brettkromkamp/87aaa99b056578ff1dc23a43a49aca89
