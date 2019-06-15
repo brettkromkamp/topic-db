@@ -1058,20 +1058,24 @@ class TopicStore:
 
     def set_topic_map(self, user_identifier: int, name: str, description: str = '', image_path: str = '',
                       initialised: bool = False, shared: bool = False,
-                      promoted: bool = False) -> None:
+                      promoted: bool = False) -> Optional[int]:
+        result = None
+
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
             with self.connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING identifier",
                     (user_identifier, name, description, image_path, initialised, shared, promoted))
+                result = cursor.fetchone()[0]
+        return result
 
     def initialise_topic_map(self, map_identifier: int) -> None:
         topic_map = self.get_topic_map(map_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, 'home'):
             items = {
-                ('*', 'Universal Scope'),
+                ('*', 'Universal'),  # Universal scope (context)
                 ('home', 'Home'),
                 ('entity', 'Entity'),
                 ('topic', 'Topic'),
