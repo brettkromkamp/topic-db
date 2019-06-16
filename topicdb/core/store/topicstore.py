@@ -652,10 +652,13 @@ class TopicStore:
 
     # ========== TOPIC ==========
 
-    def delete_topic(self, map_identifier: int, identifier: str) -> None:
-        for item in self.base_topics:
-            if item[TopicField.IDENTIFIER.value] == identifier:
-                raise TopicStoreError("Taxonomy violation: attempt to delete a base topic")
+    def delete_topic(self, map_identifier: int, identifier: str,
+                     taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
+
+        if taxonomy_mode is TaxonomyMode.STRICT:
+            for item in self.base_topics:
+                if item[TopicField.IDENTIFIER.value] == identifier:
+                    raise TopicStoreError("Taxonomy violation: attempt to delete a base topic")
 
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
                     (SELECT association_identifier FROM topicdb.member \
