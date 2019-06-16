@@ -660,7 +660,7 @@ class TopicStore:
                 if item[TopicField.IDENTIFIER.value] == identifier:
                     raise TopicStoreError("Taxonomy violation: attempt to delete a base topic")
 
-        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
+        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier IN \
                     (SELECT association_identifier FROM topicdb.member \
                      WHERE topicmap_identifier = %s AND \
                      identifier IN (\
