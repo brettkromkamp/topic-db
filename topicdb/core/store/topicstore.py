@@ -25,8 +25,8 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
-from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.store.retrievaloption import RetrievalOption
+from topicdb.core.store.taxonomymode import TaxonomyMode
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.store.topicstoreerror import TopicStoreError
 
@@ -43,6 +43,37 @@ class TopicStore:
         self.dbname = dbname
 
         self.connection = None
+
+        self.base_topics = {
+            ('*', 'Universal'),  # Universal scope (context)
+            ('home', 'Home'),
+            ('entity', 'Entity'),
+            ('topic', 'Topic'),
+            ('association', 'Association'),
+            ('occurrence', 'Occurrence'),
+            ('navigation', 'Navigation'),
+            ('member', 'Member'),
+            ('category', 'Category'),
+            ('categorization', 'Categorization'),
+            ('tags', 'Tags'),
+            ('notes', 'Notes'),
+            ('broader', 'Broader'),
+            ('narrower', 'Narrower'),
+            ('related', 'Related'),
+            ('parent', 'Parent'),
+            ('child', 'Child'),
+            ('previous', 'Previous'),
+            ('next', 'Next'),
+            ('image', 'Image'),
+            ('video', 'Video'),
+            ('audio', 'Audio'),
+            ('note', 'Note'),
+            ('file', 'File'),
+            ('url', 'URL'),
+            ('text', 'Text'),
+            ('eng', 'English Language'),
+            ('spa', 'Spanish Language'),
+            ('nld', 'Dutch Language')}
 
     def open(self) -> TopicStore:
         self.connection = psycopg2.connect(dbname=self.dbname,
@@ -196,15 +227,15 @@ class TopicStore:
         pass
 
     def set_association(self, map_identifier: int, association: Association,
-                        ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
-        if ontology_mode is OntologyMode.STRICT:
+                        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
+        if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -326,14 +357,14 @@ class TopicStore:
         return result
 
     def set_attribute(self, map_identifier: int, attribute: Attribute,
-                      ontology_mode: OntologyMode = OntologyMode.LENIENT) -> None:
+                      taxonomy_mode: TaxonomyMode = TaxonomyMode.LENIENT) -> None:
         if attribute.entity_identifier == '':
             raise TopicStoreError("Attribute has an empty 'entity identifier' property")
 
-        if ontology_mode is OntologyMode.STRICT:
+        if taxonomy_mode is TaxonomyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -508,18 +539,18 @@ class TopicStore:
         return result
 
     def set_occurrence(self, map_identifier: int, occurrence: Occurrence,
-                       ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
+                       taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
         if occurrence.topic_identifier == '':
             raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
 
-        if ontology_mode is OntologyMode.STRICT:
+        if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -622,13 +653,40 @@ class TopicStore:
     # ========== TOPIC ==========
 
     def delete_topic(self, map_identifier: int, identifier: str) -> None:
-        ...
+        for item in self.base_topics:
+            if item[TopicField.IDENTIFIER.value] == identifier:
+                raise TopicStoreError("Taxonomy violation: attempt to delete a base topic")
 
-        # Order of deletion of related 'entities':
-        #   1. associations
-        #   2. occurrences
-        #   3. attributes
-        #   4. topic
+        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND identifier IN \
+                    (SELECT association_identifier FROM topicdb.member \
+                     WHERE topicmap_identifier = %s AND \
+                     identifier IN (\
+                        SELECT member_identifier FROM topicdb.topicref \
+                            WHERE topicmap_identifier = %s \
+                            AND topic_ref = %s))
+        """
+
+        # Delete associations
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (map_identifier, map_identifier, map_identifier, identifier))
+                records = cursor.fetchall()
+                for record in records:
+                    self.delete_association(map_identifier, record['identifier'])
+
+        # Delete occurrences
+        self.delete_occurrences(map_identifier, identifier)
+
+        # Delete attributes
+        self.delete_attributes(map_identifier, identifier)
+
+        # Delete topic
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor() as cursor:
+                cursor.execute("DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                               (map_identifier, identifier))
 
     def get_related_topics(self, map_identifier: int, identifier: str, instance_ofs: Optional[List[str]] = None,
                            scope: str = None) -> List[Optional[Topic]]:
@@ -725,15 +783,14 @@ class TopicStore:
             with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(sql.format(query_filter), bind_variables)
                 records = cursor.fetchall()
-                if records:
-                    for record in records:
-                        association = self.get_association(map_identifier,
-                                                           record['identifier'],
-                                                           language=language,
-                                                           resolve_attributes=resolve_attributes,
-                                                           resolve_occurrences=resolve_occurrences)
-                        if association:
-                            result.append(association)
+                for record in records:
+                    association = self.get_association(map_identifier,
+                                                       record['identifier'],
+                                                       language=language,
+                                                       resolve_attributes=resolve_attributes,
+                                                       resolve_occurrences=resolve_occurrences)
+                    if association:
+                        result.append(association)
 
         return result
 
@@ -902,11 +959,11 @@ class TopicStore:
         return result
 
     def set_topic(self, map_identifier: int, topic: Topic,
-                  ontology_mode: OntologyMode = OntologyMode.STRICT) -> None:
-        if ontology_mode is OntologyMode.STRICT:
+                  taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
+        if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Ontology mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -1074,42 +1131,9 @@ class TopicStore:
         topic_map = self.get_topic_map(map_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, 'home'):
-            items = {
-                ('*', 'Universal'),  # Universal scope (context)
-                ('home', 'Home'),
-                ('entity', 'Entity'),
-                ('topic', 'Topic'),
-                ('association', 'Association'),
-                ('occurrence', 'Occurrence'),
-                ('navigation', 'Navigation'),
-                ('member', 'Member'),
-                ('category', 'Category'),
-                ('categorization', 'Categorization'),
-                ('tags', 'Tags'),
-                ('notes', 'Notes'),
-                ('broader', 'Broader'),
-                ('narrower', 'Narrower'),
-                ('related', 'Related'),
-                ('parent', 'Parent'),
-                ('child', 'Child'),
-                ('previous', 'Previous'),
-                ('next', 'Next'),
-                ('includes', 'Includes'),
-                ('included-in', 'Is Included In'),
-                ('image', 'Image'),
-                ('video', 'Video'),
-                ('audio', 'Audio'),
-                ('note', 'Note'),
-                ('file', 'File'),
-                ('url', 'URL'),
-                ('text', 'Text'),
-                ('eng', 'English Language'),
-                ('spa', 'Spanish Language'),
-                ('nld', 'Dutch Language')}
-
-            for item in items:
+            for item in self.base_topics:
                 topic = Topic(identifier=item[TopicField.IDENTIFIER.value], base_name=item[TopicField.BASE_NAME.value])
-                self.set_topic(map_identifier, topic, OntologyMode.LENIENT)
+                self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
 
             # http://initd.org/psycopg/docs/usage.html#with-statement
             with self.connection:
