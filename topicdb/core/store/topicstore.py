@@ -231,11 +231,11 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -364,7 +364,7 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -546,11 +546,11 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'scope' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
@@ -654,11 +654,10 @@ class TopicStore:
 
     def delete_topic(self, map_identifier: int, identifier: str,
                      taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
-
         if taxonomy_mode is TaxonomyMode.STRICT:
             for item in self.base_topics:
                 if item[TopicField.IDENTIFIER.value] == identifier:
-                    raise TopicStoreError("Taxonomy violation: attempt to delete a base topic")
+                    raise TopicStoreError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
 
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier IN \
                     (SELECT association_identifier FROM topicdb.member \
@@ -966,7 +965,7 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy mode 'STRICT' violation: 'instance Of' topic does not exist")
+                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection:
