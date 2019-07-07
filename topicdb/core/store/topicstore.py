@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections import namedtuple
 from datetime import datetime
-from typing import Optional, List, Union, Dict
+from typing import Optional, List, Union, Dict, Tuple
 
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
@@ -64,6 +64,8 @@ class TopicStore:
             ('child', 'Child'),
             ('previous', 'Previous'),
             ('next', 'Next'),
+            ('up', 'Up'),
+            ('down', 'Down'),
             ('image', 'Image'),
             ('video', 'Video'),
             ('audio', 'Audio'),
@@ -71,6 +73,10 @@ class TopicStore:
             ('file', 'File'),
             ('url', 'URL'),
             ('text', 'Text'),
+            ('string', 'String'),
+            ('number', 'Number'),
+            ('timestamp', 'Timestamp'),
+            ('boolean', 'Boolean'),
             ('eng', 'English Language'),
             ('spa', 'Spanish Language'),
             ('nld', 'Dutch Language')}
@@ -215,8 +221,8 @@ class TopicStore:
         return result
 
     @staticmethod
-    def _resolve_topic_refs(association: Association) -> List[Optional[TopicRefs]]:
-        result: List[Optional[TopicRefs]] = []
+    def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
+        result: List[TopicRefs] = []
 
         for member in association.members:
             for topic_ref in member.topic_refs:
@@ -868,6 +874,26 @@ class TopicStore:
                 records = cursor.fetchall()
                 for record in records:
                     result.append(record['identifier'])
+        return result
+
+    def get_topic_names(self, map_identifier: int, offset: int = 0, limit: int = 100) -> List[Tuple[str, str]]:
+        result = []
+        sql = """SELECT b.name, t.identifier FROM topicdb.basename, topicdb.topic 
+        WHERE b.topic_identifier = t.identifier AND
+        b.topicmap_identifier = %s AND 
+        t.topicmap_identifier = %s AND
+        t.scope IS NULL
+        ORDER BY b.name 
+        LIMIT %s OFFSET %s
+        """
+
+        # http://initd.org/psycopg/docs/usage.html#with-statement
+        with self.connection:
+            with self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (map_identifier, map_identifier, limit, offset))
+                records = cursor.fetchall()
+                for record in records:
+                    result.append((record['name'], record['identifier']))
         return result
 
     def get_topic_occurrences(self, map_identifier: int, identifier: str,
