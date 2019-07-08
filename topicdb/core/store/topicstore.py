@@ -1144,7 +1144,7 @@ class TopicStore:
                     "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (map_identifier,))
 
     def update_topic_map(self, map_identifier: int, name: str, description: str = '', image_path: str = '',
-                         initialised: bool = False,
+                         initialised: bool = True,
                          shared: bool = False, promoted: bool = False) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
