@@ -73,6 +73,8 @@ class TopicStore:
             ('file', 'File'),
             ('url', 'URL'),
             ('text', 'Text'),
+            ('3d-scene', '3D Scene (WebGL)'),
+            ('ar-scene', 'Augmented Reality (AR)'),
             ('string', 'String'),
             ('number', 'Number'),
             ('timestamp', 'Timestamp'),
