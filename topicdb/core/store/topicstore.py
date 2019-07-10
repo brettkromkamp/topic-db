@@ -1040,8 +1040,13 @@ class TopicStore:
 
     def delete_topic_map(self, map_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
-            cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s",
-                           (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.member WHERE topicmap_identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.basename WHERE topicmap_identifier = %s", (map_identifier,))
+            cursor.execute("DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (map_identifier,))
 
     def get_topic_map(self, map_identifier: int) -> Optional[TopicMap]:
         result = None
