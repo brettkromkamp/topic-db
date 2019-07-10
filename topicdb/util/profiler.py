@@ -1,3 +1,5 @@
+# See URL: https://hakibenita.com/fast-load-data-python-postgresql
+
 import time
 from functools import wraps
 
