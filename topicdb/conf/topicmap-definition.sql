@@ -92,7 +92,7 @@ CREATE INDEX basename_2_index ON topicdb.basename (topicmap_identifier, topic_id
 
 
 /* ========== TOPICMAP ========== */
-CREATE sequence topicdb.topic_map_id_sequence;
+CREATE SEQUENCE topicdb.topic_map_id_sequence;
 
 CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     user_identifier INT NOT NULL,
@@ -109,4 +109,4 @@ CREATE INDEX topicmap_1_index ON topicdb.topicmap (identifier);
 CREATE INDEX topicmap_2_index ON topicdb.topicmap (shared);
 CREATE INDEX topicmap_3_index ON topicdb.topicmap (promoted);
 
-ALTER sequence topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
+ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
