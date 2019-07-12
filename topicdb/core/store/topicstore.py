@@ -73,8 +73,7 @@ class TopicStore:
             ('file', 'File'),
             ('url', 'URL'),
             ('text', 'Text'),
-            ('3d-scene', '3D Scene (WebGL)'),
-            ('ar-scene', 'Augmented Reality (AR)'),
+            ('3d-scene', '3D Scene'),
             ('string', 'String'),
             ('number', 'Number'),
             ('timestamp', 'Timestamp'),
@@ -1175,6 +1174,7 @@ class TopicStore:
     def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         result = {
             'image': 0,
+            '3d-scene': 0,
             'video': 0,
             'audio': 0,
             'note': 0,
