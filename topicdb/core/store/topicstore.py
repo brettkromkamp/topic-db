@@ -28,7 +28,7 @@ from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievaloption import RetrievalOption
 from topicdb.core.store.taxonomymode import TaxonomyMode
 from topicdb.core.store.topicfield import TopicField
-from topicdb.core.store.topicstoreerror import TopicStoreError
+from topicdb.core.topicdberror import TopicDbError
 
 TopicRefs = namedtuple('TopicRefs', ['instance_of', 'role_spec', 'topic_ref'])
 
@@ -201,7 +201,7 @@ class TopicStore:
                                instance_ofs: Optional[List[str]] = None,
                                scope: str = None) -> DoubleKeyDict:
         if identifier == '' and associations is None:
-            raise TopicStoreError("At least one of the 'identifier' or 'associations' parameters is required")
+            raise TopicDbError("At least one of the 'identifier' or 'associations' parameters is required")
 
         result = DoubleKeyDict()
 
@@ -242,11 +242,11 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -371,12 +371,12 @@ class TopicStore:
     def set_attribute(self, map_identifier: int, attribute: Attribute,
                       taxonomy_mode: TaxonomyMode = TaxonomyMode.LENIENT) -> None:
         if attribute.entity_identifier == '':
-            raise TopicStoreError("Attribute has an empty 'entity identifier' property")
+            raise TopicDbError("Attribute has an empty 'entity identifier' property")
 
         if taxonomy_mode is TaxonomyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -541,16 +541,16 @@ class TopicStore:
     def set_occurrence(self, map_identifier: int, occurrence: Occurrence,
                        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
         if occurrence.topic_identifier == '':
-            raise TopicStoreError("Occurrence has an empty 'topic identifier' property")
+            raise TopicDbError("Occurrence has an empty 'topic identifier' property")
 
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
         with self.connection, self.connection.cursor() as cursor:
             resource_data = None
@@ -650,7 +650,7 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             for item in self.base_topics:
                 if item[TopicField.IDENTIFIER.value] == identifier:
-                    raise TopicStoreError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
+                    raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
 
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND 
         identifier IN
@@ -988,7 +988,7 @@ class TopicStore:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicStoreError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(

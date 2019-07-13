@@ -16,12 +16,12 @@ class DoubleKeyDict:
         return self.__dict
 
     def __getitem__(self, keys):
-        key1, key2 = keys  # Unpack values.
+        key1, key2 = keys  # Unpack values
         nested_dict = self.__dict[key1]
         return nested_dict[key2]
 
     def __setitem__(self, keys, value):
-        key1, key2 = keys  # Unpack values.
+        key1, key2 = keys  # Unpack values
         if key1 in self.__dict:
             nested_dict = self.__dict[key1]
             nested_dict[key2] = value
@@ -31,7 +31,7 @@ class DoubleKeyDict:
             self.__dict[key1] = nested_dict
 
     def __contains__(self, keys):
-        key1, key2 = keys  # Unpack values.
+        key1, key2 = keys  # Unpack values
         result = False
         if key1 in self.__dict:
             nested_dict = self.__dict[key1]

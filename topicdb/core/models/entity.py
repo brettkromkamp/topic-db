@@ -11,18 +11,18 @@ from typing import List, Optional
 from slugify import slugify  # type: ignore
 
 from topicdb.core.models.attribute import Attribute
-from topicdb.core.store.topicstoreerror import TopicStoreError
+from topicdb.core.topicdberror import TopicDbError
 
 
 class Entity:
 
     def __init__(self, identifier: str = '', instance_of: str = 'entity') -> None:
         if instance_of == '':
-            raise TopicStoreError("Empty 'instance of' parameter")
+            raise TopicDbError("Empty 'instance of' parameter")
 
         if identifier == '':
             self.__identifier = str(uuid.uuid4())
-        elif identifier == '*':  # Universal Scope.
+        elif identifier == '*':  # Universal scope
             self.__identifier = '*'
         else:
             self.__identifier = slugify(str(identifier))
@@ -41,7 +41,7 @@ class Entity:
     @instance_of.setter
     def instance_of(self, value: str) -> None:
         if value == '':
-            raise TopicStoreError("Empty 'value' parameter")
+            raise TopicDbError("Empty 'value' parameter")
         self.__instance_of = slugify(str(value))
 
     @property
@@ -52,8 +52,7 @@ class Entity:
         self.__attributes.append(attribute)
 
     def add_attributes(self, attributes: List[Attribute]) -> None:
-        for attribute in attributes:
-            self.__attributes.append(attribute)
+        self.__attributes = [*self.__attributes, *attributes]
 
     def remove_attribute(self, identifier: str) -> None:
         self.__attributes[:] = [x for x in self.__attributes if x.identifier != identifier]

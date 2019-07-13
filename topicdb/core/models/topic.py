@@ -54,8 +54,7 @@ class Topic(Entity):
         self.__base_names.append(base_name)
 
     def add_base_names(self, base_names: List[BaseName]) -> None:
-        for base_name in base_names:
-            self.__base_names.append(base_name)
+        self.__base_names = [*self.__base_names, *base_names]
 
     def remove_base_name(self, identifier: str) -> None:
         self.__base_names[:] = [x for x in self.__base_names if x.identifier != identifier]

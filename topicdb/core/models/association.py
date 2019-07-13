@@ -12,7 +12,7 @@ from slugify import slugify  # type: ignore
 from topicdb.core.models.language import Language
 from topicdb.core.models.member import Member
 from topicdb.core.models.topic import Topic
-from topicdb.core.store.topicstoreerror import TopicStoreError
+from topicdb.core.topicdberror import TopicDbError
 
 
 class Association(Topic):
@@ -45,7 +45,7 @@ class Association(Topic):
     @scope.setter
     def scope(self, value: str) -> None:
         if value == '':
-            raise TopicStoreError("Empty 'scope' parameter")
+            raise TopicDbError("Empty 'scope' parameter")
         self.__scope = value if value == '*' else slugify(str(value))
 
     @property
@@ -65,8 +65,7 @@ class Association(Topic):
         self.__members.append(member)
 
     def add_members(self, members: List[Member]) -> None:
-        for member in members:
-            self.__members.append(member)
+        self.__members = [*self.__members, *members]
 
     def remove_member(self, identifier: str) -> None:
         self.__members[:] = [x for x in self.__members if x.identifier != identifier]

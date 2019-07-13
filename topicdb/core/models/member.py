@@ -10,14 +10,14 @@ from typing import List
 
 from slugify import slugify  # type: ignore
 
-from topicdb.core.store.topicstoreerror import TopicStoreError
+from topicdb.core.topicdberror import TopicDbError
 
 
 class Member:
 
     def __init__(self, topic_ref: str = '', role_spec: str = 'related', identifier: str = '') -> None:
         if role_spec == '':
-            raise TopicStoreError("Empty 'role spec' parameter")
+            raise TopicDbError("Empty 'role spec' parameter")
         self.__role_spec = slugify(str(role_spec))
         self.__topic_refs = [] if topic_ref == '' else [slugify(str(topic_ref))]
         self.__identifier = (str(uuid.uuid4()) if identifier == '' else slugify(str(identifier)))
@@ -29,7 +29,7 @@ class Member:
     @role_spec.setter
     def role_spec(self, value: str) -> None:
         if value == '':
-            raise TopicStoreError("Empty 'value' parameter")
+            raise TopicDbError("Empty 'value' parameter")
         self.__role_spec = slugify(str(value))
 
     @property
@@ -42,11 +42,11 @@ class Member:
 
     def add_topic_ref(self, topic_ref: str) -> None:
         if topic_ref == '':
-            raise TopicStoreError("Empty 'topic ref' parameter")
+            raise TopicDbError("Empty 'topic ref' parameter")
         self.__topic_refs.append(slugify(str(topic_ref)))
 
     def remove_topic_ref(self, topic_ref: str) -> None:
-        self.__topic_refs[:] = [x for x in self.__topic_refs if x != topic_ref]  # TODO: Verify.
+        self.__topic_refs[:] = [x for x in self.__topic_refs if x != topic_ref]
 
     def clear_topic_refs(self) -> None:
         del self.__topic_refs[:]
