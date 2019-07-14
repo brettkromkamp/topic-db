@@ -9,9 +9,9 @@ import uuid
 
 from slugify import slugify  # type: ignore
 
-from topicdb.core.topicdberror import TopicDbError
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
+from topicdb.core.topicdberror import TopicDbError
 
 
 class Attribute:
@@ -19,13 +19,9 @@ class Attribute:
     def __init__(self, name: str, value: str, entity_identifier: str,
                  identifier: str = '',
                  data_type: DataType = DataType.STRING,
-                 scope: str = '*',
+                 scope: str = '*',  # Universal scope
                  language: Language = Language.ENG) -> None:
-        if entity_identifier == '*':  # Universal scope
-            self.__entity_identifier = '*'
-        else:
-            self.__entity_identifier = slugify(str(entity_identifier))
-
+        self.__entity_identifier = entity_identifier if entity_identifier == '*' else slugify(str(entity_identifier))
         self.__identifier = (str(uuid.uuid4()) if identifier == '' else slugify(str(identifier)))
         self.__scope = scope if scope == '*' else slugify(scope)
 
@@ -52,10 +48,7 @@ class Attribute:
     def entity_identifier(self, value: str) -> None:
         if value == '':
             raise TopicDbError("Empty 'value' parameter")
-        elif value == '*':  # Universal scope
-            self.__entity_identifier = '*'
-        else:
-            self.__entity_identifier = slugify(str(value))
+        self.__entity_identifier = value if value == '*' else slugify(str(value))
 
     @property
     def identifier(self) -> str:

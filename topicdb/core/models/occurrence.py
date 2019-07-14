@@ -26,15 +26,9 @@ class Occurrence(Entity):
                  language: Language = Language.ENG) -> None:
         super().__init__(identifier, instance_of)
 
-        if topic_identifier == '*':  # Universal scope
-            self.__topic_identifier = '*'
-        else:
-            self.__topic_identifier = slugify(str(topic_identifier))
-
+        self.__topic_identifier = topic_identifier if topic_identifier == '*' else slugify(str(topic_identifier))
         self.__scope = scope if scope == '*' else slugify(str(scope))
-
         self.resource_ref = resource_ref
-
         if resource_data:
             self.__resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data,
                                                                                                 encoding="utf-8")
@@ -61,10 +55,7 @@ class Occurrence(Entity):
     def topic_identifier(self, value: str) -> None:
         if value == '':
             raise TopicDbError("Empty 'value' parameter")
-        elif value == '*':  # Universal scope
-            self.__topic_identifier = '*'
-        else:
-            self.__topic_identifier = slugify(str(value))
+        self.__topic_identifier = value if value == '*' else slugify(str(value))
 
     @property
     def resource_data(self) -> Optional[bytes]:

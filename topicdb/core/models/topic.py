@@ -23,7 +23,6 @@ class Topic(Entity):
 
         self.__base_names = [default_base_name]
         self.__occurrences: List[Occurrence] = []
-
         self.language = language
 
     @property
