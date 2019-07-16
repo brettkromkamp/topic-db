@@ -197,7 +197,7 @@ class TopicStore:
 
     def get_association_groups(self, map_identifier: int,
                                identifier: str = '',
-                               associations: List[Association] = None,
+                               associations: Optional[List[Association]] = None,
                                instance_ofs: Optional[List[str]] = None,
                                scope: str = None) -> DoubleKeyDict:
         if identifier == '' and associations is None:
@@ -1127,9 +1127,7 @@ class TopicStore:
 
     def set_topic_map(self, user_identifier: int, name: str, description: str = '', image_path: str = '',
                       initialised: bool = False, shared: bool = False,
-                      promoted: bool = False) -> Optional[int]:
-        result = None
-
+                      promoted: bool = False) -> int:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING identifier",

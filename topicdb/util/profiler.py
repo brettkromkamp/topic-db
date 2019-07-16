@@ -3,7 +3,7 @@
 import time
 from functools import wraps
 
-from memory_profiler import memory_usage
+from memory_profiler import memory_usage  # type: ignore
 
 
 def profile(fn):

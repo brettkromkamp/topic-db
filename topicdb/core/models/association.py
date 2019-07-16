@@ -5,7 +5,7 @@ July 03, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from typing import List
+from typing import List, Optional
 
 from slugify import slugify  # type: ignore
 
@@ -69,6 +69,14 @@ class Association(Topic):
 
     def remove_member(self, identifier: str) -> None:
         self.__members[:] = [x for x in self.__members if x.identifier != identifier]
+
+    def get_member_by_role(self, role: str) -> Optional[Member]:
+        result = None
+        for member in self.__members:
+            if member.role_spec == role:
+                result = member
+                break
+        return result
 
     def clear_members(self) -> None:
         del self.__members[:]
