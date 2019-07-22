@@ -11,3 +11,6 @@ from enum import Enum
 class TaxonomyMode(Enum):
     STRICT = 1
     LENIENT = 2
+
+    def __str__(self):
+        return self.name

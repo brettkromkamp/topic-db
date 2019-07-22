@@ -15,3 +15,7 @@ class RetrievalOption(Enum):
     DONT_RESOLVE_OCCURRENCES = 4
     INLINE_RESOURCE_DATA = 5
     DONT_INLINE_RESOURCE_DATA = 6
+
+    def __str__(self):
+        return self.name
+

@@ -13,3 +13,6 @@ class DataType(Enum):
     NUMBER = 2
     TIMESTAMP = 3
     BOOLEAN = 4
+
+    def __str__(self):
+        return self.name

@@ -11,3 +11,6 @@ from enum import Enum
 class TopicField(Enum):
     IDENTIFIER = 0
     BASE_NAME = 1
+
+    def __str__(self):
+        return self.name

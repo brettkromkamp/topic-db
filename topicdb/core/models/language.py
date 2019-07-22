@@ -19,3 +19,6 @@ class Language(Enum):
     ITA = 4  # Italian
     FRA = 5  # French
     NLD = 6  # Dutch
+
+    def __str__(self):
+        return self.name
