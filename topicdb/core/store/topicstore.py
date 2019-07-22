@@ -1019,11 +1019,24 @@ class TopicStore:
                 "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
                 (instance_of, map_identifier, identifier))
 
-    def update_basename_name(self, map_identifier: int, identifier: str, name: str) -> None:
+    def set_basename(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "UPDATE topicdb.basename SET name = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (name, map_identifier, identifier))
+                "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, language) VALUES (%s, %s, %s, %s, %s)",
+                (map_identifier, base_name.identifier, base_name.name, identifier, base_name.language.name.lower()))
+
+    def update_basename(self, map_identifier: int, identifier: str, name: str,
+                        language: Language = Language.ENG) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE topicdb.basename SET name = %s, language = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                (name, language.name.lower(), map_identifier, identifier))
+
+    def delete_basename(self, map_identifier: int, identifier: str) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND identifier = %s",
+                (map_identifier, identifier))
 
     def topic_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
