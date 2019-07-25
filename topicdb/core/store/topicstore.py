@@ -983,6 +983,23 @@ class TopicStore:
 
         return result
 
+    def get_topics_by_attribute_name(self, map_identifier: int,
+                                     name: str = None,
+                                     language: Language = None,
+                                     resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
+        result = []
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                "SELECT parent_identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND name = %s",
+                (map_identifier, name))
+            records = cursor.fetchall()
+            for record in records:
+                result.append(self.get_topic(map_identifier, record['parent_identifier'],
+                                             language=language,
+                                             resolve_attributes=resolve_attributes))
+        return result
+
     def set_topic(self, map_identifier: int, topic: Topic,
                   taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
