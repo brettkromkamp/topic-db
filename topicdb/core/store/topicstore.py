@@ -55,7 +55,9 @@ class TopicStore:
             ('member', 'Member'),
             ('category', 'Category'),
             ('categorization', 'Categorization'),
+            ('tag', 'Tag'),
             ('tags', 'Tags'),
+            ('note', 'Note'),
             ('notes', 'Notes'),
             ('broader', 'Broader'),
             ('narrower', 'Narrower'),
@@ -617,11 +619,11 @@ class TopicStore:
 
     def set_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
         if not self.topic_exists(map_identifier, identifier):
-            identifier_topic = Topic(identifier=identifier, base_name=identifier.capitalize())
+            identifier_topic = Topic(identifier=identifier, base_name=identifier.capitalize(), instance_of='tag')
             self.set_topic(map_identifier, identifier_topic)
 
         if not self.topic_exists(map_identifier, tag):
-            tag_topic = Topic(identifier=tag, base_name=tag.capitalize())
+            tag_topic = Topic(identifier=tag, base_name=tag.capitalize(), instance_of='tag')
             self.set_topic(map_identifier, tag_topic)
 
         tag_association1 = Association(
