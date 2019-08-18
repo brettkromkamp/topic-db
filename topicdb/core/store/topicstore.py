@@ -25,7 +25,7 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
-from topicdb.core.store.retrievaloption import RetrievalOption
+from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
@@ -139,8 +139,8 @@ class TopicStore:
 
     def get_association(self, map_identifier: int, identifier: str,
                         language: Language = None,
-                        resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                        resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) \
+                        resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+                        resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES) \
             -> Optional[Association]:
         result = None
 
@@ -190,9 +190,9 @@ class TopicStore:
                             for topic_ref_record in topic_ref_records:
                                 member.add_topic_ref(topic_ref_record['topic_ref'])
                             result.add_member(member)
-                if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(self.get_attributes(map_identifier, identifier))
-                if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
+                if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
 
         return result
@@ -422,8 +422,8 @@ class TopicStore:
             self.delete_occurrence(map_identifier, record['identifier'])
 
     def get_occurrence(self, map_identifier: int, identifier: str,
-                       inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                       resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+                       inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
+                       resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES) \
             -> Optional[Occurrence]:
         result = None
 
@@ -434,7 +434,7 @@ class TopicStore:
             record = cursor.fetchone()
             if record:
                 resource_data = None
-                if inline_resource_data is RetrievalOption.INLINE_RESOURCE_DATA:
+                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(map_identifier, identifier=identifier)
                 result = Occurrence(
                     record['identifier'],
@@ -444,7 +444,7 @@ class TopicStore:
                     record['resource_ref'],
                     resource_data,
                     Language[record['language'].upper()])
-                if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(self.get_attributes(map_identifier, identifier))
         return result
 
@@ -468,8 +468,8 @@ class TopicStore:
                         language: Language = None,
                         offset: int = 0,
                         limit: int = 100,
-                        inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                        resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+                        inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
+                        resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES) \
             -> List[Occurrence]:
         result = []
         sql = """SELECT * FROM topicdb.occurrence 
@@ -513,7 +513,7 @@ class TopicStore:
             records = cursor.fetchall()
             for record in records:
                 resource_data = None
-                if inline_resource_data is RetrievalOption.INLINE_RESOURCE_DATA:
+                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(map_identifier, identifier=record['identifier'])
                 occurrence = Occurrence(
                     record['identifier'],
@@ -523,7 +523,7 @@ class TopicStore:
                     record['resource_ref'],
                     resource_data,
                     Language[record['language'].upper()])
-                if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
                 result.append(occurrence)
         return result
@@ -699,8 +699,8 @@ class TopicStore:
 
     def get_topic(self, map_identifier: int, identifier: str,
                   language: Language = None,
-                  resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                  resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) -> Optional[Topic]:
+                  resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+                  resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES) -> Optional[Topic]:
         result = None
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -731,9 +731,9 @@ class TopicStore:
                         result.add_base_name(
                             BaseName(base_name_record['name'], Language[base_name_record['language'].upper()],
                                      base_name_record['identifier']))
-                if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(self.get_attributes(map_identifier, identifier))
-                if resolve_occurrences is RetrievalOption.RESOLVE_OCCURRENCES:
+                if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
 
         return result
@@ -742,8 +742,8 @@ class TopicStore:
                                instance_ofs: Optional[List[str]] = None,
                                scope: str = None,
                                language: Language = None,
-                               resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES,
-                               resolve_occurrences: RetrievalOption = RetrievalOption.DONT_RESOLVE_OCCURRENCES) \
+                               resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+                               resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES) \
             -> List[Association]:
         result = []
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND 
@@ -890,8 +890,8 @@ class TopicStore:
                               instance_of: str = None,
                               scope: str = None,
                               language: Language = None,
-                              inline_resource_data: RetrievalOption = RetrievalOption.DONT_INLINE_RESOURCE_DATA,
-                              resolve_attributes: RetrievalOption = RetrievalOption.DONT_RESOLVE_ATTRIBUTES) \
+                              inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
+                              resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES) \
             -> List[Occurrence]:
         result = []
         sql = """SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language
@@ -935,7 +935,7 @@ class TopicStore:
             records = cursor.fetchall()
             for record in records:
                 resource_data = None
-                if inline_resource_data is RetrievalOption.INLINE_RESOURCE_DATA:
+                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(map_identifier, record['identifier'])
                 occurrence = Occurrence(
                     record['identifier'],
@@ -945,7 +945,7 @@ class TopicStore:
                     record['resource_ref'],
                     resource_data,
                     Language[record['language'].upper()])
-                if resolve_attributes is RetrievalOption.RESOLVE_ATTRIBUTES:
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
                 result.append(occurrence)
 
@@ -956,7 +956,7 @@ class TopicStore:
                    language: Language = None,
                    offset: int = 0,
                    limit: int = 100,
-                   resolve_attributes=RetrievalOption.DONT_RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
+                   resolve_attributes=RetrievalMode.DONT_RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
         result = []
 
         if instance_of:
@@ -988,7 +988,7 @@ class TopicStore:
     def get_topics_by_attribute_name(self, map_identifier: int,
                                      name: str = None,
                                      language: Language = None,
-                                     resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
+                                     resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
         result = []
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:

@@ -1,5 +1,5 @@
 """
-RetrievalOption enumeration. Part of the StoryTechnologies project.
+RetrievalMode enumeration. Part of the StoryTechnologies project.
 
 July 03, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
@@ -8,7 +8,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 from enum import Enum
 
 
-class RetrievalOption(Enum):
+class RetrievalMode(Enum):
     RESOLVE_ATTRIBUTES = 1
     DONT_RESOLVE_ATTRIBUTES = 2
     RESOLVE_OCCURRENCES = 3

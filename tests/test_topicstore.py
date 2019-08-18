@@ -16,7 +16,7 @@ from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
-from topicdb.core.store.retrievaloption import RetrievalOption
+from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.topicstore import TopicStore
 
 
@@ -46,7 +46,7 @@ def test_topic():
 
         # Retrieve topic from store.
         topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
+                                 resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES)
 
     assert topic2.identifier == 'test-topic1'
     assert topic2.instance_of == 'topic'
@@ -72,7 +72,7 @@ def test_occurrence():
 
         # Retrieve occurrence from store.
         occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence1',
-                                           resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
+                                           resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES)
 
     assert occurrence2.identifier == 'test-occurrence1'
     assert occurrence2.topic_identifier == 'test-topic1'
@@ -90,8 +90,8 @@ def test_topic_occurrences():
 
         # Retrieve topic from store.
         topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
-                                 resolve_occurrences=RetrievalOption.RESOLVE_OCCURRENCES)
+                                 resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
+                                 resolve_occurrences=RetrievalMode.RESOLVE_OCCURRENCES)
 
     assert topic2.identifier == 'test-topic1'
     assert topic2.instance_of == 'topic'
@@ -126,8 +126,8 @@ def test_occurrence_resource_data():
 
         # Retrieve occurrence from store.
         occurrence2 = store.get_occurrence(TOPIC_MAP_IDENTIFIER, 'test-occurrence2',
-                                           resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES,
-                                           inline_resource_data=RetrievalOption.INLINE_RESOURCE_DATA)
+                                           resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
+                                           inline_resource_data=RetrievalMode.INLINE_RESOURCE_DATA)
 
     # Converting the resource data from bytes to string.
     assert occurrence2.resource_data.decode("utf-8") == '<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
@@ -156,7 +156,7 @@ def test_association():
 
         # Retrieve occurrence from store.
         association2 = store.get_association(TOPIC_MAP_IDENTIFIER, 'test-association1',
-                                             resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
+                                             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES)
 
     assert association2.identifier == 'test-association1'
     assert association2.instance_of == 'association'
