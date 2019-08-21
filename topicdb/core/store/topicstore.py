@@ -871,12 +871,13 @@ class TopicStore:
 
     def get_topic_names(self, map_identifier: int, offset: int = 0, limit: int = 100) -> List[Tuple[str, str]]:
         result = []
-        sql = """SELECT b.name, t.identifier FROM topicdb.basename, topicdb.topic
-        WHERE b.topic_identifier = t.identifier AND
-        b.topicmap_identifier = %s AND
-        t.topicmap_identifier = %s AND
-        t.scope IS NULL
-        ORDER BY b.name
+        sql = """SELECT topicdb.basename.name AS name, topicdb.topic.identifier AS identifier
+        FROM topicdb.topic 
+        JOIN topicdb.basename ON topicdb.topic.identifier = topicdb.basename.topic_identifier
+        WHERE topicdb.basename.topicmap_identifier = %s 
+        AND topicdb.topic.topicmap_identifier = %s 
+        AND topicdb.topic.scope IS NULL
+        ORDER BY topicdb.basename.name
         LIMIT %s OFFSET %s"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -982,24 +983,59 @@ class TopicStore:
                 result.append(self.get_topic(map_identifier, record['identifier'],
                                              language=language,
                                              resolve_attributes=resolve_attributes))
-
         return result
 
-    def get_topics_by_attribute_name(self, map_identifier: int,
-                                     name: str = None,
-                                     language: Language = None,
-                                     resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES) -> List[Optional[Topic]]:
+    def get_topic_identifiers_by_attribute_name(self, map_identifier: int,
+                                                name: str = None,
+                                                instance_of: str = None,
+                                                scope: str = None,
+                                                language: Language = None) -> List[Optional[str]]:
         result = []
+        sql = """SELECT topicdb.topic.identifier AS identifier
+        FROM topicdb.topic
+        JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
+        WHERE topicdb.attribute.topicmap_identifier = %s
+        AND topicdb.topic.topicmap_identifier = %s
+        AND topicdb.attribute.name = %s
+        {0}
+        """
+
+        if instance_of:
+            if scope:
+                if language:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.scope = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (map_identifier, map_identifier, name, instance_of, scope, language.name.lower())
+                else:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.scope = %s"
+                    bind_variables = (map_identifier, map_identifier, name, instance_of, scope)
+            else:
+                if language:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (map_identifier, map_identifier, name, instance_of, language.name.lower())
+                else:
+                    query_filter = " AND topicdb.topic.instance_of = %s"
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)
+        else:
+            if scope:
+                if language:
+                    query_filter = " AND topicdb.attribute.scope = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (map_identifier, map_identifier, name, scope, language.name.lower())
+                else:
+                    query_filter = " AND topicdb.attribute.scope = %s"
+                    bind_variables = (map_identifier, map_identifier, name, scope)
+            else:
+                if language:
+                    query_filter = " AND topicdb.attribute.language = %s"
+                    bind_variables = (map_identifier, map_identifier, name, language.name.lower())
+                else:
+                    query_filter = ""
+                    bind_variables = (map_identifier, map_identifier, name)
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT parent_identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND name = %s",
-                (map_identifier, name))
+            cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
-                result.append(self.get_topic(map_identifier, record['parent_identifier'],
-                                             language=language,
-                                             resolve_attributes=resolve_attributes))
+                result.append(record['identifier'])
         return result
 
     def set_topic(self, map_identifier: int, topic: Topic,
