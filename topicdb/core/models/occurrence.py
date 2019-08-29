@@ -15,23 +15,31 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Occurrence(Entity):
-
-    def __init__(self,
-                 identifier: str = '',
-                 instance_of: str = 'occurrence',
-                 topic_identifier: str = '',
-                 scope: str = '*',  # Universal scope
-                 resource_ref: str = '',
-                 resource_data: Optional[Union[str, bytes]] = None,
-                 language: Language = Language.ENG) -> None:
+    def __init__(
+        self,
+        identifier: str = "",
+        instance_of: str = "occurrence",
+        topic_identifier: str = "",
+        scope: str = "*",  # Universal scope
+        resource_ref: str = "",
+        resource_data: Optional[Union[str, bytes]] = None,
+        language: Language = Language.ENG,
+    ) -> None:
         super().__init__(identifier, instance_of)
 
-        self.__topic_identifier = topic_identifier if topic_identifier == '*' else slugify(str(topic_identifier))
-        self.__scope = scope if scope == '*' else slugify(str(scope))
+        self.__topic_identifier = (
+            topic_identifier
+            if topic_identifier == "*"
+            else slugify(str(topic_identifier))
+        )
+        self.__scope = scope if scope == "*" else slugify(str(scope))
         self.resource_ref = resource_ref
         if resource_data:
-            self.__resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data,
-                                                                                                encoding="utf-8")
+            self.__resource_data = (
+                resource_data
+                if isinstance(resource_data, bytes)
+                else bytes(resource_data, encoding="utf-8")
+            )
         else:
             self.__resource_data = None
 
@@ -43,9 +51,9 @@ class Occurrence(Entity):
 
     @scope.setter
     def scope(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == '*' else slugify(str(value))
+        self.__scope = value if value == "*" else slugify(str(value))
 
     @property
     def topic_identifier(self) -> str:
@@ -53,9 +61,9 @@ class Occurrence(Entity):
 
     @topic_identifier.setter
     def topic_identifier(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__topic_identifier = value if value == '*' else slugify(str(value))
+        self.__topic_identifier = value if value == "*" else slugify(str(value))
 
     @property
     def resource_data(self) -> Optional[bytes]:
@@ -63,7 +71,9 @@ class Occurrence(Entity):
 
     @resource_data.setter
     def resource_data(self, value: Union[str, bytes]) -> None:
-        self.__resource_data = value if isinstance(value, bytes) else bytes(value, encoding="utf-8")
+        self.__resource_data = (
+            value if isinstance(value, bytes) else bytes(value, encoding="utf-8")
+        )
 
     def has_data(self) -> bool:
         return self.__resource_data is not None

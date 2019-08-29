@@ -16,23 +16,29 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Association(Topic):
-
-    def __init__(self,
-                 identifier: str = '',
-                 instance_of: str = 'association',
-                 base_name: str = 'Undefined',
-                 language: Language = Language.ENG,
-                 scope: str = '*',
-                 src_topic_ref: str = '',
-                 dest_topic_ref: str = '',
-                 src_role_spec: str = 'related',
-                 dest_role_spec: str = 'related') -> None:
+    def __init__(
+        self,
+        identifier: str = "",
+        instance_of: str = "association",
+        base_name: str = "Undefined",
+        language: Language = Language.ENG,
+        scope: str = "*",
+        src_topic_ref: str = "",
+        dest_topic_ref: str = "",
+        src_role_spec: str = "related",
+        dest_role_spec: str = "related",
+    ) -> None:
         super().__init__(identifier, instance_of, base_name, language)
 
-        self.__scope = scope if scope == '*' else slugify(str(scope))
+        self.__scope = scope if scope == "*" else slugify(str(scope))
         self.__members: List[Member] = []
 
-        if src_topic_ref != '' and src_role_spec != '' and dest_topic_ref != '' and dest_role_spec != '':
+        if (
+            src_topic_ref != ""
+            and src_role_spec != ""
+            and dest_topic_ref != ""
+            and dest_role_spec != ""
+        ):
             src_member = Member(src_topic_ref, src_role_spec)
             dest_member = Member(dest_topic_ref, dest_role_spec)
             self.__members.append(src_member)
@@ -44,21 +50,29 @@ class Association(Topic):
 
     @scope.setter
     def scope(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'scope' parameter")
-        self.__scope = value if value == '*' else slugify(str(value))
+        self.__scope = value if value == "*" else slugify(str(value))
 
     @property
     def members(self) -> List[Member]:
         return self.__members
 
-    def create_member(self, topic_ref: str, role_spec: str = 'related') -> None:
+    def create_member(self, topic_ref: str, role_spec: str = "related") -> None:
         member = Member(topic_ref, role_spec)
         self.add_member(member)
 
-    def create_members(self, src_topic_ref: str, dest_topic_ref: str, src_role_spec: str = 'related',
-                       dest_role_spec: str = 'related') -> None:
-        members = [Member(src_topic_ref, src_role_spec), Member(dest_topic_ref, dest_role_spec)]
+    def create_members(
+        self,
+        src_topic_ref: str,
+        dest_topic_ref: str,
+        src_role_spec: str = "related",
+        dest_role_spec: str = "related",
+    ) -> None:
+        members = [
+            Member(src_topic_ref, src_role_spec),
+            Member(dest_topic_ref, dest_role_spec),
+        ]
         self.add_members(members)
 
     def add_member(self, member: Member) -> None:

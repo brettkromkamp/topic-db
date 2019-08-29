@@ -7,7 +7,6 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 
 class DoubleKeyDict:
-
     def __init__(self):
         self.__dict = {}
 

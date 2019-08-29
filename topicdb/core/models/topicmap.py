@@ -7,11 +7,17 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 
 
 class TopicMap:
-
-    def __init__(self, user_identifier: int, identifier: int, name: str, description: str = '', image_path: str = '',
-                 initialised: bool = False,
-                 shared: bool = False,
-                 promoted: bool = False) -> None:
+    def __init__(
+        self,
+        user_identifier: int,
+        identifier: int,
+        name: str,
+        description: str = "",
+        image_path: str = "",
+        initialised: bool = False,
+        shared: bool = False,
+        promoted: bool = False,
+    ) -> None:
         self.__user_identifier = user_identifier
         self.__identifier = identifier
         self.name = name

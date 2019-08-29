@@ -14,9 +14,13 @@ from topicdb.core.models.occurrence import Occurrence
 
 
 class Topic(Entity):
-
-    def __init__(self, identifier: str = '', instance_of: str = 'topic', base_name: str = 'Undefined',
-                 language: Language = Language.ENG) -> None:
+    def __init__(
+        self,
+        identifier: str = "",
+        instance_of: str = "topic",
+        base_name: str = "Undefined",
+        language: Language = Language.ENG,
+    ) -> None:
         super().__init__(identifier, instance_of)
 
         default_base_name = BaseName(base_name, language)
@@ -56,7 +60,9 @@ class Topic(Entity):
         self.__base_names = [*self.__base_names, *base_names]
 
     def remove_base_name(self, identifier: str) -> None:
-        self.__base_names[:] = [x for x in self.__base_names if x.identifier != identifier]
+        self.__base_names[:] = [
+            x for x in self.__base_names if x.identifier != identifier
+        ]
 
     def clear_base_names(self) -> None:
         del self.__base_names[:]
@@ -71,7 +77,9 @@ class Topic(Entity):
             self.__occurrences.append(occurrence)
 
     def remove_occurrence(self, identifier: str) -> None:
-        self.__occurrences[:] = [x for x in self.__occurrences if x.identifier != identifier]
+        self.__occurrences[:] = [
+            x for x in self.__occurrences if x.identifier != identifier
+        ]
 
     def get_occurrence(self, identifier: str) -> Optional[Occurrence]:
         result = None

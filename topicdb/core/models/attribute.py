@@ -15,15 +15,25 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Attribute:
-
-    def __init__(self, name: str, value: str, entity_identifier: str,
-                 identifier: str = '',
-                 data_type: DataType = DataType.STRING,
-                 scope: str = '*',  # Universal scope
-                 language: Language = Language.ENG) -> None:
-        self.__entity_identifier = entity_identifier if entity_identifier == '*' else slugify(str(entity_identifier))
-        self.__identifier = (str(uuid.uuid4()) if identifier == '' else slugify(str(identifier)))
-        self.__scope = scope if scope == '*' else slugify(scope)
+    def __init__(
+        self,
+        name: str,
+        value: str,
+        entity_identifier: str,
+        identifier: str = "",
+        data_type: DataType = DataType.STRING,
+        scope: str = "*",  # Universal scope
+        language: Language = Language.ENG,
+    ) -> None:
+        self.__entity_identifier = (
+            entity_identifier
+            if entity_identifier == "*"
+            else slugify(str(entity_identifier))
+        )
+        self.__identifier = (
+            str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
+        )
+        self.__scope = scope if scope == "*" else slugify(scope)
 
         self.name = name
         self.data_type = data_type
@@ -38,7 +48,8 @@ class Attribute:
             self.__identifier,
             str(self.data_type),
             self.__scope,
-            str(self.language))
+            str(self.language),
+        )
 
     @property
     def entity_identifier(self) -> str:
@@ -46,9 +57,9 @@ class Attribute:
 
     @entity_identifier.setter
     def entity_identifier(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__entity_identifier = value if value == '*' else slugify(str(value))
+        self.__entity_identifier = value if value == "*" else slugify(str(value))
 
     @property
     def identifier(self) -> str:
@@ -60,6 +71,6 @@ class Attribute:
 
     @scope.setter
     def scope(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == '*' else slugify(str(value))
+        self.__scope = value if value == "*" else slugify(str(value))

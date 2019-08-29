@@ -15,15 +15,14 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Entity:
-
-    def __init__(self, identifier: str = '', instance_of: str = 'entity') -> None:
-        if instance_of == '':
+    def __init__(self, identifier: str = "", instance_of: str = "entity") -> None:
+        if instance_of == "":
             raise TopicDbError("Empty 'instance of' parameter")
 
-        if identifier == '':
+        if identifier == "":
             self.__identifier = str(uuid.uuid4())
-        elif identifier == '*':  # Universal scope
-            self.__identifier = '*'
+        elif identifier == "*":  # Universal scope
+            self.__identifier = "*"
         else:
             self.__identifier = slugify(str(identifier))
 
@@ -40,7 +39,7 @@ class Entity:
 
     @instance_of.setter
     def instance_of(self, value: str) -> None:
-        if value == '':
+        if value == "":
             raise TopicDbError("Empty 'value' parameter")
         self.__instance_of = slugify(str(value))
 
@@ -55,7 +54,9 @@ class Entity:
         self.__attributes = [*self.__attributes, *attributes]
 
     def remove_attribute(self, identifier: str) -> None:
-        self.__attributes[:] = [x for x in self.__attributes if x.identifier != identifier]
+        self.__attributes[:] = [
+            x for x in self.__attributes if x.identifier != identifier
+        ]
 
     def get_attribute(self, identifier: str) -> Optional[Attribute]:
         result = None
