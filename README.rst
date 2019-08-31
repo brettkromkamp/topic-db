@@ -10,12 +10,6 @@ paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 
 ``TopicDB`` is intended to be used by other Python applications and does not provide its own user interface to the API.
 `Contextualise`_, currently in active development, will provide a complete web-based user interface for ``TopicDB``.
 
-
-.. image:: resources/render.png
-   :alt: Render by Brett Kromkamp
-
-*Render by Brett Alistair Kromkamp*
-
 Why?
 ----
 
@@ -60,37 +54,6 @@ right places and installing the command line scripts to the appropriate location
 Then, if you want to update ``TopicDB`` at any time, in the same directory do::
 
     $ git pull
-
-First-Time Use
---------------
-
-.. code-block:: python
-
-    from topicdb.core.store.topicstore import TopicStore
-    from topicdb.core.store.retrievaloption import RetrievalOption
-
-    from topicdb.core.models.topic import Topic
-    from topicdb.core.models.language import Language
-
-    TOPIC_MAP_IDENTIFIER = 1
-
-    # Instantiate and open topic store.
-    with TopicStore('username', 'password') as store:
-
-        # Create the topic map and bootstrap default topics.
-        store.set_topic_map(TOPIC_MAP_IDENTIFIER, "Topic Map Test")
-
-        topic1 = Topic(identifier='test-topic1',
-                       base_name='Tópico de Prueba',
-                       language=Language.SPA)
-
-        # Persist topic to store.
-        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, 'test-topic1'):
-            store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
-
-        # Retrieve topic from store (with the accompanying topic attributes).
-        topic2 = store.get_topic(TOPIC_MAP_IDENTIFIER, 'test-topic1',
-                                 resolve_attributes=RetrievalOption.RESOLVE_ATTRIBUTES)
 
 Tutorial
 --------
