@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+1.0.0 (2019-08-31)
+++++++++++++++++++
+
+**Miscellaneous**
+
+- Release 1.0.0 on PyPI (https://pypi.python.org/pypi/topic-db).
+
 0.8.0 (2019-04-07)
 ++++++++++++++++++
 
