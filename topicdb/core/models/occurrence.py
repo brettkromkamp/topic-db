@@ -66,7 +66,7 @@ class Occurrence(Entity):
         self.__topic_identifier = value if value == "*" else slugify(str(value))
 
     @property
-    def resource_data(self) -> Optional[bytes]:
+    def resource_data(self) -> Optional[Union[str, bytes]]:
         return self.__resource_data
 
     @resource_data.setter
