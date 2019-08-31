@@ -17,7 +17,7 @@ with open(os.path.join(here, 'HISTORY.rst'), encoding='utf-8') as f:
     HISTORY = f.read()
 
 setup(name='topic-db',
-      version='0.7.1',  # Bump version NUMBER *after* starting (git flow) release.
+      version='1.0.0',  # Bump version NUMBER *after* starting (git flow) release.
       description='TopicDB is a topic map-based graph library (using PostgreSQL for persistence).',
       long_description=README + '\n\n' + HISTORY,
       keywords='topic map, concept map, graph database, semantic, knowledge management, unstructured data',
@@ -31,7 +31,7 @@ setup(name='topic-db',
       include_package_data=True,
       zip_safe=False,
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: MIT License',
           'Natural Language :: English',
