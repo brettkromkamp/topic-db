@@ -1,7 +1,13 @@
 TopicDB by Brett Kromkamp
 =========================
 
-``TopicDB`` is a topic map-based graph library (using `PostgreSQL`_ for persistence).
+``TopicDB`` is a topic map-based graph library (using `PostgreSQL`_ for persistence). Topic maps provide a way to
+describe complex relationships between abstract concepts and real-world (information) resources.
+
+.. image:: resources/topic-maps.png
+   :alt: Topic maps with topics, associations and occurrences
+
+*Topic maps with topics, associations and occurrences*
 
 For a more in-depth introduction to topic maps, I recommend reading the excellent introductory article on topic maps
 over at MSDN: `An Introduction to Topic Maps`_. With that being said, although ``TopicDB`` is inspired by the topic maps
