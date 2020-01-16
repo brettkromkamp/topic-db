@@ -3,6 +3,13 @@
 Release History
 ---------------
 
+1.0.1 (2020-01-16)
+++++++++++++++++++
+
+**Improvements**
+
+- Added scope attribute to BaseName class together with appropriate serialisation and deserialisation support in the topic store.
+
 1.0.0 (2019-08-31)
 ++++++++++++++++++
 

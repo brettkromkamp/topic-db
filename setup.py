@@ -27,9 +27,16 @@ setup(name='topic-db',
       license='MIT',
       packages=find_packages(exclude=['docs', 'tests*', 'scripts']),
       package_data={'': ['LICENSE']},
-      install_requires=['psycopg2', 'python-slugify', 'typed-tree'],
       include_package_data=True,
       zip_safe=False,
+      install_requires=[
+          'psycopg2',
+          'memory-profiler',
+          'python-slugify',
+          'pytest',
+          'mypy',
+          'typed-tree'
+      ],
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
@@ -38,6 +45,7 @@ setup(name='topic-db',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Software Development :: Libraries :: Python Modules'
       ])
