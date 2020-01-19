@@ -13,8 +13,6 @@ from typing import Optional, List, Union, Dict, Tuple
 
 import psycopg2  # type: ignore
 import psycopg2.extras  # type: ignore
-from typedtree.tree import Tree  # type: ignore
-
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.basename import BaseName
@@ -29,6 +27,7 @@ from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
+from typedtree.tree import Tree  # type: ignore
 
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
@@ -153,7 +152,7 @@ class TopicStore:
         # Delete attributes
         self.delete_attributes(map_identifier, identifier)
 
-    def get_association(
+    def get_association(  # TODO: Refactor method to include 'scope' parameter
         self,
         map_identifier: int,
         identifier: str,
@@ -179,14 +178,14 @@ class TopicStore:
                 )
                 result.clear_base_names()
                 if language:
-                    sql = """SELECT name, language, identifier 
+                    sql = """SELECT name, scope, language, identifier 
                     FROM topicdb.basename
                     WHERE topicmap_identifier = %s AND 
                     topic_identifier = %s AND
                     language = %s"""
                     bind_variables = (map_identifier, identifier, language.name.lower())
                 else:
-                    sql = """SELECT name, language, identifier
+                    sql = """SELECT name, scope, language, identifier
                     FROM topicdb.basename
                     WHERE topicmap_identifier = %s AND
                     topic_identifier = %s"""
@@ -198,6 +197,7 @@ class TopicStore:
                         result.add_base_name(
                             BaseName(
                                 base_name_record["name"],
+                                base_name_record["scope"],
                                 Language[base_name_record["language"].upper()],
                                 base_name_record["identifier"],
                             )
@@ -317,12 +317,13 @@ class TopicStore:
             )
             for base_name in association.base_names:
                 cursor.execute(
-                    "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, language) VALUES (%s, %s, %s, %s, %s)",
+                    "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
                     (
                         map_identifier,
                         base_name.identifier,
                         base_name.name,
                         association.identifier,
+                        base_name.scope,
                         base_name.language.name.lower(),
                     ),
                 )
@@ -931,7 +932,7 @@ class TopicStore:
                         result.append(self.get_topic(map_identifier, topic_ref))
         return result
 
-    def get_topic(
+    def get_topic(  # TODO: Refactor method to include 'scope' parameter
         self,
         map_identifier: int,
         identifier: str,
@@ -953,14 +954,14 @@ class TopicStore:
                 result = Topic(topic_record["identifier"], topic_record["instance_of"])
                 result.clear_base_names()
                 if language:
-                    sql = """SELECT name, language, identifier 
+                    sql = """SELECT name, scope, language, identifier 
                     FROM topicdb.basename 
                     WHERE topicmap_identifier = %s AND 
                     topic_identifier = %s AND 
                     language = %s"""
                     bind_variables = (map_identifier, identifier, language.name.lower())
                 else:
-                    sql = """SELECT name, language, identifier 
+                    sql = """SELECT name, scope, language, identifier 
                     FROM topicdb.basename 
                     WHERE topicmap_identifier = %s AND 
                     topic_identifier = %s"""
@@ -972,6 +973,7 @@ class TopicStore:
                         result.add_base_name(
                             BaseName(
                                 base_name_record["name"],
+                                base_name_record["scope"],
                                 Language[base_name_record["language"].upper()],
                                 base_name_record["identifier"],
                             )
@@ -1166,7 +1168,7 @@ class TopicStore:
                 result.append(record["identifier"])
         return result
 
-    def get_topic_names(
+    def get_topic_names(  # TODO: Refactor method to return a namedtuple including 'scope' and 'language' fields
         self, map_identifier: int, offset: int = 0, limit: int = 100
     ) -> List[Tuple[str, str]]:
         result = []
@@ -1432,12 +1434,13 @@ class TopicStore:
             )
             for base_name in topic.base_names:
                 cursor.execute(
-                    "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, language) VALUES (%s, %s, %s, %s, %s)",
+                    "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
                     (
                         map_identifier,
                         base_name.identifier,
                         base_name.name,
                         topic.identifier,
+                        base_name.scope,
                         base_name.language.name.lower(),
                     ),
                 )
@@ -1468,12 +1471,13 @@ class TopicStore:
     ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, language) VALUES (%s, %s, %s, %s, %s)",
+                "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
                 (
                     map_identifier,
                     base_name.identifier,
                     base_name.name,
                     identifier,
+                    base_name.scope,
                     base_name.language.name.lower(),
                 ),
             )
@@ -1483,12 +1487,13 @@ class TopicStore:
         map_identifier: int,
         identifier: str,
         name: str,
+        scope: str,
         language: Language = Language.ENG,
     ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "UPDATE topicdb.basename SET name = %s, language = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (name, language.name.lower(), map_identifier, identifier),
+                "UPDATE topicdb.basename SET name = %s, scope = %s, language = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                (name, scope, language.name.lower(), map_identifier, identifier),
             )
 
     def delete_basename(self, map_identifier: int, identifier: str) -> None:

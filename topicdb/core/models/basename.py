@@ -14,11 +14,11 @@ from topicdb.core.topicdberror import TopicDbError
 
 class BaseName:
     def __init__(
-            self,
-            name: str,
-            scope: str = "*",
-            language: Language = Language.ENG,
-            identifier: str = "",
+        self,
+        name: str,
+        scope: str = "*",
+        language: Language = Language.ENG,
+        identifier: str = "",
     ) -> None:
         self.__identifier = (
             str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))

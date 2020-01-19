@@ -84,11 +84,14 @@ CREATE TABLE IF NOT EXISTS topicdb.basename (
     identifier TEXT NOT NULL,
     name TEXT NOT NULL,
     topic_identifier TEXT NOT NULL,
+    scope TEXT NOT NULL,
     language TEXT NOT NULL,
     PRIMARY KEY (topicmap_identifier, identifier)
 );
 CREATE INDEX basename_1_index ON topicdb.basename (topicmap_identifier);
 CREATE INDEX basename_2_index ON topicdb.basename (topicmap_identifier, topic_identifier);
+CREATE INDEX basename_3_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope);
+CREATE INDEX basename_4_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope, language);
 
 
 /* ========== TOPICMAP ========== */

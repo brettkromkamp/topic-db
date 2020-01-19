@@ -8,7 +8,7 @@ Release History
 
 **Improvements**
 
-- Added scope attribute to BaseName class together with appropriate serialisation and deserialisation support in the topic store.
+- Added ``scope`` attribute to ``BaseName`` class together with appropriate serialisation and deserialisation support in the topic store.
 
 1.0.0 (2019-08-31)
 ++++++++++++++++++
