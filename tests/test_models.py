@@ -29,7 +29,7 @@ def test_init_topic2():
     topic2 = Topic(
         identifier="test-topic2",
         instance_of="test",
-        base_name="Test Topic 2",
+        name="Test Topic 2",
         language=Language.SPA,
     )
 

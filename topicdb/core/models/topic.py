@@ -18,12 +18,15 @@ class Topic(Entity):
         self,
         identifier: str = "",
         instance_of: str = "topic",
-        base_name: str = "Undefined",
+        name: str = "Undefined",
+        # Universal scope is "*". What's more, 'scope' in this context is referring to the scope of the topic's
+        # base name objects. Topics, as such, do not have scope.
+        scope: str = "*",
         language: Language = Language.ENG,
     ) -> None:
         super().__init__(identifier, instance_of)
 
-        default_base_name = BaseName(base_name, language)
+        default_base_name = BaseName(name, scope, language)
 
         self.__base_names = [default_base_name]
         self.__occurrences: List[Occurrence] = []
@@ -42,7 +45,7 @@ class Topic(Entity):
         if len(self.__base_names) > 0:
             result = self.__base_names[0]
         else:
-            result = BaseName("Undefined", Language.ENG)
+            result = BaseName("Undefined", "*", Language.ENG)  # Universal scope is "*"
         return result
 
     def get_base_name(self, identifier: str) -> Optional[BaseName]:

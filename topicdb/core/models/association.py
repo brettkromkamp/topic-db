@@ -20,7 +20,7 @@ class Association(Topic):
         self,
         identifier: str = "",
         instance_of: str = "association",
-        base_name: str = "Undefined",
+        name: str = "Undefined",
         language: Language = Language.ENG,
         scope: str = "*",
         src_topic_ref: str = "",
@@ -28,9 +28,9 @@ class Association(Topic):
         src_role_spec: str = "related",
         dest_role_spec: str = "related",
     ) -> None:
-        super().__init__(identifier, instance_of, base_name, language)
+        super().__init__(identifier, instance_of, name, scope, language)  # Base name 'scope' parameter
 
-        self.__scope = scope if scope == "*" else slugify(str(scope))
+        self.__scope = scope if scope == "*" else slugify(str(scope))  # Association 'scope' parameter
         self.__members: List[Member] = []
 
         if (

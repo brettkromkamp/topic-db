@@ -34,7 +34,7 @@ TOPIC_MAP_IDENTIFIER = 1
 
 def test_topic():
     topic1 = Topic(
-        identifier="test-topic1", base_name="Test Topic 1", language=Language.SPA
+        identifier="test-topic1", name="Test Topic 1", language=Language.SPA
     )
 
     # Instantiate and open topic store.
