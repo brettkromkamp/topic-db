@@ -43,7 +43,7 @@ Install the Development Version
 If you have `Git <https://git-scm.com/>`_ installed on your system, it is possible to install the development version
 of TopicDB.
 
-Certain build prerequisites need to met including the presence of a C compiler, the Python header files, the ``libpq``
+Certain build prerequisites need to be met including the presence of a C compiler, the Python header files, the ``libpq``
 header files and the ``pg_config`` program as outlined, here: `Build
 prerequisites <http://initd.org/psycopg/docs/install.html#build-prerequisites>`_.
 
