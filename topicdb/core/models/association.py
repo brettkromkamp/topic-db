@@ -33,12 +33,7 @@ class Association(Topic):
         self.__scope = scope if scope == "*" else slugify(str(scope))  # Association 'scope' parameter
         self.__members: List[Member] = []
 
-        if (
-            src_topic_ref != ""
-            and src_role_spec != ""
-            and dest_topic_ref != ""
-            and dest_role_spec != ""
-        ):
+        if src_topic_ref != "" and src_role_spec != "" and dest_topic_ref != "" and dest_role_spec != "":
             src_member = Member(src_topic_ref, src_role_spec)
             dest_member = Member(dest_topic_ref, dest_role_spec)
             self.__members.append(src_member)
@@ -63,11 +58,7 @@ class Association(Topic):
         self.add_member(member)
 
     def create_members(
-        self,
-        src_topic_ref: str,
-        dest_topic_ref: str,
-        src_role_spec: str = "related",
-        dest_role_spec: str = "related",
+        self, src_topic_ref: str, dest_topic_ref: str, src_role_spec: str = "related", dest_role_spec: str = "related",
     ) -> None:
         members = [
             Member(src_topic_ref, src_role_spec),

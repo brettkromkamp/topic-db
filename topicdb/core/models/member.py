@@ -14,16 +14,12 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Member:
-    def __init__(
-        self, topic_ref: str = "", role_spec: str = "related", identifier: str = ""
-    ) -> None:
+    def __init__(self, topic_ref: str = "", role_spec: str = "related", identifier: str = "") -> None:
         if role_spec == "":
             raise TopicDbError("Empty 'role spec' parameter")
         self.__role_spec = slugify(str(role_spec))
         self.__topic_refs = [] if topic_ref == "" else [slugify(str(topic_ref))]
-        self.__identifier = (
-            str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
-        )
+        self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
     @property
     def role_spec(self) -> str:

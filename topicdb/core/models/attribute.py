@@ -25,14 +25,8 @@ class Attribute:
         scope: str = "*",  # Universal scope
         language: Language = Language.ENG,
     ) -> None:
-        self.__entity_identifier = (
-            entity_identifier
-            if entity_identifier == "*"
-            else slugify(str(entity_identifier))
-        )
-        self.__identifier = (
-            str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
-        )
+        self.__entity_identifier = entity_identifier if entity_identifier == "*" else slugify(str(entity_identifier))
+        self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
         self.__scope = scope if scope == "*" else slugify(scope)
 
         self.name = name

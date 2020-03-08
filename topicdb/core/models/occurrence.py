@@ -27,18 +27,12 @@ class Occurrence(Entity):
     ) -> None:
         super().__init__(identifier, instance_of)
 
-        self.__topic_identifier = (
-            topic_identifier
-            if topic_identifier == "*"
-            else slugify(str(topic_identifier))
-        )
+        self.__topic_identifier = topic_identifier if topic_identifier == "*" else slugify(str(topic_identifier))
         self.__scope = scope if scope == "*" else slugify(str(scope))
         self.resource_ref = resource_ref
         if resource_data:
             self.__resource_data = (
-                resource_data
-                if isinstance(resource_data, bytes)
-                else bytes(resource_data, encoding="utf-8")
+                resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
             )
         else:
             self.__resource_data = None
@@ -71,9 +65,7 @@ class Occurrence(Entity):
 
     @resource_data.setter
     def resource_data(self, value: Union[str, bytes]) -> None:
-        self.__resource_data = (
-            value if isinstance(value, bytes) else bytes(value, encoding="utf-8")
-        )
+        self.__resource_data = value if isinstance(value, bytes) else bytes(value, encoding="utf-8")
 
     def has_data(self) -> bool:
         return self.__resource_data is not None
