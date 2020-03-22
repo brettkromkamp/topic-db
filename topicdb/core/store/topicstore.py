@@ -1288,6 +1288,97 @@ class TopicStore:
                 result.append(record["identifier"])
         return result
 
+    def get_topics_by_attribute_name(
+        self,
+        map_identifier: int,
+        name: str = None,
+        instance_of: str = None,
+        scope: str = None,
+        language: Language = None,
+        resolve_attributes=RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+    ) -> List[Optional[Topic]]:
+        result = []
+        sql = """SELECT topicdb.topic.identifier AS identifier
+        FROM topicdb.topic
+        JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
+        WHERE topicdb.attribute.topicmap_identifier = %s
+        AND topicdb.topic.topicmap_identifier = %s
+        AND topicdb.attribute.name = %s
+        {0}
+        """
+
+        if instance_of:
+            if scope:
+                if language:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.scope = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (
+                        map_identifier,
+                        map_identifier,
+                        name,
+                        instance_of,
+                        scope,
+                        language.name.lower(),
+                    )
+                else:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.scope = %s"
+                    bind_variables = (
+                        map_identifier,
+                        map_identifier,
+                        name,
+                        instance_of,
+                        scope,
+                    )
+            else:
+                if language:
+                    query_filter = " AND topicdb.topic.instance_of = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (
+                        map_identifier,
+                        map_identifier,
+                        name,
+                        instance_of,
+                        language.name.lower(),
+                    )
+                else:
+                    query_filter = " AND topicdb.topic.instance_of = %s"
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)
+        else:
+            if scope:
+                if language:
+                    query_filter = " AND topicdb.attribute.scope = %s AND topicdb.attribute.language = %s"
+                    bind_variables = (
+                        map_identifier,
+                        map_identifier,
+                        name,
+                        scope,
+                        language.name.lower(),
+                    )
+                else:
+                    query_filter = " AND topicdb.attribute.scope = %s"
+                    bind_variables = (map_identifier, map_identifier, name, scope)
+            else:
+                if language:
+                    query_filter = " AND topicdb.attribute.language = %s"
+                    bind_variables = (
+                        map_identifier,
+                        map_identifier,
+                        name,
+                        language.name.lower(),
+                    )
+                else:
+                    query_filter = ""
+                    bind_variables = (map_identifier, map_identifier, name)
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(sql.format(query_filter), bind_variables)
+            records = cursor.fetchall()
+            for record in records:
+                result.append(
+                    self.get_topic(
+                        map_identifier, record["identifier"], language=language, resolve_attributes=resolve_attributes,
+                    )
+                )
+        return result
+
     def set_topic(self, map_identifier: int, topic: Topic, taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
