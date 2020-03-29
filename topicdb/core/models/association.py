@@ -14,6 +14,8 @@ from topicdb.core.models.member import Member
 from topicdb.core.models.topic import Topic
 from topicdb.core.topicdberror import TopicDbError
 
+UNIVERSAL_SCOPE = "*"
+
 
 class Association(Topic):
     def __init__(
@@ -22,7 +24,7 @@ class Association(Topic):
         instance_of: str = "association",
         name: str = "Undefined",
         language: Language = Language.ENG,
-        scope: str = "*",
+        scope: str = UNIVERSAL_SCOPE,
         src_topic_ref: str = "",
         dest_topic_ref: str = "",
         src_role_spec: str = "related",
@@ -30,7 +32,7 @@ class Association(Topic):
     ) -> None:
         super().__init__(identifier, instance_of, name, scope, language)  # Base name 'scope' parameter
 
-        self.__scope = scope if scope == "*" else slugify(str(scope))  # Association 'scope' parameter
+        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))  # Association 'scope' parameter
         self.__members: List[Member] = []
 
         if src_topic_ref != "" and src_role_spec != "" and dest_topic_ref != "" and dest_role_spec != "":
@@ -47,7 +49,7 @@ class Association(Topic):
     def scope(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'scope' parameter")
-        self.__scope = value if value == "*" else slugify(str(value))
+        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
     def members(self) -> List[Member]:

@@ -13,6 +13,8 @@ from slugify import slugify  # type: ignore
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.topicdberror import TopicDbError
 
+UNIVERSAL_SCOPE = "*"
+
 
 class Entity:
     def __init__(self, identifier: str = "", instance_of: str = "entity") -> None:
@@ -21,8 +23,8 @@ class Entity:
 
         if identifier == "":
             self.__identifier = str(uuid.uuid4())
-        elif identifier == "*":  # Universal scope
-            self.__identifier = "*"
+        elif identifier == UNIVERSAL_SCOPE:
+            self.__identifier = UNIVERSAL_SCOPE
         else:
             self.__identifier = slugify(str(identifier))
 

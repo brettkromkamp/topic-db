@@ -11,13 +11,17 @@ from slugify import slugify  # type: ignore
 from topicdb.core.models.language import Language
 from topicdb.core.topicdberror import TopicDbError
 
+UNIVERSAL_SCOPE = "*"
+
 
 class BaseName:
-    def __init__(self, name: str, scope: str = "*", language: Language = Language.ENG, identifier: str = "",) -> None:
+    def __init__(
+        self, name: str, scope: str = UNIVERSAL_SCOPE, language: Language = Language.ENG, identifier: str = "",
+    ) -> None:
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
         self.name = name
-        self.__scope = scope if scope == "*" else slugify(str(scope))
+        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))
         self.language = language
 
     @property
@@ -32,4 +36,4 @@ class BaseName:
     def scope(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == "*" else slugify(str(value))
+        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))

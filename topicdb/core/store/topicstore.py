@@ -32,6 +32,8 @@ from topicdb.core.topicdberror import TopicDbError
 
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
+UNIVERSAL_SCOPE = "*"
+
 
 class TopicStore:
     def __init__(
@@ -46,7 +48,7 @@ class TopicStore:
         self.connection = None
 
         self.base_topics = {
-            ("*", "Universal"),  # Universal scope (context)
+            (UNIVERSAL_SCOPE, "Universal"),
             ("home", "Home"),
             ("entity", "Entity"),
             ("topic", "Topic"),
@@ -326,7 +328,7 @@ class TopicStore:
                     timestamp,
                     association.identifier,
                     data_type=DataType.TIMESTAMP,
-                    scope="*",
+                    scope=UNIVERSAL_SCOPE,
                     language=Language.ENG,
                 )
                 association.add_attribute(timestamp_attribute)
@@ -694,7 +696,7 @@ class TopicStore:
                 timestamp,
                 occurrence.identifier,
                 data_type=DataType.TIMESTAMP,
-                scope="*",
+                scope=UNIVERSAL_SCOPE,
                 language=Language.ENG,
             )
             occurrence.add_attribute(timestamp_attribute)
@@ -1409,7 +1411,7 @@ class TopicStore:
                 timestamp,
                 topic.identifier,
                 data_type=DataType.TIMESTAMP,
-                scope="*",
+                scope=UNIVERSAL_SCOPE,
                 language=Language.ENG,
             )
             topic.add_attribute(timestamp_attribute)

@@ -13,6 +13,8 @@ from topicdb.core.models.datatype import DataType
 from topicdb.core.models.language import Language
 from topicdb.core.topicdberror import TopicDbError
 
+UNIVERSAL_SCOPE = "*"
+
 
 class Attribute:
     def __init__(
@@ -22,12 +24,14 @@ class Attribute:
         entity_identifier: str,
         identifier: str = "",
         data_type: DataType = DataType.STRING,
-        scope: str = "*",  # Universal scope
+        scope: str = UNIVERSAL_SCOPE,
         language: Language = Language.ENG,
     ) -> None:
-        self.__entity_identifier = entity_identifier if entity_identifier == "*" else slugify(str(entity_identifier))
+        self.__entity_identifier = (
+            entity_identifier if entity_identifier == UNIVERSAL_SCOPE else slugify(str(entity_identifier))
+        )
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
-        self.__scope = scope if scope == "*" else slugify(scope)
+        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(scope)
 
         self.name = name
         self.data_type = data_type
@@ -53,7 +57,7 @@ class Attribute:
     def entity_identifier(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__entity_identifier = value if value == "*" else slugify(str(value))
+        self.__entity_identifier = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
     def identifier(self) -> str:
@@ -67,4 +71,4 @@ class Attribute:
     def scope(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == "*" else slugify(str(value))
+        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))

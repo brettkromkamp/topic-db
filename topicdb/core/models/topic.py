@@ -12,6 +12,8 @@ from topicdb.core.models.entity import Entity
 from topicdb.core.models.language import Language
 from topicdb.core.models.occurrence import Occurrence
 
+UNIVERSAL_SCOPE = "*"
+
 
 class Topic(Entity):
     def __init__(
@@ -21,7 +23,7 @@ class Topic(Entity):
         name: str = "Undefined",
         # Universal scope is "*". What's more, 'scope' in this context is referring to the scope of the topic's
         # base name objects. Topics, as such, do not have scope.
-        scope: str = "*",
+        scope: str = UNIVERSAL_SCOPE,
         language: Language = Language.ENG,
     ) -> None:
         super().__init__(identifier, instance_of)
@@ -45,7 +47,7 @@ class Topic(Entity):
         if len(self.__base_names) > 0:
             result = self.__base_names[0]
         else:
-            result = BaseName("Undefined", "*", Language.ENG)  # Universal scope is "*"
+            result = BaseName("Undefined", UNIVERSAL_SCOPE, Language.ENG)
         return result
 
     def get_base_name(self, identifier: str) -> Optional[BaseName]:

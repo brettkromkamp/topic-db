@@ -13,6 +13,8 @@ from topicdb.core.models.entity import Entity
 from topicdb.core.models.language import Language
 from topicdb.core.topicdberror import TopicDbError
 
+UNIVERSAL_SCOPE = "*"
+
 
 class Occurrence(Entity):
     def __init__(
@@ -20,15 +22,17 @@ class Occurrence(Entity):
         identifier: str = "",
         instance_of: str = "occurrence",
         topic_identifier: str = "",
-        scope: str = "*",  # Universal scope
+        scope: str = UNIVERSAL_SCOPE,
         resource_ref: str = "",
         resource_data: Optional[Union[str, bytes]] = None,
         language: Language = Language.ENG,
     ) -> None:
         super().__init__(identifier, instance_of)
 
-        self.__topic_identifier = topic_identifier if topic_identifier == "*" else slugify(str(topic_identifier))
-        self.__scope = scope if scope == "*" else slugify(str(scope))
+        self.__topic_identifier = (
+            topic_identifier if topic_identifier == UNIVERSAL_SCOPE else slugify(str(topic_identifier))
+        )
+        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))
         self.resource_ref = resource_ref
         if resource_data:
             self.__resource_data = (
@@ -47,7 +51,7 @@ class Occurrence(Entity):
     def scope(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == "*" else slugify(str(value))
+        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
     def topic_identifier(self) -> str:
@@ -57,7 +61,7 @@ class Occurrence(Entity):
     def topic_identifier(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__topic_identifier = value if value == "*" else slugify(str(value))
+        self.__topic_identifier = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
     def resource_data(self) -> Optional[Union[str, bytes]]:
