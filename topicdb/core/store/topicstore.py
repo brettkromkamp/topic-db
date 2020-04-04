@@ -1512,7 +1512,7 @@ class TopicStore:
             topicdb.topicmap.promoted AS promoted,
             topicdb.user_topicmap.user_identifier AS user_identifier,
             topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
             FROM topicdb.topicmap 
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
             WHERE topicdb.user_topicmap.user_identifier = %s
@@ -1548,7 +1548,7 @@ class TopicStore:
             topicdb.topicmap.promoted AS promoted,
             topicdb.user_topicmap.user_identifier AS user_identifier,
             topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
             FROM topicdb.topicmap 
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
             WHERE topicdb.user_topicmap.user_identifier = %s
@@ -1585,7 +1585,7 @@ class TopicStore:
             topicdb.topicmap.promoted AS promoted,
             topicdb.user_topicmap.user_identifier AS user_identifier,
             topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
             FROM topicdb.topicmap 
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
             WHERE topicdb.topicmap.published = TRUE
@@ -1622,7 +1622,7 @@ class TopicStore:
             topicdb.topicmap.promoted AS promoted,
             topicdb.user_topicmap.user_identifier AS user_identifier,
             topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
             FROM topicdb.topicmap 
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
             WHERE topicdb.topicmap.promoted = TRUE
@@ -1659,8 +1659,8 @@ class TopicStore:
     ) -> int:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, published, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING identifier",
-                (user_identifier, name, description, image_path, initialised, published, promoted,),
+                "INSERT INTO topicdb.topicmap (name, description, image_path, initialised, published, promoted) VALUES (%s, %s, %s, %s, %s, %s) RETURNING identifier",
+                (name, description, image_path, initialised, published, promoted,),
             )
             result = cursor.fetchone()[0]
             cursor.execute(
@@ -1717,8 +1717,8 @@ class TopicStore:
                 (user_identifier, map_identifier,),
             )
 
-    def initialise_topic_map(self, map_identifier: int) -> None:
-        topic_map = self.get_topic_map(map_identifier)
+    def initialise_topic_map(self, user_identifier: int, map_identifier: int) -> None:
+        topic_map = self.get_topic_map(user_identifier, map_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, "home"):
             for item in self.base_topics:
