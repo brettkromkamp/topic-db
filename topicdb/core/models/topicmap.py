@@ -5,6 +5,8 @@ January 07, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from topicdb.core.store.collaborationmode import CollaborationMode
+
 
 class TopicMap:
     def __init__(
@@ -15,8 +17,10 @@ class TopicMap:
         description: str = "",
         image_path: str = "",
         initialised: bool = False,
-        shared: bool = False,
+        published: bool = False,
         promoted: bool = False,
+        owner: bool = False,
+        collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
     ) -> None:
         self.__user_identifier = user_identifier
         self.__identifier = identifier
@@ -24,8 +28,10 @@ class TopicMap:
         self.description = description
         self.image_path = image_path
         self.initialised = initialised
-        self.shared = shared
+        self.published = published
         self.promoted = promoted
+        self.owner = owner
+        self.collaboration_mode = collaboration_mode
 
     @property
     def user_identifier(self) -> int:

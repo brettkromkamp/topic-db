@@ -27,6 +27,7 @@ from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
+from topicdb.core.store.collaborationmode import CollaborationMode
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
 
@@ -171,32 +172,32 @@ class TopicStore:
                 if scope:
                     if language:
                         sql = """SELECT name, scope, language, identifier 
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND 
-                        topic_identifier = %s AND
-                        scope = %s AND
-                        language = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND 
+                            topic_identifier = %s AND
+                            scope = %s AND
+                            language = %s"""
                         bind_variables = (map_identifier, identifier, scope, language.name.lower())
                     else:
                         sql = """SELECT name, scope, language, identifier
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND
-                        topic_identifier = %s AND
-                        scope = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND
+                            topic_identifier = %s AND
+                            scope = %s"""
                         bind_variables = (map_identifier, identifier, scope)
                 else:
                     if language:
                         sql = """SELECT name, scope, language, identifier 
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND 
-                        topic_identifier = %s AND
-                        language = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND 
+                            topic_identifier = %s AND
+                            language = %s"""
                         bind_variables = (map_identifier, identifier, language.name.lower())
                     else:
                         sql = """SELECT name, scope, language, identifier
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND
-                        topic_identifier = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND
+                            topic_identifier = %s"""
                         bind_variables = (map_identifier, identifier)
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
@@ -392,10 +393,10 @@ class TopicStore:
         if scope:
             if language:
                 sql = """SELECT * FROM topicdb.attribute 
-                WHERE topicmap_identifier = %s AND 
-                parent_identifier = %s AND 
-                scope = %s AND
-                language = %s"""
+                    WHERE topicmap_identifier = %s AND 
+                    parent_identifier = %s AND 
+                    scope = %s AND
+                    language = %s"""
                 bind_variables = (
                     map_identifier,
                     entity_identifier,
@@ -404,16 +405,16 @@ class TopicStore:
                 )
             else:
                 sql = """SELECT * FROM topicdb.attribute 
-                WHERE topicmap_identifier = %s AND 
-                parent_identifier = %s AND 
-                scope = %s"""
+                    WHERE topicmap_identifier = %s AND 
+                    parent_identifier = %s AND 
+                    scope = %s"""
                 bind_variables = (map_identifier, entity_identifier, scope)
         else:
             if language:
                 sql = """SELECT * FROM topicdb.attribute 
-                WHERE topicmap_identifier = %s AND 
-                parent_identifier = %s AND 
-                language = %s"""
+                    WHERE topicmap_identifier = %s AND 
+                    parent_identifier = %s AND 
+                    language = %s"""
                 bind_variables = (
                     map_identifier,
                     entity_identifier,
@@ -421,8 +422,8 @@ class TopicStore:
                 )
             else:
                 sql = """SELECT * FROM topicdb.attribute 
-                WHERE topicmap_identifier = %s AND
-                parent_identifier = %s"""
+                    WHERE topicmap_identifier = %s AND
+                    parent_identifier = %s"""
                 bind_variables = (map_identifier, entity_identifier)
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -560,10 +561,10 @@ class TopicStore:
     ) -> List[Occurrence]:
         result = []
         sql = """SELECT * FROM topicdb.occurrence 
-        WHERE topicmap_identifier = %s 
-        {0} 
-        ORDER BY topic_identifier, identifier 
-        LIMIT %s OFFSET %s"""
+            WHERE topicmap_identifier = %s 
+            {0} 
+            ORDER BY topic_identifier, identifier 
+            LIMIT %s OFFSET %s"""
         if instance_of:
             if scope:
                 if language:
@@ -850,32 +851,32 @@ class TopicStore:
                 if scope:
                     if language:
                         sql = """SELECT name, scope, language, identifier 
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND 
-                        topic_identifier = %s AND
-                        scope = %s AND
-                        language = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND 
+                            topic_identifier = %s AND
+                            scope = %s AND
+                            language = %s"""
                         bind_variables = (map_identifier, identifier, scope, language.name.lower())
                     else:
                         sql = """SELECT name, scope, language, identifier
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND
-                        topic_identifier = %s AND
-                        scope = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND
+                            topic_identifier = %s AND
+                            scope = %s"""
                         bind_variables = (map_identifier, identifier, scope)
                 else:
                     if language:
                         sql = """SELECT name, scope, language, identifier 
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND 
-                        topic_identifier = %s AND
-                        language = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND 
+                            topic_identifier = %s AND
+                            language = %s"""
                         bind_variables = (map_identifier, identifier, language.name.lower())
                     else:
                         sql = """SELECT name, scope, language, identifier
-                        FROM topicdb.basename
-                        WHERE topicmap_identifier = %s AND
-                        topic_identifier = %s"""
+                            FROM topicdb.basename
+                            WHERE topicmap_identifier = %s AND
+                            topic_identifier = %s"""
                         bind_variables = (map_identifier, identifier)
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
@@ -1034,12 +1035,12 @@ class TopicStore:
 
         query_string = "{0}%%".format(query)
         sql = """SELECT identifier FROM topicdb.topic
-        WHERE topicmap_identifier = %s AND
-        identifier LIKE %s AND
-        scope IS NULL
-        {0}
-        ORDER BY identifier
-        LIMIT %s OFFSET %s"""
+            WHERE topicmap_identifier = %s AND
+            identifier LIKE %s AND
+            scope IS NULL
+            {0}
+            ORDER BY identifier
+            LIMIT %s OFFSET %s"""
 
         if instance_ofs:
             instance_of_in_condition = " AND instance_of IN ("
@@ -1066,13 +1067,13 @@ class TopicStore:
     ) -> List[Tuple[str, str]]:
         result = []
         sql = """SELECT topicdb.basename.name AS name, topicdb.topic.identifier AS identifier
-        FROM topicdb.topic 
-        JOIN topicdb.basename ON topicdb.topic.identifier = topicdb.basename.topic_identifier
-        WHERE topicdb.basename.topicmap_identifier = %s 
-        AND topicdb.topic.topicmap_identifier = %s 
-        AND topicdb.topic.scope IS NULL
-        ORDER BY topicdb.basename.name
-        LIMIT %s OFFSET %s"""
+            FROM topicdb.topic 
+            JOIN topicdb.basename ON topicdb.topic.identifier = topicdb.basename.topic_identifier
+            WHERE topicdb.basename.topicmap_identifier = %s 
+            AND topicdb.topic.topicmap_identifier = %s 
+            AND topicdb.topic.scope IS NULL
+            ORDER BY topicdb.basename.name
+            LIMIT %s OFFSET %s"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute(sql, (map_identifier, map_identifier, limit, offset))
@@ -1093,10 +1094,10 @@ class TopicStore:
     ) -> List[Occurrence]:
         result = []
         sql = """SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language
-        FROM topicdb.occurrence
-        WHERE topicmap_identifier = %s AND
-        topic_identifier = %s
-        {0}"""
+            FROM topicdb.occurrence
+            WHERE topicmap_identifier = %s AND
+            topic_identifier = %s
+            {0}"""
         if instance_of:
             if scope:
                 if language:
@@ -1179,18 +1180,18 @@ class TopicStore:
 
         if instance_of:
             sql = """SELECT identifier FROM topicdb.topic
-            WHERE topicmap_identifier = %s AND
-            instance_of = %s AND
-            scope IS NULL
-            ORDER BY identifier
-            LIMIT %s OFFSET %s"""
+                WHERE topicmap_identifier = %s AND
+                instance_of = %s AND
+                scope IS NULL
+                ORDER BY identifier
+                LIMIT %s OFFSET %s"""
             bind_variables = (map_identifier, instance_of, limit, offset)
         else:
             sql = """SELECT identifier FROM topicdb.topic 
-            WHERE topicmap_identifier = %s AND 
-            scope IS NULL
-            ORDER BY identifier
-            LIMIT %s OFFSET %s"""
+                WHERE topicmap_identifier = %s AND 
+                scope IS NULL
+                ORDER BY identifier
+                LIMIT %s OFFSET %s"""
             bind_variables = (map_identifier, limit, offset)
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -1214,13 +1215,12 @@ class TopicStore:
     ) -> List[Optional[str]]:
         result = []
         sql = """SELECT topicdb.topic.identifier AS identifier
-        FROM topicdb.topic
-        JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
-        WHERE topicdb.attribute.topicmap_identifier = %s
-        AND topicdb.topic.topicmap_identifier = %s
-        AND topicdb.attribute.name = %s
-        {0}
-        """
+            FROM topicdb.topic
+            JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
+            WHERE topicdb.attribute.topicmap_identifier = %s
+            AND topicdb.topic.topicmap_identifier = %s
+            AND topicdb.attribute.name = %s
+            {0}"""
 
         if instance_of:
             if scope:
@@ -1301,13 +1301,12 @@ class TopicStore:
     ) -> List[Optional[Topic]]:
         result = []
         sql = """SELECT topicdb.topic.identifier AS identifier
-        FROM topicdb.topic
-        JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
-        WHERE topicdb.attribute.topicmap_identifier = %s
-        AND topicdb.topic.topicmap_identifier = %s
-        AND topicdb.attribute.name = %s
-        {0}
-        """
+            FROM topicdb.topic
+            JOIN topicdb.attribute ON topicdb.topic.identifier = topicdb.attribute.parent_identifier
+            WHERE topicdb.attribute.topicmap_identifier = %s
+            AND topicdb.topic.topicmap_identifier = %s
+            AND topicdb.attribute.name = %s
+            {0}"""
 
         if instance_of:
             if scope:
@@ -1471,6 +1470,7 @@ class TopicStore:
 
     def delete_topic_map(self, map_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
+            cursor.execute("DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s", (map_identifier,))
             cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
             cursor.execute(
                 "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s", (map_identifier,),
@@ -1491,13 +1491,26 @@ class TopicStore:
                 "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (map_identifier,),
             )
 
-    def get_topic_map(self, map_identifier: int) -> Optional[TopicMap]:
+    def get_topic_map(self, user_identifier: int, map_identifier: int) -> Optional[TopicMap]:
         result = None
+        sql = """SELECT 
+            topicdb.topicmap.identifier AS topicmap_identifier,
+            topicdb.topicmap.name AS name,
+            topicdb.topicmap.description AS description,
+            topicdb.topicmap.image_path AS image_path,
+            topicdb.topicmap.initialised AS initialised,
+            topicdb.topicmap.published AS published,
+            topicdb.topicmap.promoted AS promoted,
+            topicdb.user_topicmap.user_identifier AS user_identifier,
+            topicdb.user_topicmap.owner AS owner,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            FROM topicdb.topicmap 
+            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
+            WHERE topicdb.user_topicmap.user_identifier = %s
+            AND topicdb.topicmap.identifier = %s"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,),
-            )
+            cursor.execute(sql, (user_identifier, map_identifier))
             record = cursor.fetchone()
             if record:
                 result = TopicMap(
@@ -1507,18 +1520,32 @@ class TopicStore:
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
-                    shared=record["shared"],
+                    published=record["published"],
                     promoted=record["promoted"],
+                    owner=record["owner"],
+                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                 )
         return result
 
     def get_topic_maps(self, user_identifier: int) -> List[TopicMap]:
         result = []
+        sql = """SELECT 
+            topicdb.topicmap.identifier AS topicmap_identifier,
+            topicdb.topicmap.name AS name,
+            topicdb.topicmap.description AS description,
+            topicdb.topicmap.image_path AS image_path,
+            topicdb.topicmap.initialised AS initialised,
+            topicdb.topicmap.published AS published,
+            topicdb.topicmap.promoted AS promoted,
+            topicdb.user_topicmap.user_identifier AS user_identifier,
+            topicdb.user_topicmap.owner AS owner,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            FROM topicdb.topicmap 
+            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
+            WHERE topicdb.user_topicmap.user_identifier = %s"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.topicmap WHERE user_identifier = %s ORDER BY identifier", (user_identifier,),
-            )
+            cursor.execute(sql, (user_identifier,))
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -1528,17 +1555,34 @@ class TopicStore:
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
-                    shared=record["shared"],
+                    published=record["published"],
                     promoted=record["promoted"],
+                    owner=record["owner"],
+                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                 )
                 result.append(topic_map)
         return result
 
-    def get_shared_topic_maps(self) -> List[TopicMap]:
+    def get_published_topic_maps(self) -> List[TopicMap]:
         result = []
+        sql = """SELECT 
+            topicdb.topicmap.identifier AS topicmap_identifier,
+            topicdb.topicmap.name AS name,
+            topicdb.topicmap.description AS description,
+            topicdb.topicmap.image_path AS image_path,
+            topicdb.topicmap.initialised AS initialised,
+            topicdb.topicmap.published AS published,
+            topicdb.topicmap.promoted AS promoted,
+            topicdb.user_topicmap.user_identifier AS user_identifier,
+            topicdb.user_topicmap.owner AS owner,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            FROM topicdb.topicmap 
+            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
+            WHERE topicdb.topicmap.published = TRUE
+            ORDER BY topicmap_identifier"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM topicdb.topicmap WHERE shared = TRUE ORDER BY identifier")
+            cursor.execute(sql)
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -1548,14 +1592,31 @@ class TopicStore:
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
-                    shared=record["shared"],
+                    published=record["published"],
                     promoted=record["promoted"],
+                    owner=record["owner"],
+                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                 )
                 result.append(topic_map)
         return result
 
     def get_promoted_topic_maps(self) -> List[TopicMap]:
         result = []
+        sql = """SELECT 
+            topicdb.topicmap.identifier AS topicmap_identifier,
+            topicdb.topicmap.name AS name,
+            topicdb.topicmap.description AS description,
+            topicdb.topicmap.image_path AS image_path,
+            topicdb.topicmap.initialised AS initialised,
+            topicdb.topicmap.published AS published,
+            topicdb.topicmap.promoted AS promoted,
+            topicdb.user_topicmap.user_identifier AS user_identifier,
+            topicdb.user_topicmap.owner AS owner,
+            topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
+            FROM topicdb.topicmap 
+            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
+            WHERE topicdb.topicmap.promoted = TRUE
+            ORDER BY topicmap_identifier"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute("SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
@@ -1568,8 +1629,10 @@ class TopicStore:
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
-                    shared=record["shared"],
+                    published=record["published"],
                     promoted=record["promoted"],
+                    owner=record["owner"],
+                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                 )
                 result.append(topic_map)
         return result
@@ -1581,16 +1644,69 @@ class TopicStore:
         description: str = "",
         image_path: str = "",
         initialised: bool = False,
-        shared: bool = False,
+        published: bool = False,
         promoted: bool = False,
+        collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
     ) -> int:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, shared, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING identifier",
-                (user_identifier, name, description, image_path, initialised, shared, promoted,),
+                "INSERT INTO topicdb.topicmap (user_identifier, name, description, image_path, initialised, published, promoted) VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING identifier",
+                (user_identifier, name, description, image_path, initialised, published, promoted,),
             )
             result = cursor.fetchone()[0]
+            cursor.execute(
+                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, owner, collaboration_mode) VALUES (%s, %s, %s, %s)",
+                (user_identifier, result, True, collaboration_mode.name.lower()),
+            )
         return result
+
+    def update_topic_map(
+        self,
+        map_identifier: int,
+        name: str,
+        description: str = "",
+        image_path: str = "",
+        initialised: bool = True,
+        published: bool = False,
+        promoted: bool = False,
+    ) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, published = %s, promoted = %s WHERE identifier = %s",
+                (name, description, image_path, initialised, published, promoted, map_identifier,),
+            )
+
+    def is_topic_map_owner(self, user_identifier: int, map_identifier: int) -> bool:
+        result = False
+
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = True
+        return result
+
+    def collaborate_on_topic_map(
+        self,
+        user_identifier: int,
+        map_identifier: int,
+        collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
+    ) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, owner, collaboration_mode) VALUES (%s, %s, %s, %s)",
+                (user_identifier, map_identifier, False, collaboration_mode.name.lower()),
+            )
+
+    def stop_collaboration_on_topic_map(self, user_identifier: int, map_identifier: int) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                (user_identifier, map_identifier,),
+            )
 
     def initialise_topic_map(self, map_identifier: int) -> None:
         topic_map = self.get_topic_map(map_identifier)
@@ -1604,35 +1720,6 @@ class TopicStore:
                 cursor.execute(
                     "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (map_identifier,),
                 )
-
-    def update_topic_map(
-        self,
-        map_identifier: int,
-        name: str,
-        description: str = "",
-        image_path: str = "",
-        initialised: bool = True,
-        shared: bool = False,
-        promoted: bool = False,
-    ) -> None:
-        with self.connection, self.connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, shared = %s, promoted = %s WHERE identifier = %s",
-                (name, description, image_path, initialised, shared, promoted, map_identifier,),
-            )
-
-    def is_topic_map_owner(self, user_identifier: int, map_identifier: int) -> bool:
-        result = False
-
-        with self.connection, self.connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.topicmap WHERE user_identifier = %s AND identifier = %s",
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = True
-        return result
 
     # ========== STATISTICS ==========
 
