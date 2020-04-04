@@ -1542,7 +1542,8 @@ class TopicStore:
             topicdb.user_topicmap.collaboration_mode AS collaboration_mode,
             FROM topicdb.topicmap 
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
-            WHERE topicdb.user_topicmap.user_identifier = %s"""
+            WHERE topicdb.user_topicmap.user_identifier = %s
+            ORDER BY topicmap_identifier"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute(sql, (user_identifier,))
@@ -1645,7 +1646,7 @@ class TopicStore:
         image_path: str = "",
         initialised: bool = False,
         published: bool = False,
-        promoted: bool = False
+        promoted: bool = False,
     ) -> int:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
