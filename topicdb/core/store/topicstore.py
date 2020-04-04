@@ -1704,7 +1704,7 @@ class TopicStore:
     def stop_collaboration_on_topic_map(self, user_identifier: int, map_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner IS NOT TRUE",
                 (user_identifier, map_identifier,),
             )
 
