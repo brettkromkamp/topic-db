@@ -118,6 +118,6 @@ CREATE TABLE IF NOT EXISTS topicdb.user_topicmap (
     user_identifier INT NOT NULL,
     topicmap_identifier INT NOT NULL,
     owner BOOLEAN DEFAULT FALSE NOT NULL,
-    collaboration_mode TEXT NOT NULL
+    collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, topicmap_identifier)
 );
