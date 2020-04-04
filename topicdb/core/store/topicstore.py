@@ -1468,28 +1468,37 @@ class TopicStore:
 
     # ========== TOPICMAP ==========
 
-    def delete_topic_map(self, map_identifier: int) -> None:
+    def delete_topic_map(self, user_identifier: int, map_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
-            cursor.execute("DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s", (map_identifier,))
-            cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
             cursor.execute(
-                "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s", (map_identifier,),
+                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
+                (user_identifier, map_identifier),
             )
-            cursor.execute(
-                "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s", (map_identifier,),
-            )
-            cursor.execute(
-                "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s", (map_identifier,),
-            )
-            cursor.execute(
-                "DELETE FROM topicdb.member WHERE topicmap_identifier = %s", (map_identifier,),
-            )
-            cursor.execute(
-                "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s", (map_identifier,),
-            )
-            cursor.execute(
-                "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (map_identifier,),
-            )
+            record = cursor.fetchone()
+            if record:
+                cursor.execute(
+                    "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                    (user_identifier, map_identifier),
+                )
+                cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
+                cursor.execute(
+                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s", (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s", (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s", (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s", (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s", (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (map_identifier,),
+                )
 
     def get_topic_map(self, user_identifier: int, map_identifier: int) -> Optional[TopicMap]:
         result = None
@@ -1515,7 +1524,7 @@ class TopicStore:
             if record:
                 result = TopicMap(
                     record["user_identifier"],
-                    record["identifier"],
+                    record["topicmap_identifier"],
                     record["name"],
                     description=record["description"],
                     image_path=record["image_path"],
@@ -1551,7 +1560,7 @@ class TopicStore:
             for record in records:
                 topic_map = TopicMap(
                     record["user_identifier"],
-                    record["identifier"],
+                    record["topicmap_identifier"],
                     record["name"],
                     description=record["description"],
                     image_path=record["image_path"],
@@ -1588,7 +1597,7 @@ class TopicStore:
             for record in records:
                 topic_map = TopicMap(
                     record["user_identifier"],
-                    record["identifier"],
+                    record["topicmap_identifier"],
                     record["name"],
                     description=record["description"],
                     image_path=record["image_path"],
@@ -1625,7 +1634,7 @@ class TopicStore:
             for record in records:
                 topic_map = TopicMap(
                     record["user_identifier"],
-                    record["identifier"],
+                    record["topicmap_identifier"],
                     record["name"],
                     description=record["description"],
                     image_path=record["image_path"],
