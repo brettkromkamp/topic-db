@@ -1645,8 +1645,7 @@ class TopicStore:
         image_path: str = "",
         initialised: bool = False,
         published: bool = False,
-        promoted: bool = False,
-        collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
+        promoted: bool = False
     ) -> int:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -1656,7 +1655,7 @@ class TopicStore:
             result = cursor.fetchone()[0]
             cursor.execute(
                 "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, owner, collaboration_mode) VALUES (%s, %s, %s, %s)",
-                (user_identifier, result, True, collaboration_mode.name.lower()),
+                (user_identifier, result, True, CollaborationMode.CAN_EDIT.name.lower()),
             )
         return result
 
