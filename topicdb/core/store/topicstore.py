@@ -1664,7 +1664,7 @@ class TopicStore:
             )
             result = cursor.fetchone()[0]
             cursor.execute(
-                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, owner, collaboration_mode) VALUES (%s, %s, %s, %s)",
+                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, '', %s, %s)",
                 (user_identifier, result, True, CollaborationMode.CAN_EDIT.name.lower()),
             )
         return result
@@ -1702,12 +1702,13 @@ class TopicStore:
         self,
         user_identifier: int,
         map_identifier: int,
+        user_name: str,
         collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
     ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
-                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, owner, collaboration_mode) VALUES (%s, %s, %s, %s)",
-                (user_identifier, map_identifier, False, collaboration_mode.name.lower()),
+                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, %s, %s, %s)",
+                (user_identifier, map_identifier, user_name, False, collaboration_mode.name.lower()),
             )
 
     def stop_collaboration_on_topic_map(self, user_identifier: int, map_identifier: int) -> None:
