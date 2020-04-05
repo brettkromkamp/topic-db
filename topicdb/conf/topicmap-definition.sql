@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     promoted BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (identifier)
 );
-CREATE INDEX topicmap_1_index ON topicdb.topicmap (shared);
+CREATE INDEX topicmap_1_index ON topicdb.topicmap (published);
 CREATE INDEX topicmap_2_index ON topicdb.topicmap (promoted);
 
 ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
@@ -117,7 +117,9 @@ ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifie
 CREATE TABLE IF NOT EXISTS topicdb.user_topicmap (
     user_identifier INT NOT NULL,
     topicmap_identifier INT NOT NULL,
+    user_name TEXT,
     owner BOOLEAN DEFAULT FALSE NOT NULL,
     collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, topicmap_identifier)
 );
+CREATE INDEX user_topicmap_1_index ON topicdb.user_topicmap (owner);
