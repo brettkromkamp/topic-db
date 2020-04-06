@@ -1500,40 +1500,61 @@ class TopicStore:
                     "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (map_identifier,),
                 )
 
-    def get_topic_map(self, user_identifier: int, map_identifier: int) -> Optional[TopicMap]:
+    def get_topic_map(self, map_identifier: int, user_identifier: int = None) -> Optional[TopicMap]:
         result = None
-        sql = """SELECT 
-            topicdb.topicmap.identifier AS topicmap_identifier,
-            topicdb.topicmap.name AS name,
-            topicdb.topicmap.description AS description,
-            topicdb.topicmap.image_path AS image_path,
-            topicdb.topicmap.initialised AS initialised,
-            topicdb.topicmap.published AS published,
-            topicdb.topicmap.promoted AS promoted,
-            topicdb.user_topicmap.user_identifier AS user_identifier,
-            topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
-            FROM topicdb.topicmap 
-            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
-            WHERE topicdb.user_topicmap.user_identifier = %s
-            AND topicdb.topicmap.identifier = %s"""
+        if user_identifier:
+            sql = """SELECT 
+                topicdb.topicmap.identifier AS topicmap_identifier,
+                topicdb.topicmap.name AS name,
+                topicdb.topicmap.description AS description,
+                topicdb.topicmap.image_path AS image_path,
+                topicdb.topicmap.initialised AS initialised,
+                topicdb.topicmap.published AS published,
+                topicdb.topicmap.promoted AS promoted,
+                topicdb.user_topicmap.user_identifier AS user_identifier,
+                topicdb.user_topicmap.owner AS owner,
+                topicdb.user_topicmap.collaboration_mode AS collaboration_mode
+                FROM topicdb.topicmap 
+                JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
+                WHERE topicdb.user_topicmap.user_identifier = %s
+                AND topicdb.topicmap.identifier = %s"""
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, (user_identifier, map_identifier))
-            record = cursor.fetchone()
-            if record:
-                result = TopicMap(
-                    record["user_identifier"],
-                    record["topicmap_identifier"],
-                    record["name"],
-                    description=record["description"],
-                    image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=record["owner"],
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+            with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (user_identifier, map_identifier))
+                record = cursor.fetchone()
+                if record:
+                    result = TopicMap(
+                        record["topicmap_identifier"],
+                        record["name"],
+                        user_identifier=record["user_identifier"],
+                        description=record["description"],
+                        image_path=record["image_path"],
+                        initialised=record["initialised"],
+                        published=record["published"],
+                        promoted=record["promoted"],
+                        owner=record["owner"],
+                        collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                    )
+        else:
+            with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT * FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,),
                 )
+                record = cursor.fetchone()
+                if record:
+                    result = TopicMap(
+                        record["identifier"],
+                        record["name"],
+                        user_identifier=None,
+                        description=record["description"],
+                        image_path=record["image_path"],
+                        initialised=record["initialised"],
+                        published=record["published"],
+                        promoted=record["promoted"],
+                        owner=None,
+                        collaboration_mode=None,
+                    )
+
         return result
 
     def get_topic_maps(self, user_identifier: int) -> List[TopicMap]:
@@ -1559,9 +1580,9 @@ class TopicStore:
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
-                    record["user_identifier"],
                     record["topicmap_identifier"],
                     record["name"],
+                    user_identifier=record["user_identifier"],
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
@@ -1575,74 +1596,44 @@ class TopicStore:
 
     def get_published_topic_maps(self) -> List[TopicMap]:
         result = []
-        sql = """SELECT 
-            topicdb.topicmap.identifier AS topicmap_identifier,
-            topicdb.topicmap.name AS name,
-            topicdb.topicmap.description AS description,
-            topicdb.topicmap.image_path AS image_path,
-            topicdb.topicmap.initialised AS initialised,
-            topicdb.topicmap.published AS published,
-            topicdb.topicmap.promoted AS promoted,
-            topicdb.user_topicmap.user_identifier AS user_identifier,
-            topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
-            FROM topicdb.topicmap 
-            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
-            WHERE topicdb.topicmap.published = TRUE
-            ORDER BY topicmap_identifier"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql)
+            cursor.execute("SELECT * FROM topicdb.topicmap WHERE published = TRUE ORDER BY identifier")
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
-                    record["user_identifier"],
-                    record["topicmap_identifier"],
+                    record["identifier"],
                     record["name"],
+                    user_identifier=None,
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
                     published=record["published"],
                     promoted=record["promoted"],
-                    owner=record["owner"],
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                    owner=None,
+                    collaboration_mode=None,
                 )
                 result.append(topic_map)
         return result
 
     def get_promoted_topic_maps(self) -> List[TopicMap]:
         result = []
-        sql = """SELECT 
-            topicdb.topicmap.identifier AS topicmap_identifier,
-            topicdb.topicmap.name AS name,
-            topicdb.topicmap.description AS description,
-            topicdb.topicmap.image_path AS image_path,
-            topicdb.topicmap.initialised AS initialised,
-            topicdb.topicmap.published AS published,
-            topicdb.topicmap.promoted AS promoted,
-            topicdb.user_topicmap.user_identifier AS user_identifier,
-            topicdb.user_topicmap.owner AS owner,
-            topicdb.user_topicmap.collaboration_mode AS collaboration_mode
-            FROM topicdb.topicmap 
-            JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
-            WHERE topicdb.topicmap.promoted = TRUE
-            ORDER BY topicmap_identifier"""
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute("SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
-                    record["user_identifier"],
-                    record["topicmap_identifier"],
+                    record["identifier"],
                     record["name"],
+                    user_identifier=None,
                     description=record["description"],
                     image_path=record["image_path"],
                     initialised=record["initialised"],
                     published=record["published"],
                     promoted=record["promoted"],
-                    owner=record["owner"],
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                    owner=None,
+                    collaboration_mode=None,
                 )
                 result.append(topic_map)
         return result
@@ -1685,7 +1676,7 @@ class TopicStore:
                 (name, description, image_path, initialised, published, promoted, map_identifier,),
             )
 
-    def is_topic_map_owner(self, user_identifier: int, map_identifier: int) -> bool:
+    def is_topic_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
         result = False
 
         with self.connection, self.connection.cursor() as cursor:
@@ -1698,10 +1689,10 @@ class TopicStore:
                 result = True
         return result
 
-    def collaborate_on_topic_map(
+    def collaborate(
         self,
-        user_identifier: int,
         map_identifier: int,
+        user_identifier: int,
         user_name: str,
         collaboration_mode: CollaborationMode = CollaborationMode.CAN_VIEW,
     ) -> None:
@@ -1711,14 +1702,27 @@ class TopicStore:
                 (user_identifier, map_identifier, user_name, False, collaboration_mode.name.lower()),
             )
 
-    def stop_collaboration_on_topic_map(self, user_identifier: int, map_identifier: int) -> None:
+    def stop_collaboration(self, map_identifier: int, user_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner IS NOT TRUE",
                 (user_identifier, map_identifier,),
             )
 
-    def initialise_topic_map(self, user_identifier: int, map_identifier: int) -> None:
+    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
+        result = None
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                "SELECT collaboration_mode FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = CollaborationMode[record["collaboration_mode"].upper()]
+        return result
+
+    def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
         topic_map = self.get_topic_map(user_identifier, map_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, "home"):
@@ -1760,4 +1764,9 @@ class TopicStore:
                 records = cursor.fetchall()
             for record in records:
                 result[record["instance_of"]] = record["count"]
+        return result
+
+    def get_topic_map_statistics(self, map_identifier: int) -> Dict:
+        result = {}
+
         return result
