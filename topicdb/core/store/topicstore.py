@@ -1468,7 +1468,7 @@ class TopicStore:
 
     # ========== TOPICMAP ==========
 
-    def delete_topic_map(self, user_identifier: int, map_identifier: int) -> None:
+    def delete_topic_map(self, map_identifier: int, user_identifier: int) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
