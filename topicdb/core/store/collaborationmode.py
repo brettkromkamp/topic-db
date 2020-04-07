@@ -9,9 +9,9 @@ from enum import Enum
 
 
 class CollaborationMode(Enum):
-    CAN_VIEW = 1  # Read-only
-    CAN_COMMENT = 2
-    CAN_EDIT = 3  # Read/write
+    VIEW = 1  # Read-only
+    COMMENT = 2
+    EDIT = 3  # Read/write
 
     def __str__(self):
         return self.name
