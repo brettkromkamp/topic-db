@@ -1723,7 +1723,7 @@ class TopicStore:
                 result = CollaborationMode[record["collaboration_mode"].upper()]
         return result
 
-    def get_collaborators(self, map_identifier) -> List:
+    def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
         result = []
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
