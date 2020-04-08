@@ -5,7 +5,7 @@ January 07, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.store.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborationmode import CollaborationMode
 
 
 class TopicMap:

@@ -27,7 +27,8 @@ from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
-from topicdb.core.store.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborator import Collaborator
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
 
@@ -1720,6 +1721,25 @@ class TopicStore:
             record = cursor.fetchone()
             if record:
                 result = CollaborationMode[record["collaboration_mode"].upper()]
+        return result
+
+    def get_collaborators(self, map_identifier) -> List:
+        result = []
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                "SELECT * FROM topicdb.user_topicmap WHERE topicmap_identifier = %s AND owner IS FALSE ORDER BY user_identifier",
+                (map_identifier,),
+            )
+            records = cursor.fetchall()
+            for record in records:
+                collaborator = Collaborator(
+                    record["topicmap_identifier"],
+                    record["user_identifier"],
+                    record["user_name"],
+                    CollaborationMode[record["collaboration_mode"].upper()],
+                )
+                result.append(collaborator)
         return result
 
     def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
