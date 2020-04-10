@@ -18,6 +18,8 @@ from typedtree.tree import Tree  # type: ignore
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.basename import BaseName
+from topicdb.core.models.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborator import Collaborator
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.models.language import Language
@@ -27,8 +29,6 @@ from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
-from topicdb.core.models.collaborationmode import CollaborationMode
-from topicdb.core.models.collaborator import Collaborator
 from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
 
@@ -1723,6 +1723,15 @@ class TopicStore:
                 result = CollaborationMode[record["collaboration_mode"].upper()]
         return result
 
+    def update_collaboration_mode(
+        self, map_identifier: int, user_identifier: int, collaboration_mode: CollaborationMode
+    ) -> None:
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE topicdb.user_topicmap SET collaboration_mode = %s WHERE user_identifier = %s AND topicmap_identifier = %s",
+                (collaboration_mode.name.lower(), user_identifier, map_identifier),
+            )
+
     def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
         result = []
 
@@ -1740,6 +1749,25 @@ class TopicStore:
                     CollaborationMode[record["collaboration_mode"].upper()],
                 )
                 result.append(collaborator)
+        return result
+
+    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
+        result = None
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = Collaborator(
+                    record["topicmap_identifier"],
+                    record["user_identifier"],
+                    record["user_name"],
+                    CollaborationMode[record["collaboration_mode"].upper()],
+                )
+
         return result
 
     def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
