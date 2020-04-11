@@ -5,31 +5,33 @@ January 07, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
+from topicdb.core.models.collaborationmode import CollaborationMode
+
 
 class TopicMap:
     def __init__(
         self,
-        user_identifier: int,
         identifier: int,
         name: str,
+        user_identifier: int = None,
         description: str = "",
         image_path: str = "",
         initialised: bool = False,
-        shared: bool = False,
+        published: bool = False,
         promoted: bool = False,
+        owner: bool = None,
+        collaboration_mode: CollaborationMode = None,
     ) -> None:
-        self.__user_identifier = user_identifier
         self.__identifier = identifier
         self.name = name
+        self.user_identifier = user_identifier
         self.description = description
         self.image_path = image_path
         self.initialised = initialised
-        self.shared = shared
+        self.published = published
         self.promoted = promoted
-
-    @property
-    def user_identifier(self) -> int:
-        return self.__user_identifier
+        self.owner = owner
+        self.collaboration_mode = collaboration_mode
 
     @property
     def identifier(self) -> int:
