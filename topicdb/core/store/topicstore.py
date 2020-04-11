@@ -1771,7 +1771,7 @@ class TopicStore:
         return result
 
     def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
-        topic_map = self.get_topic_map(user_identifier, map_identifier)
+        topic_map = self.get_topic_map(map_identifier, user_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, "home"):
             for item in self.base_topics:
