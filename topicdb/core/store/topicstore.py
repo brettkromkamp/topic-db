@@ -1478,8 +1478,7 @@ class TopicStore:
             record = cursor.fetchone()
             if record:
                 cursor.execute(
-                    "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
-                    (user_identifier, map_identifier),
+                    "DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s", (map_identifier,),
                 )
                 cursor.execute("DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
                 cursor.execute(
