@@ -172,9 +172,9 @@ class TopicStore:
                 result.clear_base_names()
                 if scope:
                     if language:
-                        sql = """SELECT name, scope, language, identifier 
+                        sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND 
+                            WHERE topicmap_identifier = %s AND
                             topic_identifier = %s AND
                             scope = %s AND
                             language = %s"""
@@ -188,9 +188,9 @@ class TopicStore:
                         bind_variables = (map_identifier, identifier, scope)
                 else:
                     if language:
-                        sql = """SELECT name, scope, language, identifier 
+                        sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND 
+                            WHERE topicmap_identifier = %s AND
                             topic_identifier = %s AND
                             language = %s"""
                         bind_variables = (map_identifier, identifier, language.name.lower())
@@ -393,9 +393,9 @@ class TopicStore:
 
         if scope:
             if language:
-                sql = """SELECT * FROM topicdb.attribute 
-                    WHERE topicmap_identifier = %s AND 
-                    parent_identifier = %s AND 
+                sql = """SELECT * FROM topicdb.attribute
+                    WHERE topicmap_identifier = %s AND
+                    parent_identifier = %s AND
                     scope = %s AND
                     language = %s"""
                 bind_variables = (
@@ -405,16 +405,16 @@ class TopicStore:
                     language.name.lower(),
                 )
             else:
-                sql = """SELECT * FROM topicdb.attribute 
-                    WHERE topicmap_identifier = %s AND 
-                    parent_identifier = %s AND 
+                sql = """SELECT * FROM topicdb.attribute
+                    WHERE topicmap_identifier = %s AND
+                    parent_identifier = %s AND
                     scope = %s"""
                 bind_variables = (map_identifier, entity_identifier, scope)
         else:
             if language:
-                sql = """SELECT * FROM topicdb.attribute 
-                    WHERE topicmap_identifier = %s AND 
-                    parent_identifier = %s AND 
+                sql = """SELECT * FROM topicdb.attribute
+                    WHERE topicmap_identifier = %s AND
+                    parent_identifier = %s AND
                     language = %s"""
                 bind_variables = (
                     map_identifier,
@@ -422,7 +422,7 @@ class TopicStore:
                     language.name.lower(),
                 )
             else:
-                sql = """SELECT * FROM topicdb.attribute 
+                sql = """SELECT * FROM topicdb.attribute
                     WHERE topicmap_identifier = %s AND
                     parent_identifier = %s"""
                 bind_variables = (map_identifier, entity_identifier)
@@ -561,10 +561,10 @@ class TopicStore:
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
     ) -> List[Occurrence]:
         result = []
-        sql = """SELECT * FROM topicdb.occurrence 
-            WHERE topicmap_identifier = %s 
-            {0} 
-            ORDER BY topic_identifier, identifier 
+        sql = """SELECT * FROM topicdb.occurrence
+            WHERE topicmap_identifier = %s
+            {0}
+            ORDER BY topic_identifier, identifier
             LIMIT %s OFFSET %s"""
         if instance_of:
             if scope:
@@ -784,13 +784,13 @@ class TopicStore:
                 if item[TopicField.IDENTIFIER.value] == identifier:
                     raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
 
-        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND 
+        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
         identifier IN
             (SELECT association_identifier FROM topicdb.member
             WHERE topicmap_identifier = %s AND
             identifier IN (
                 SELECT member_identifier FROM topicdb.topicref
-                WHERE topicmap_identifier = %s AND 
+                WHERE topicmap_identifier = %s AND
                 topic_ref = %s))"""
 
         # Delete associations
@@ -851,9 +851,9 @@ class TopicStore:
                 result.clear_base_names()
                 if scope:
                     if language:
-                        sql = """SELECT name, scope, language, identifier 
+                        sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND 
+                            WHERE topicmap_identifier = %s AND
                             topic_identifier = %s AND
                             scope = %s AND
                             language = %s"""
@@ -867,9 +867,9 @@ class TopicStore:
                         bind_variables = (map_identifier, identifier, scope)
                 else:
                     if language:
-                        sql = """SELECT name, scope, language, identifier 
+                        sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND 
+                            WHERE topicmap_identifier = %s AND
                             topic_identifier = %s AND
                             language = %s"""
                         bind_variables = (map_identifier, identifier, language.name.lower())
@@ -909,7 +909,7 @@ class TopicStore:
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
     ) -> List[Association]:
         result = []
-        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND 
+        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND
         identifier IN
             (SELECT association_identifier FROM topicdb.member
              WHERE topicmap_identifier = %s AND
@@ -1068,10 +1068,10 @@ class TopicStore:
     ) -> List[Tuple[str, str]]:
         result = []
         sql = """SELECT topicdb.basename.name AS name, topicdb.topic.identifier AS identifier
-            FROM topicdb.topic 
+            FROM topicdb.topic
             JOIN topicdb.basename ON topicdb.topic.identifier = topicdb.basename.topic_identifier
-            WHERE topicdb.basename.topicmap_identifier = %s 
-            AND topicdb.topic.topicmap_identifier = %s 
+            WHERE topicdb.basename.topicmap_identifier = %s
+            AND topicdb.topic.topicmap_identifier = %s
             AND topicdb.topic.scope IS NULL
             ORDER BY topicdb.basename.name
             LIMIT %s OFFSET %s"""
@@ -1188,8 +1188,8 @@ class TopicStore:
                 LIMIT %s OFFSET %s"""
             bind_variables = (map_identifier, instance_of, limit, offset)
         else:
-            sql = """SELECT identifier FROM topicdb.topic 
-                WHERE topicmap_identifier = %s AND 
+            sql = """SELECT identifier FROM topicdb.topic
+                WHERE topicmap_identifier = %s AND
                 scope IS NULL
                 ORDER BY identifier
                 LIMIT %s OFFSET %s"""
@@ -1503,7 +1503,7 @@ class TopicStore:
     def get_topic_map(self, map_identifier: int, user_identifier: int = None) -> Optional[TopicMap]:
         result = None
         if user_identifier:
-            sql = """SELECT 
+            sql = """SELECT
                 topicdb.topicmap.identifier AS topicmap_identifier,
                 topicdb.topicmap.name AS name,
                 topicdb.topicmap.description AS description,
@@ -1514,7 +1514,7 @@ class TopicStore:
                 topicdb.user_topicmap.user_identifier AS user_identifier,
                 topicdb.user_topicmap.owner AS owner,
                 topicdb.user_topicmap.collaboration_mode AS collaboration_mode
-                FROM topicdb.topicmap 
+                FROM topicdb.topicmap
                 JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
                 WHERE topicdb.user_topicmap.user_identifier = %s
                 AND topicdb.topicmap.identifier = %s"""
@@ -1559,7 +1559,7 @@ class TopicStore:
 
     def get_topic_maps(self, user_identifier: int) -> List[TopicMap]:
         result = []
-        sql = """SELECT 
+        sql = """SELECT
             topicdb.topicmap.identifier AS topicmap_identifier,
             topicdb.topicmap.name AS name,
             topicdb.topicmap.description AS description,
@@ -1570,7 +1570,7 @@ class TopicStore:
             topicdb.user_topicmap.user_identifier AS user_identifier,
             topicdb.user_topicmap.owner AS owner,
             topicdb.user_topicmap.collaboration_mode AS collaboration_mode
-            FROM topicdb.topicmap 
+            FROM topicdb.topicmap
             JOIN topicdb.user_topicmap ON topicdb.topicmap.identifier = topicdb.user_topicmap.topicmap_identifier
             WHERE topicdb.user_topicmap.user_identifier = %s
             ORDER BY topicmap_identifier"""
