@@ -77,6 +77,14 @@ class Association(Topic):
     def remove_member(self, identifier: str) -> None:
         self.__members[:] = [x for x in self.__members if x.identifier != identifier]
 
+    def get_member(self, identifier: str) -> Optional[Member]:
+        result = None
+        for member in self.__members:
+            if member.identifier == identifier:
+                result = member
+                break
+        return result
+
     def get_member_by_role(self, role: str) -> Optional[Member]:
         result = None
         for member in self.__members:
