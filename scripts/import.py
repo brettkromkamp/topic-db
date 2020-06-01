@@ -15,11 +15,12 @@ from topicdb.core.models.association import Association
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 6
+TOPIC_MAP_IDENTIFIER = 3
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
 UNIVERSAL_SCOPE = "*"
+ROOT_TOPIC = "elon-musk"
 
 config = configparser.ConfigParser()
 config.read(SETTINGS_FILE_PATH)
@@ -40,8 +41,10 @@ def sibling_index(siblings, identifier):
 
 
 def create_tree():
-    topics_file = open(
-        "/home/brettk/Source/procedural-storytelling/worldbuilding/topics.dat", "r")
+    script_dir = os.path.dirname(__file__) 
+    data_file = "topics.dat"
+    abs_file_path = os.path.join(script_dir, data_file)
+    topics_file = open(abs_file_path, "r")
     stack = {}
     for line in topics_file:
         index = int(line.count(SPACE) / SPACES_PER_TAB)
@@ -74,7 +77,7 @@ def create_topic(store, topic_map_identifier, topic_identifier, topic_name):
 
 
 def create_topics(store, topic_map_identifier):
-    for node_identifier in tree.traverse('worldbuilding', mode=TraversalMode.DEPTH):
+    for node_identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         normalised_topic_name = " ".join([
             word.capitalize()
             for word in node_identifier.split("-")
@@ -82,10 +85,10 @@ def create_topics(store, topic_map_identifier):
         create_topic(store, topic_map_identifier, node_identifier, normalised_topic_name)
 
 
-def create_association(store, topic_map_identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec):
+def create_association(store, topic_map_identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, instance_of="navigation"):
     store.open()
     association = Association(
-        instance_of="navigation",
+        instance_of=instance_of,
         scope=UNIVERSAL_SCOPE,
         src_topic_ref=src_topic_ref,
         dest_topic_ref=dest_topic_ref,
@@ -98,19 +101,18 @@ def create_association(store, topic_map_identifier, src_topic_ref, src_role_spec
 
 
 def create_associations(store, topic_map_identifier):
-    for identifier in tree.traverse('worldbuilding', mode=TraversalMode.DEPTH):
+    for identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         node = tree[identifier]
         navigation = None
         if node.parent:
             siblings = tree.get_siblings(node.identifier)
             index = sibling_index(siblings, node.identifier)
-            if index == 0:  # First sibling
-                up_identifier = node.parent[0]
-                down_identifier = identifier
+            up_identifier = node.parent[0]
+            down_identifier = identifier
+            create_association(store, topic_map_identifier, down_identifier, "child", up_identifier, "parent", "association")
+            if index == 0:  # First sibling    
                 create_association(store, topic_map_identifier, down_identifier, "down", up_identifier, "up")
             elif sibling_index(siblings, node.identifier) == len(siblings) - 1:  # Last sibling
-                up_identifier = node.parent[0]
-                down_identifier = identifier
                 previous_identifier = siblings[index - 1].identifier
                 next_identifier = identifier
                 create_association(store, topic_map_identifier, down_identifier, "topic", up_identifier, "up")
@@ -140,3 +142,7 @@ if __name__ == "__main__":
     print("Creating associations...")
     create_associations(topic_store, TOPIC_MAP_IDENTIFIER)
     print("Associations created!")
+    print("-"*80)
+    with topic_store:
+        test_tree = topic_store.get_topics_network(TOPIC_MAP_IDENTIFIER, ROOT_TOPIC, instance_ofs=['association'])
+        test_tree.display(ROOT_TOPIC)

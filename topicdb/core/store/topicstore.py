@@ -971,7 +971,7 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        maximum_depth: int = 10,
+        maximum_depth: int = 3,
         cumulative_depth: int = 0,
         accumulative_tree: Tree = None,
         accumulative_nodes: List[str] = None,
@@ -981,7 +981,7 @@ class TopicStore:
         if accumulative_tree is None:
             tree = Tree()
             root_topic = self.get_topic(map_identifier, identifier)
-            tree.add_node(identifier, node_type=root_topic.instance_of, payload=root_topic)
+            tree.add_node(identifier, node_type=root_topic.instance_of, payload={"level": cumulative_depth, "topic": root_topic})
         else:
             tree = accumulative_tree
 
@@ -1005,7 +1005,7 @@ class TopicStore:
                             parent_pointer=identifier,
                             node_type=topic.instance_of,
                             edge_type=association.instance_of,
-                            payload=topic,
+                            payload={"level": cumulative_depth, "topic": topic},
                         )
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)
