@@ -20,7 +20,7 @@ SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
 UNIVERSAL_SCOPE = "*"
-ROOT_TOPIC = "elon-musk"
+ROOT_TOPIC = "python-programming-language"
 
 config = configparser.ConfigParser()
 config.read(SETTINGS_FILE_PATH)
