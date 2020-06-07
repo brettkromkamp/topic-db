@@ -41,7 +41,7 @@ def sibling_index(siblings, identifier):
 
 
 def create_tree():
-    script_dir = os.path.dirname(__file__) 
+    script_dir = os.path.dirname(__file__)
     data_file = "topics.dat"
     abs_file_path = os.path.join(script_dir, data_file)
     topics_file = open(abs_file_path, "r")
@@ -112,9 +112,9 @@ def create_associations(store, topic_map_identifier):
             previous_identifier = siblings[index - 1].identifier
             next_identifier = identifier
             create_association(store, topic_map_identifier, down_identifier, "child", up_identifier, "parent", "association")
-            if index == 0:  # First sibling    
+            if index == 0:  # First sibling
                 create_association(store, topic_map_identifier, down_identifier, "down", up_identifier, "up")
-            elif sibling_index(siblings, node.identifier) == len(siblings) - 1:  # Last sibling
+            elif index == len(siblings) - 1:  # Last sibling
                 create_association(store, topic_map_identifier, down_identifier, "topic", up_identifier, "up")
                 create_association(store, topic_map_identifier, previous_identifier, "previous", next_identifier, "next")
             else:  # In-between siblings
