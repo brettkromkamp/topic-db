@@ -9,8 +9,8 @@ python;Python Programming Language;domain
         asynchronous-io;Asynchronous I/O
     web-development;;subject
         web-development-frameworks
-            wsgi
-            asgi
+            wsgi;WSGI
+            asgi;ASGI
         django-framework
         flask-framework
     machine-learning;;subject

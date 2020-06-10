@@ -34,8 +34,6 @@ database_host = config["DATABASE"]["Host"]
 database_port = config["DATABASE"]["Port"]
 
 # ================================================================================
-
-
 class TopicImportError(Exception):
     def __init__(self, value):
         self.value = value
@@ -76,10 +74,10 @@ def create_tree():
             topic_name = normalize_topic_name(topic_identifier)
             topic_instance_of = 'topic'
         elif len(topic_data) == 2:  # Both identifier and name is provided
-            topic_name = topic_data[1] if topic_data[1] else "Undefined"
+            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
             topic_instance_of = 'topic'
         else:  # Identifier, name and type (instance of) is provided
-            topic_name = topic_data[1] if topic_data[1] else "Undefined"
+            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
             topic_instance_of = slugify(
                 str(topic_data[2])) if topic_data[2] else 'topic'
 
@@ -176,6 +174,10 @@ if __name__ == "__main__":
     create_tree()
     print("-"*80)
     tree.display(ROOT_TOPIC)
+    print("-"*80)
+    for identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
+        node = tree[identifier]
+        print(f"{node.payload.identifier} - {node.payload.instance_of} - {node.payload.first_base_name.name}")
     # print("Creating topics...")
     # store_topics(topic_store, TOPIC_MAP_IDENTIFIER)
     # print("Topics created!")
