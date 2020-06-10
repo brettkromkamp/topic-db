@@ -1,17 +1,17 @@
-python-programming-language
-    expert-level-python
-        meta-classes
+python;Python Programming Language;domain
+    expert-level-python;;subject
+        meta-classes;Meta Classes
         protocol-oriented-data-model
         decorators
         generators
             iterators
         context-managers
-        asynchronous-io
-    web-development
+        asynchronous-io;Asynchronous I/O
+    web-development;;subject
         web-development-frameworks
             wsgi
             asgi
         django-framework
         flask-framework
-    machine-learning
-    data-analysis
+    machine-learning;;subject
+    data-analysis;;subject
