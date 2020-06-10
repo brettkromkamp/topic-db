@@ -33,7 +33,7 @@ database_name = config["DATABASE"]["Database"]
 database_host = config["DATABASE"]["Host"]
 database_port = config["DATABASE"]["Port"]
 
-# ================================================================================
+
 class TopicImportError(Exception):
     def __init__(self, value):
         self.value = value
@@ -42,7 +42,6 @@ class TopicImportError(Exception):
         return repr(self.value)
 
 
-# ================================================================================
 def sibling_index(siblings, identifier):
     result = None
     for index, sibling in enumerate(siblings):
@@ -70,17 +69,14 @@ def create_tree():
         if len(topic_data) < 1 or len(topic_data) > 3:
             raise TopicImportError("Invalid topic data")
         topic_identifier = slugify(str(topic_data[0]))
+        topic_instance_of = 'topic'
         if len(topic_data) == 1:  # Only identifier provided
             topic_name = normalize_topic_name(topic_identifier)
-            topic_instance_of = 'topic'
         elif len(topic_data) == 2:  # Both identifier and name is provided
             topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
-            topic_instance_of = 'topic'
         else:  # Identifier, name and type (instance of) is provided
             topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
-            topic_instance_of = slugify(
-                str(topic_data[2])) if topic_data[2] else 'topic'
-
+            topic_instance_of = slugify(str(topic_data[2])) if topic_data[2] else 'topic'
         topic = Topic(topic_identifier, topic_instance_of, topic_name)
         stack[index] = topic_identifier
         if index == 0:  # Root node
@@ -112,8 +108,7 @@ def store_topic(store, topic_map_identifier, identifier, instance_of, name):
 
 
 def create_topics(store, topic_map_identifier):
-    for identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-        node = tree[identifier]
+    for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         if not topic_store.topic_exists(topic_map_identifier, node.payload.instance_of):
             store_topic(store, topic_map_identifier, node.payload.instance_of,
                         'topic', normalize_topic_name(node.payload.instance_of))
@@ -136,8 +131,7 @@ def store_association(store, topic_map_identifier, src_topic_ref, src_role_spec,
 
 
 def create_associations(store, topic_map_identifier):
-    for identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-        node = tree[identifier]
+    for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         navigation = None
         if node.parent:
             siblings = tree.get_siblings(node.identifier)
@@ -175,8 +169,7 @@ if __name__ == "__main__":
     print("-"*80)
     tree.display(ROOT_TOPIC)
     print("-"*80)
-    for identifier in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-        node = tree[identifier]
+    for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         print(f"{node.payload.identifier} - {node.payload.instance_of} - {node.payload.first_base_name.name}")
     # print("Creating topics...")
     # store_topics(topic_store, TOPIC_MAP_IDENTIFIER)
