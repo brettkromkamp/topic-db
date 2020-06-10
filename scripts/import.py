@@ -137,9 +137,9 @@ def create_associations(store, topic_map_identifier):
             siblings = tree.get_siblings(node.identifier)
             index = sibling_index(siblings, node.identifier)
             up_identifier = node.parent[0]
-            down_identifier = identifier
+            down_identifier = node.identifier
             previous_identifier = siblings[index - 1].identifier
-            next_identifier = identifier
+            next_identifier = node.identifier
             store_association(store, topic_map_identifier, down_identifier,
                               "child", up_identifier, "parent", "association")
             if index == 0:  # First sibling
