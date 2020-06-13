@@ -1,17 +1,18 @@
 python;Python Programming Language;domain
-    expert-level-python;;subject
-        meta-classes;Meta Classes
-        protocol-oriented-data-model
+    expert-level-python;Expert-level Python;subject
+        meta-classes
+        protocol-oriented-data-model;Protocol-oriented Data Model
         decorators
         generators
             iterators
         context-managers
         asynchronous-io;Asynchronous I/O
-    web-development;;subject
-        web-development-frameworks
-            wsgi;WSGI
-            asgi;ASGI
-        django-framework
-        flask-framework
+    web-development;;subject;web
+        web-development-frameworks;;;web
+            wsgi;WSGI;;web
+            asgi;ASGI;;web
+        django-frameworks;;;web,web-framework
+        flask-framework;;;web,web-framework
+        pyramid-framework;;;web,web-framework
     machine-learning;;subject
     data-analysis;;subject

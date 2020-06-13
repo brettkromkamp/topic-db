@@ -24,6 +24,11 @@ SPACES_PER_TAB = 4
 UNIVERSAL_SCOPE = "*"
 ROOT_TOPIC = "python"
 
+IDENTIFIER = 0
+NAME = 1
+INSTANCE_OF = 2
+TAGS = 3
+
 config = configparser.ConfigParser()
 config.read(SETTINGS_FILE_PATH)
 
@@ -66,21 +71,26 @@ def create_tree():
     for line in topics_file:
         index = int(line.count(SPACE) / SPACES_PER_TAB)
         topic_data = line.strip().split(";")
-        if len(topic_data) < 1 or len(topic_data) > 3:
+        if len(topic_data) < 1 or len(topic_data) > 4:
             raise TopicImportError("Invalid topic data")
-        topic_identifier = slugify(str(topic_data[0]))
+        topic_identifier = slugify(str(topic_data[IDENTIFIER]))
         topic_instance_of = 'topic'
         if len(topic_data) == 1:  # Only identifier provided
             topic_name = normalize_topic_name(topic_identifier)
         elif len(topic_data) == 2:  # Both identifier and name is provided
-            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(
+            topic_name = topic_data[NAME] if topic_data[NAME] else normalize_topic_name(
                 topic_identifier)
-        else:  # Identifier, name and type (instance of) is provided
-            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(
+        elif len(topic_data) == 3:  # Identifier, name and type (instance of) is provided
+            topic_name = topic_data[NAME] if topic_data[NAME] else normalize_topic_name(
                 topic_identifier)
             topic_instance_of = slugify(
-                str(topic_data[2])) if topic_data[2] else 'topic'
+                str(topic_data[INSTANCE_OF])) if topic_data[INSTANCE_OF] else 'topic'
+        # All parameters have been provided: identifier, name, type and one or more (comma-separated) tags
+        else:
+            normalized_tags = ",".join(
+                [slugify(str(tag)) for tag in topic_data[TAGS].split(",")])
         topic = Topic(topic_identifier, topic_instance_of, topic_name)
+        tags_attribute = Attribute('tags', normalized_tags, topic.identifier, data_type=DataType.STRING)
         stack[index] = topic_identifier
         if index == 0:  # Root node
             tree.add_node(topic_identifier, node_type='identifier',
@@ -92,7 +102,7 @@ def create_tree():
 
 def store_topic(store, topic_map_identifier, topic):
     store.open()
-    if not topic_store.topic_exists(topic_map_identifier, topic.identifier):
+    if not store.topic_exists(topic_map_identifier, topic.identifier):
         text_occurrence = Occurrence(
             instance_of="text",
             topic_identifier=topic.identifier,
@@ -103,9 +113,13 @@ def store_topic(store, topic_map_identifier, topic):
         modification_attribute = Attribute(
             "modification-timestamp", timestamp, topic.identifier, data_type=DataType.TIMESTAMP)
         # Persist objects to the topic store
-        topic_store.set_topic(topic_map_identifier, topic)
-        topic_store.set_occurrence(topic_map_identifier, text_occurrence)
-        topic_store.set_attribute(topic_map_identifier, modification_attribute)
+        store.set_topic(topic_map_identifier, topic)
+        store.set_occurrence(topic_map_identifier, text_occurrence)
+        store.set_attribute(topic_map_identifier, modification_attribute)
+        # Persist tags, if any
+        tags = topic.get_attribute_by_name('tags').value
+        if tags:
+            store.set_tags(tags)
     store.close()
 
 
