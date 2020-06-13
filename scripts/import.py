@@ -17,7 +17,7 @@ import os
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 3
+TOPIC_MAP_IDENTIFIER = 10
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
@@ -73,10 +73,13 @@ def create_tree():
         if len(topic_data) == 1:  # Only identifier provided
             topic_name = normalize_topic_name(topic_identifier)
         elif len(topic_data) == 2:  # Both identifier and name is provided
-            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
+            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(
+                topic_identifier)
         else:  # Identifier, name and type (instance of) is provided
-            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(topic_identifier)
-            topic_instance_of = slugify(str(topic_data[2])) if topic_data[2] else 'topic'
+            topic_name = topic_data[1] if topic_data[1] else normalize_topic_name(
+                topic_identifier)
+            topic_instance_of = slugify(
+                str(topic_data[2])) if topic_data[2] else 'topic'
         topic = Topic(topic_identifier, topic_instance_of, topic_name)
         stack[index] = topic_identifier
         if index == 0:  # Root node
@@ -87,10 +90,9 @@ def create_tree():
                           node_type='identifier', edge_type='relationship', payload=topic)
 
 
-def store_topic(store, topic_map_identifier, identifier, instance_of, name):
+def store_topic(store, topic_map_identifier, topic):
     store.open()
-    if not topic_store.topic_exists(topic_map_identifier, identifier):
-        topic = Topic(identifier, instance_of, name)
+    if not topic_store.topic_exists(topic_map_identifier, topic.identifier):
         text_occurrence = Occurrence(
             instance_of="text",
             topic_identifier=topic.identifier,
@@ -109,10 +111,14 @@ def store_topic(store, topic_map_identifier, identifier, instance_of, name):
 
 def create_topics(store, topic_map_identifier):
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-        if not topic_store.topic_exists(topic_map_identifier, node.payload.instance_of):
-            store_topic(store, topic_map_identifier, node.payload.instance_of,
-                        'topic', normalize_topic_name(node.payload.instance_of))
-        store_topic(store, topic_map_identifier, node)
+
+        # Create the 'instance_of' topic if it doesn't already exist
+        instance_of_topic = Topic(
+            node.payload.instance_of, 'topic', normalize_topic_name(node.payload.instance_of))
+        store_topic(store, topic_map_identifier, instance_of_topic)
+
+        # Create the actual node topic
+        store_topic(store, topic_map_identifier, node.payload)
 
 
 def store_association(store, topic_map_identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, instance_of="navigation"):
@@ -132,7 +138,6 @@ def store_association(store, topic_map_identifier, src_topic_ref, src_role_spec,
 
 def create_associations(store, topic_map_identifier):
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-        navigation = None
         if node.parent:
             siblings = tree.get_siblings(node.identifier)
             index = sibling_index(siblings, node.identifier)
@@ -171,14 +176,15 @@ if __name__ == "__main__":
     print("-"*80)
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         print(f"{node.payload.identifier} - {node.payload.instance_of} - {node.payload.first_base_name.name}")
-    # print("Creating topics...")
-    # store_topics(topic_store, TOPIC_MAP_IDENTIFIER)
-    # print("Topics created!")
-    # print("-"*80)
-    # print("Creating associations...")
-    # create_associations(topic_store, TOPIC_MAP_IDENTIFIER)
-    # print("Associations created!")
-    # print("-"*80)
-    # with topic_store:
-    #     test_tree = topic_store.get_topics_network(TOPIC_MAP_IDENTIFIER, ROOT_TOPIC, instance_ofs=['association'])
-    #     test_tree.display(ROOT_TOPIC)
+    print("Creating topics...")
+    create_topics(topic_store, TOPIC_MAP_IDENTIFIER)
+    print("Topics created!")
+    print("-"*80)
+    print("Creating associations...")
+    create_associations(topic_store, TOPIC_MAP_IDENTIFIER)
+    print("Associations created!")
+    print("-"*80)
+    with topic_store:
+        test_tree = topic_store.get_topics_network(
+            TOPIC_MAP_IDENTIFIER, ROOT_TOPIC, instance_ofs=['association'])
+        test_tree.display(ROOT_TOPIC)
