@@ -17,7 +17,7 @@ import os
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 10
+TOPIC_MAP_IDENTIFIER = 19
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
@@ -69,6 +69,7 @@ def create_tree():
     topics_file = open(abs_file_path, "r")
     stack = {}
     for line in topics_file:
+        normalized_tags = None
         index = int(line.count(SPACE) / SPACES_PER_TAB)
         topic_data = line.strip().split(";")
         if len(topic_data) < 1 or len(topic_data) > 4:
@@ -87,10 +88,16 @@ def create_tree():
                 str(topic_data[INSTANCE_OF])) if topic_data[INSTANCE_OF] else 'topic'
         # All parameters have been provided: identifier, name, type and one or more (comma-separated) tags
         else:
+            topic_name = topic_data[NAME] if topic_data[NAME] else normalize_topic_name(
+                topic_identifier)
+            topic_instance_of = slugify(
+                str(topic_data[INSTANCE_OF])) if topic_data[INSTANCE_OF] else 'topic'
             normalized_tags = ",".join(
                 [slugify(str(tag)) for tag in topic_data[TAGS].split(",")])
         topic = Topic(topic_identifier, topic_instance_of, topic_name)
-        tags_attribute = Attribute('tags', normalized_tags, topic.identifier, data_type=DataType.STRING)
+        if normalized_tags:
+            tags_attribute = Attribute('tags', normalized_tags, topic.identifier, data_type=DataType.STRING)
+            topic.add_attribute(tags_attribute)
         stack[index] = topic_identifier
         if index == 0:  # Root node
             tree.add_node(topic_identifier, node_type='identifier',
@@ -117,9 +124,10 @@ def store_topic(store, topic_map_identifier, topic):
         store.set_occurrence(topic_map_identifier, text_occurrence)
         store.set_attribute(topic_map_identifier, modification_attribute)
         # Persist tags, if any
-        tags = topic.get_attribute_by_name('tags').value
-        if tags:
-            store.set_tags(tags)
+        tags_attribute = topic.get_attribute_by_name('tags')
+        if tags_attribute:
+            for tag in tags_attribute.value.split(","):
+                store.set_tag(topic_map_identifier, topic.identifier, tag)
     store.close()
 
 
