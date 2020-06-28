@@ -19,7 +19,9 @@ def profile(fn):
         print(f"Time spent: {elapsed:0.4}")
 
         # Measure memory
-        mem, return_value = memory_usage((fn, args, kwargs), retval=True, timeout=200, interval=1e-7)
+        mem, return_value = memory_usage(
+            (fn, args, kwargs), retval=True, timeout=200, interval=1e-7
+        )
 
         print(f"Memory used: {max(mem) - min(mem)}")
         return return_value

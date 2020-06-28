@@ -39,7 +39,12 @@ UNIVERSAL_SCOPE = "*"
 
 class TopicStore:
     def __init__(
-        self, username: str, password: str, host: str = "localhost", port: int = 5432, dbname: str = "storytech",
+        self,
+        username: str,
+        password: str,
+        host: str = "localhost",
+        port: int = 5432,
+        dbname: str = "storytech",
     ) -> None:
         self.username = username
         self.password = password
@@ -92,7 +97,11 @@ class TopicStore:
 
     def open(self) -> TopicStore:
         self.connection = psycopg2.connect(
-            dbname=self.dbname, user=self.username, password=self.password, host=self.host, port=self.port,
+            dbname=self.dbname,
+            user=self.username,
+            password=self.password,
+            host=self.host,
+            port=self.port,
         )
         return self
 
@@ -111,7 +120,9 @@ class TopicStore:
 
     def delete_association(self, map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             # Delete topic/association record
             cursor.execute(
                 "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
@@ -157,7 +168,9 @@ class TopicStore:
     ) -> Optional[Association]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
                 (map_identifier, identifier),
@@ -179,7 +192,11 @@ class TopicStore:
                             scope = %s AND
                             language = %s"""
                         bind_variables = (
-                            map_identifier, identifier, scope, language.name.lower())
+                            map_identifier,
+                            identifier,
+                            scope,
+                            language.name.lower(),
+                        )
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
@@ -195,7 +212,10 @@ class TopicStore:
                             topic_identifier = %s AND
                             language = %s"""
                         bind_variables = (
-                            map_identifier, identifier, language.name.lower())
+                            map_identifier,
+                            identifier,
+                            language.name.lower(),
+                        )
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
@@ -229,17 +249,20 @@ class TopicStore:
                         topic_ref_records = cursor.fetchall()
                         if topic_ref_records:
                             member = Member(
-                                role_spec=role_spec, identifier=member_record["identifier"],)
+                                role_spec=role_spec,
+                                identifier=member_record["identifier"],
+                            )
                             for topic_ref_record in topic_ref_records:
-                                member.add_topic_ref(
-                                    topic_ref_record["topic_ref"])
+                                member.add_topic_ref(topic_ref_record["topic_ref"])
                             result.add_member(member)
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(
-                        self.get_attributes(map_identifier, identifier))
+                        self.get_attributes(map_identifier, identifier)
+                    )
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(
-                        self.get_topic_occurrences(map_identifier, identifier))
+                        self.get_topic_occurrences(map_identifier, identifier)
+                    )
 
         return result
 
@@ -253,7 +276,8 @@ class TopicStore:
     ) -> DoubleKeyDict:
         if identifier == "" and associations is None:
             raise TopicDbError(
-                "At least one of the 'identifier' or 'associations' parameters is required")
+                "At least one of the 'identifier' or 'associations' parameters is required"
+            )
 
         result = DoubleKeyDict()
 
@@ -284,33 +308,44 @@ class TopicStore:
 
         for member in association.members:
             for topic_ref in member.topic_refs:
-                result.append(TopicRefs(association.instance_of,
-                                        member.role_spec, topic_ref))
+                result.append(
+                    TopicRefs(association.instance_of, member.role_spec, topic_ref)
+                )
         return result
 
     def get_associations(self):
         pass
 
     def set_association(
-        self, map_identifier: int, association: Association, taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        self,
+        map_identifier: int,
+        association: Association,
+        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
     ) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(
-                map_identifier, association.instance_of)
+                map_identifier, association.instance_of
+            )
             if not instance_of_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)",
-                (map_identifier, association.identifier,
-                 association.instance_of, association.scope,),
+                (
+                    map_identifier,
+                    association.identifier,
+                    association.instance_of,
+                    association.scope,
+                ),
             )
             for base_name in association.base_names:
                 cursor.execute(
@@ -327,8 +362,12 @@ class TopicStore:
             for member in association.members:
                 cursor.execute(
                     "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
-                    (map_identifier, member.identifier,
-                     member.role_spec, association.identifier,),
+                    (
+                        map_identifier,
+                        member.identifier,
+                        member.role_spec,
+                        association.identifier,
+                    ),
                 )
                 for topic_ref in member.topic_refs:
                     cursor.execute(
@@ -351,7 +390,9 @@ class TopicStore:
 
     # ========== ATTRIBUTE ==========
 
-    def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
+    def attribute_exists(
+        self, map_identifier: int, entity_identifier: str, name: str
+    ) -> bool:
         result = False
 
         with self.connection, self.connection.cursor() as cursor:
@@ -378,10 +419,14 @@ class TopicStore:
                 (map_identifier, entity_identifier),
             )
 
-    def get_attribute(self, map_identifier: int, identifier: str) -> Optional[Attribute]:
+    def get_attribute(
+        self, map_identifier: int, identifier: str
+    ) -> Optional[Attribute]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
                 (map_identifier, identifier),
@@ -400,7 +445,11 @@ class TopicStore:
         return result
 
     def get_attributes(
-        self, map_identifier: int, entity_identifier: str, scope: str = None, language: Language = None,
+        self,
+        map_identifier: int,
+        entity_identifier: str,
+        scope: str = None,
+        language: Language = None,
     ) -> List[Attribute]:
         result = []
 
@@ -440,7 +489,9 @@ class TopicStore:
                     parent_identifier = %s"""
                 bind_variables = (map_identifier, entity_identifier)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
             for record in records:
@@ -457,17 +508,20 @@ class TopicStore:
         return result
 
     def set_attribute(
-        self, map_identifier: int, attribute: Attribute, taxonomy_mode: TaxonomyMode = TaxonomyMode.LENIENT,
+        self,
+        map_identifier: int,
+        attribute: Attribute,
+        taxonomy_mode: TaxonomyMode = TaxonomyMode.LENIENT,
     ) -> None:
         if attribute.entity_identifier == "":
-            raise TopicDbError(
-                "Attribute has an empty 'entity identifier' property")
+            raise TopicDbError("Attribute has an empty 'entity identifier' property")
 
         if taxonomy_mode is TaxonomyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -488,7 +542,9 @@ class TopicStore:
         for attribute in attributes:
             self.set_attribute(map_identifier, attribute)
 
-    def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
+    def update_attribute_value(
+        self, map_identifier: int, identifier: str, value: str
+    ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "UPDATE topicdb.attribute SET value = %s WHERE topicmap_identifier = %s AND identifier = %s",
@@ -507,7 +563,9 @@ class TopicStore:
         self.delete_attributes(map_identifier, identifier)
 
     def delete_occurrences(self, map_identifier: int, topic_identifier: str) -> None:
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier = %s",
                 (map_identifier, topic_identifier),
@@ -526,7 +584,9 @@ class TopicStore:
     ) -> Optional[Occurrence]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
                 (map_identifier, identifier),
@@ -536,7 +596,8 @@ class TopicStore:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(
-                        map_identifier, identifier=identifier)
+                        map_identifier, identifier=identifier
+                    )
                 result = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -548,13 +609,18 @@ class TopicStore:
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(
-                        self.get_attributes(map_identifier, identifier))
+                        self.get_attributes(map_identifier, identifier)
+                    )
         return result
 
-    def get_occurrence_data(self, map_identifier: int, identifier: str) -> Optional[bytes]:
+    def get_occurrence_data(
+        self, map_identifier: int, identifier: str
+    ) -> Optional[bytes]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
                 (map_identifier, identifier),
@@ -586,7 +652,9 @@ class TopicStore:
         if instance_of:
             if scope:
                 if language:
-                    query_filter = " AND instance_of = %s AND scope = %s AND language = %s"
+                    query_filter = (
+                        " AND instance_of = %s AND scope = %s AND language = %s"
+                    )
                     bind_variables = (
                         map_identifier,
                         instance_of,
@@ -597,8 +665,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND instance_of = %s AND scope = %s"
-                    bind_variables = (
-                        map_identifier, instance_of, scope, limit, offset)
+                    bind_variables = (map_identifier, instance_of, scope, limit, offset)
             else:
                 if language:
                     query_filter = " AND instance_of = %s AND language = %s"
@@ -611,8 +678,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND instance_of = %s"
-                    bind_variables = (
-                        map_identifier, instance_of, limit, offset)
+                    bind_variables = (map_identifier, instance_of, limit, offset)
         else:
             if scope:
                 if language:
@@ -640,14 +706,17 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, limit, offset)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(
-                        map_identifier, identifier=record["identifier"])
+                        map_identifier, identifier=record["identifier"]
+                    )
                 occurrence = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -658,8 +727,9 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(
-                        map_identifier, occurrence.identifier))
+                    occurrence.add_attributes(
+                        self.get_attributes(map_identifier, occurrence.identifier)
+                    )
                 result.append(occurrence)
         return result
 
@@ -677,23 +747,28 @@ class TopicStore:
         return result
 
     def set_occurrence(
-        self, map_identifier: int, occurrence: Occurrence, taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        self,
+        map_identifier: int,
+        occurrence: Occurrence,
+        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
     ) -> None:
         if occurrence.topic_identifier == "":
-            raise TopicDbError(
-                "Occurrence has an empty 'topic identifier' property")
+            raise TopicDbError("Occurrence has an empty 'topic identifier' property")
 
         if taxonomy_mode is TaxonomyMode.STRICT:
             instance_of_exists = self.topic_exists(
-                map_identifier, occurrence.instance_of)
+                map_identifier, occurrence.instance_of
+            )
             if not instance_of_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         with self.connection, self.connection.cursor() as cursor:
             resource_data = None
@@ -729,9 +804,14 @@ class TopicStore:
             occurrence.add_attribute(timestamp_attribute)
         self.set_attributes(map_identifier, occurrence.attributes)
 
-    def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]) -> None:
-        resource_data = resource_data if isinstance(
-            resource_data, bytes) else bytes(resource_data, encoding="utf-8")
+    def update_occurrence_data(
+        self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]
+    ) -> None:
+        resource_data = (
+            resource_data
+            if isinstance(resource_data, bytes)
+            else bytes(resource_data, encoding="utf-8")
+        )
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -739,14 +819,18 @@ class TopicStore:
                 (psycopg2.Binary(resource_data), map_identifier, identifier),
             )
 
-    def update_occurrence_scope(self, map_identifier: int, identifier: str, scope: str) -> None:
+    def update_occurrence_scope(
+        self, map_identifier: int, identifier: str, scope: str
+    ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "UPDATE topicdb.occurrence SET scope = %s WHERE topicmap_identifier = %s AND identifier = %s",
                 (scope, map_identifier, identifier),
             )
 
-    def update_occurrence_topic_identifier(self, map_identifier: int, identifier: str, topic_identifier: str) -> None:
+    def update_occurrence_topic_identifier(
+        self, map_identifier: int, identifier: str, topic_identifier: str
+    ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "UPDATE topicdb.occurrence SET topic_identifier = %s WHERE topicmap_identifier = %s AND identifier = %s",
@@ -761,7 +845,8 @@ class TopicStore:
         associations = self.get_topic_associations(map_identifier, identifier)
         if associations:
             groups = self.get_association_groups(
-                map_identifier, associations=associations)
+                map_identifier, associations=associations
+            )
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
@@ -774,13 +859,19 @@ class TopicStore:
     def set_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
         if not self.topic_exists(map_identifier, identifier):
             identifier_topic = Topic(
-                identifier=identifier, name=self._normalize_topic_name(identifier), instance_of="tag",)
+                identifier=identifier,
+                name=self._normalize_topic_name(identifier),
+                instance_of="tag",
+            )
             self.set_topic(map_identifier, identifier_topic)
 
         tag_identifier = f"{tag}-tag"
         if not self.topic_exists(map_identifier, tag_identifier):
             tag_topic = Topic(
-                identifier=tag_identifier, name=self._normalize_topic_name(tag), instance_of="tag")
+                identifier=tag_identifier,
+                name=self._normalize_topic_name(tag),
+                instance_of="tag",
+            )
             self.set_topic(map_identifier, tag_topic)
 
         tag_association1 = Association(
@@ -808,19 +899,20 @@ class TopicStore:
 
     @staticmethod
     def _normalize_topic_name(topic_identifier):
-        return " ".join([
-            word.capitalize()
-            for word in topic_identifier.split("-")
-        ])
+        return " ".join([word.capitalize() for word in topic_identifier.split("-")])
 
     def delete_topic(
-        self, map_identifier: int, identifier: str, taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        self,
+        map_identifier: int,
+        identifier: str,
+        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
     ) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
             for item in self.base_topics:
                 if item[TopicField.IDENTIFIER.value] == identifier:
                     raise TopicDbError(
-                        "Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
+                        "Taxonomy 'STRICT' mode violation: attempt to delete a base topic"
+                    )
 
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
         identifier IN
@@ -832,9 +924,12 @@ class TopicStore:
                 topic_ref = %s))"""
 
         # Delete associations
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, (map_identifier, map_identifier,
-                                 map_identifier, identifier))
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
+            cursor.execute(
+                sql, (map_identifier, map_identifier, map_identifier, identifier)
+            )
             records = cursor.fetchall()
             for record in records:
                 self.delete_association(map_identifier, record["identifier"])
@@ -853,22 +948,27 @@ class TopicStore:
             )
 
     def get_related_topics(
-        self, map_identifier: int, identifier: str, instance_ofs: Optional[List[str]] = None, scope: str = None,
+        self,
+        map_identifier: int,
+        identifier: str,
+        instance_ofs: Optional[List[str]] = None,
+        scope: str = None,
     ) -> List[Optional[Topic]]:
         result = []
 
         associations = self.get_topic_associations(
-            map_identifier, identifier, instance_ofs=instance_ofs, scope=scope)
+            map_identifier, identifier, instance_ofs=instance_ofs, scope=scope
+        )
         if associations:
             groups = self.get_association_groups(
-                map_identifier, associations=associations)
+                map_identifier, associations=associations
+            )
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
                         if topic_ref == identifier:
                             continue
-                        result.append(self.get_topic(
-                            map_identifier, topic_ref))
+                        result.append(self.get_topic(map_identifier, topic_ref))
         return result
 
     def get_topic(
@@ -882,15 +982,16 @@ class TopicStore:
     ) -> Optional[Topic]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NULL",
                 (map_identifier, identifier),
             )
             topic_record = cursor.fetchone()
             if topic_record:
-                result = Topic(
-                    topic_record["identifier"], topic_record["instance_of"])
+                result = Topic(topic_record["identifier"], topic_record["instance_of"])
                 result.clear_base_names()
                 if scope:
                     if language:
@@ -901,7 +1002,11 @@ class TopicStore:
                             scope = %s AND
                             language = %s"""
                         bind_variables = (
-                            map_identifier, identifier, scope, language.name.lower())
+                            map_identifier,
+                            identifier,
+                            scope,
+                            language.name.lower(),
+                        )
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
@@ -917,7 +1022,10 @@ class TopicStore:
                             topic_identifier = %s AND
                             language = %s"""
                         bind_variables = (
-                            map_identifier, identifier, language.name.lower())
+                            map_identifier,
+                            identifier,
+                            language.name.lower(),
+                        )
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM topicdb.basename
@@ -938,10 +1046,12 @@ class TopicStore:
                         )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(
-                        self.get_attributes(map_identifier, identifier))
+                        self.get_attributes(map_identifier, identifier)
+                    )
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(
-                        self.get_topic_occurrences(map_identifier, identifier))
+                        self.get_topic_occurrences(map_identifier, identifier)
+                    )
 
         return result
 
@@ -974,13 +1084,17 @@ class TopicStore:
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = %s "
                 bind_variables = (
-                    (map_identifier,) + tuple(instance_ofs) +
-                    (scope, map_identifier, map_identifier, identifier)
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (scope, map_identifier, map_identifier, identifier)
                 )
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + \
-                    (map_identifier, map_identifier, identifier)
+                bind_variables = (
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (map_identifier, map_identifier, identifier)
+                )
         else:
             if scope:
                 query_filter = " AND scope = %s"
@@ -1000,7 +1114,9 @@ class TopicStore:
                     identifier,
                 )
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
@@ -1030,8 +1146,11 @@ class TopicStore:
         if accumulative_tree is None:
             tree = Tree()
             root_topic = self.get_topic(map_identifier, identifier)
-            tree.add_node(identifier, node_type=root_topic.instance_of, payload={
-                          "level": cumulative_depth, "topic": root_topic})
+            tree.add_node(
+                identifier,
+                node_type=root_topic.instance_of,
+                payload={"level": cumulative_depth, "topic": root_topic},
+            )
         else:
             tree = accumulative_tree
 
@@ -1055,8 +1174,7 @@ class TopicStore:
                             parent_pointer=identifier,
                             node_type=topic.instance_of,
                             edge_type=association.instance_of,
-                            payload={"level": cumulative_depth,
-                                     "topic": topic},
+                            payload={"level": cumulative_depth, "topic": topic},
                         )
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)
@@ -1102,13 +1220,16 @@ class TopicStore:
                 else:
                     instance_of_in_condition += "%s) "
             query_filter = instance_of_in_condition
-            bind_variables = (map_identifier, query_string) + \
-                tuple(instance_ofs) + (limit, offset)
+            bind_variables = (
+                (map_identifier, query_string) + tuple(instance_ofs) + (limit, offset)
+            )
         else:
             query_filter = ""
             bind_variables = (map_identifier, query_string, limit, offset)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
@@ -1128,9 +1249,10 @@ class TopicStore:
             ORDER BY topicdb.basename.name
             LIMIT %s OFFSET %s"""
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                sql, (map_identifier, map_identifier, limit, offset))
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
+            cursor.execute(sql, (map_identifier, map_identifier, limit, offset))
             records = cursor.fetchall()
             for record in records:
                 result.append((record["name"], record["identifier"]))
@@ -1155,7 +1277,9 @@ class TopicStore:
         if instance_of:
             if scope:
                 if language:
-                    query_filter = " AND instance_of = %s AND scope = %s AND language = %s"
+                    query_filter = (
+                        " AND instance_of = %s AND scope = %s AND language = %s"
+                    )
                     bind_variables = (
                         map_identifier,
                         identifier,
@@ -1165,8 +1289,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND instance_of = %s AND scope = %s"
-                    bind_variables = (
-                        map_identifier, identifier, instance_of, scope)
+                    bind_variables = (map_identifier, identifier, instance_of, scope)
             else:
                 if language:
                     query_filter = " AND instance_of = %s AND language = %s"
@@ -1195,20 +1318,22 @@ class TopicStore:
             else:
                 if language:
                     query_filter = " AND language = %s"
-                    bind_variables = (
-                        map_identifier, identifier, language.name.lower())
+                    bind_variables = (map_identifier, identifier, language.name.lower())
                 else:
                     query_filter = ""
                     bind_variables = (map_identifier, identifier)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
                     resource_data = self.get_occurrence_data(
-                        map_identifier, record["identifier"])
+                        map_identifier, record["identifier"]
+                    )
                 occurrence = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -1219,8 +1344,9 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(
-                        map_identifier, occurrence.identifier))
+                    occurrence.add_attributes(
+                        self.get_attributes(map_identifier, occurrence.identifier)
+                    )
                 result.append(occurrence)
 
         return result
@@ -1252,13 +1378,18 @@ class TopicStore:
                 LIMIT %s OFFSET %s"""
             bind_variables = (map_identifier, limit, offset)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql, bind_variables)
             records = cursor.fetchall()
             for record in records:
                 result.append(
                     self.get_topic(
-                        map_identifier, record["identifier"], language=language, resolve_attributes=resolve_attributes,
+                        map_identifier,
+                        record["identifier"],
+                        language=language,
+                        resolve_attributes=resolve_attributes,
                     )
                 )
         return result
@@ -1313,8 +1444,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND topicdb.topic.instance_of = %s"
-                    bind_variables = (
-                        map_identifier, map_identifier, name, instance_of)
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)
         else:
             if scope:
                 if language:
@@ -1328,8 +1458,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND topicdb.attribute.scope = %s"
-                    bind_variables = (
-                        map_identifier, map_identifier, name, scope)
+                    bind_variables = (map_identifier, map_identifier, name, scope)
             else:
                 if language:
                     query_filter = " AND topicdb.attribute.language = %s"
@@ -1343,7 +1472,9 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, map_identifier, name)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
@@ -1401,8 +1532,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND topicdb.topic.instance_of = %s"
-                    bind_variables = (
-                        map_identifier, map_identifier, name, instance_of)
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)
         else:
             if scope:
                 if language:
@@ -1416,8 +1546,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND topicdb.attribute.scope = %s"
-                    bind_variables = (
-                        map_identifier, map_identifier, name, scope)
+                    bind_variables = (map_identifier, map_identifier, name, scope)
             else:
                 if language:
                     query_filter = " AND topicdb.attribute.language = %s"
@@ -1431,24 +1560,34 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, map_identifier, name)
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql.format(query_filter), bind_variables)
             records = cursor.fetchall()
             for record in records:
                 result.append(
                     self.get_topic(
-                        map_identifier, record["identifier"], language=language, resolve_attributes=resolve_attributes,
+                        map_identifier,
+                        record["identifier"],
+                        language=language,
+                        resolve_attributes=resolve_attributes,
                     )
                 )
         return result
 
-    def set_topic(self, map_identifier: int, topic: Topic, taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,) -> None:
+    def set_topic(
+        self,
+        map_identifier: int,
+        topic: Topic,
+        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+    ) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
-            instance_of_exists = self.topic_exists(
-                map_identifier, topic.instance_of)
+            instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
                 raise TopicDbError(
-                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                    "Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -1480,14 +1619,18 @@ class TopicStore:
             topic.add_attribute(timestamp_attribute)
         self.set_attributes(map_identifier, topic.attributes)
 
-    def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
+    def update_topic_instance_of(
+        self, map_identifier: int, identifier: str, instance_of: str
+    ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
                 (instance_of, map_identifier, identifier),
             )
 
-    def set_basename(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
+    def set_basename(
+        self, map_identifier: int, identifier: str, base_name: BaseName
+    ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
@@ -1502,7 +1645,12 @@ class TopicStore:
             )
 
     def update_basename(
-        self, map_identifier: int, identifier: str, name: str, scope: str, language: Language = Language.ENG,
+        self,
+        map_identifier: int,
+        identifier: str,
+        name: str,
+        scope: str,
+        language: Language = Language.ENG,
     ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -1541,37 +1689,41 @@ class TopicStore:
             record = cursor.fetchone()
             if record:
                 cursor.execute(
-                    "DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.topicmap WHERE identifier = %s", (map_identifier,))
-                cursor.execute(
-                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.topicmap WHERE identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
                 cursor.execute(
-                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s", (
-                        map_identifier,),
+                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s",
+                    (map_identifier,),
+                )
+                cursor.execute(
+                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s",
+                    (map_identifier,),
                 )
 
-    def get_topic_map(self, map_identifier: int, user_identifier: int = None) -> Optional[TopicMap]:
+    def get_topic_map(
+        self, map_identifier: int, user_identifier: int = None
+    ) -> Optional[TopicMap]:
         result = None
         if user_identifier:
             sql = """SELECT
@@ -1590,7 +1742,9 @@ class TopicStore:
                 WHERE topicdb.user_topicmap.user_identifier = %s
                 AND topicdb.topicmap.identifier = %s"""
 
-            with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            with self.connection, self.connection.cursor(
+                cursor_factory=psycopg2.extras.DictCursor
+            ) as cursor:
                 cursor.execute(sql, (user_identifier, map_identifier))
                 record = cursor.fetchone()
                 if record:
@@ -1604,14 +1758,17 @@ class TopicStore:
                         published=record["published"],
                         promoted=record["promoted"],
                         owner=record["owner"],
-                        collaboration_mode=CollaborationMode[record["collaboration_mode"].upper(
-                        )],
+                        collaboration_mode=CollaborationMode[
+                            record["collaboration_mode"].upper()
+                        ],
                     )
         else:
-            with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            with self.connection, self.connection.cursor(
+                cursor_factory=psycopg2.extras.DictCursor
+            ) as cursor:
                 cursor.execute(
-                    "SELECT * FROM topicdb.topicmap WHERE identifier = %s", (
-                        map_identifier,),
+                    "SELECT * FROM topicdb.topicmap WHERE identifier = %s",
+                    (map_identifier,),
                 )
                 record = cursor.fetchone()
                 if record:
@@ -1648,7 +1805,9 @@ class TopicStore:
             WHERE topicdb.user_topicmap.user_identifier = %s
             ORDER BY topicmap_identifier"""
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(sql, (user_identifier,))
             records = cursor.fetchall()
             for record in records:
@@ -1662,8 +1821,9 @@ class TopicStore:
                     published=record["published"],
                     promoted=record["promoted"],
                     owner=record["owner"],
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper(
-                    )],
+                    collaboration_mode=CollaborationMode[
+                        record["collaboration_mode"].upper()
+                    ],
                 )
                 result.append(topic_map)
         return result
@@ -1671,9 +1831,12 @@ class TopicStore:
     def get_published_topic_maps(self) -> List[TopicMap]:
         result = []
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
-                "SELECT * FROM topicdb.topicmap WHERE published = TRUE ORDER BY identifier")
+                "SELECT * FROM topicdb.topicmap WHERE published = TRUE ORDER BY identifier"
+            )
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -1694,9 +1857,12 @@ class TopicStore:
     def get_promoted_topic_maps(self) -> List[TopicMap]:
         result = []
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
-                "SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
+                "SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier"
+            )
             records = cursor.fetchall()
             for record in records:
                 topic_map = TopicMap(
@@ -1732,8 +1898,7 @@ class TopicStore:
             result = cursor.fetchone()[0]
             cursor.execute(
                 "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, '', %s, %s)",
-                (user_identifier, result, True,
-                 CollaborationMode.EDIT.name.lower()),
+                (user_identifier, result, True, CollaborationMode.EDIT.name.lower()),
             )
         return result
 
@@ -1750,8 +1915,15 @@ class TopicStore:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, published = %s, promoted = %s WHERE identifier = %s",
-                (name, description, image_path, initialised,
-                 published, promoted, map_identifier,),
+                (
+                    name,
+                    description,
+                    image_path,
+                    initialised,
+                    published,
+                    promoted,
+                    map_identifier,
+                ),
             )
 
     def is_topic_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
@@ -1777,8 +1949,13 @@ class TopicStore:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, %s, %s, %s)",
-                (user_identifier, map_identifier, user_name,
-                 False, collaboration_mode.name.lower()),
+                (
+                    user_identifier,
+                    map_identifier,
+                    user_name,
+                    False,
+                    collaboration_mode.name.lower(),
+                ),
             )
 
     def stop_collaboration(self, map_identifier: int, user_identifier: int) -> None:
@@ -1788,22 +1965,28 @@ class TopicStore:
                 (user_identifier, map_identifier,),
             )
 
-    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
+    def get_collaboration_mode(
+        self, map_identifier: int, user_identifier: int
+    ) -> Optional[CollaborationMode]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT collaboration_mode FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
                 (user_identifier, map_identifier),
             )
             record = cursor.fetchone()
             if record:
-                result = CollaborationMode[record["collaboration_mode"].upper(
-                )]
+                result = CollaborationMode[record["collaboration_mode"].upper()]
         return result
 
     def update_collaboration_mode(
-        self, map_identifier: int, user_identifier: int, collaboration_mode: CollaborationMode
+        self,
+        map_identifier: int,
+        user_identifier: int,
+        collaboration_mode: CollaborationMode,
     ) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
@@ -1814,7 +1997,9 @@ class TopicStore:
     def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
         result = []
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT * FROM topicdb.user_topicmap WHERE topicmap_identifier = %s AND owner IS FALSE ORDER BY user_identifier",
                 (map_identifier,),
@@ -1830,10 +2015,14 @@ class TopicStore:
                 result.append(collaborator)
         return result
 
-    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
+    def get_collaborator(
+        self, map_identifier: int, user_identifier: int
+    ) -> Optional[Collaborator]:
         result = None
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             cursor.execute(
                 "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
                 (user_identifier, map_identifier),
@@ -1852,21 +2041,29 @@ class TopicStore:
     def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
         topic_map = self.get_topic_map(map_identifier, user_identifier)
 
-        if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, "home"):
+        if (
+            topic_map
+            and not topic_map.initialised
+            and not self.topic_exists(map_identifier, "home")
+        ):
             for item in self.base_topics:
                 topic = Topic(
-                    identifier=item[TopicField.IDENTIFIER.value], name=item[TopicField.BASE_NAME.value],)
+                    identifier=item[TopicField.IDENTIFIER.value],
+                    name=item[TopicField.BASE_NAME.value],
+                )
                 self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
 
             with self.connection, self.connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s", (
-                        map_identifier,),
+                    "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s",
+                    (map_identifier,),
                 )
 
     # ========== STATISTICS ==========
 
-    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
+    def get_topic_occurrences_statistics(
+        self, map_identifier: int, identifier: str, scope: str = None
+    ) -> Dict:
         result = {
             "image": 0,
             "3d-scene": 0,
@@ -1878,7 +2075,9 @@ class TopicStore:
             "text": 0,
         }
 
-        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self.connection, self.connection.cursor(
+            cursor_factory=psycopg2.extras.DictCursor
+        ) as cursor:
             if scope:
                 cursor.execute(
                     "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of, scope HAVING topicmap_identifier = %s AND topic_identifier = %s AND scope = %s",

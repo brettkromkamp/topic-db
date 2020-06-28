@@ -16,9 +16,15 @@ UNIVERSAL_SCOPE = "*"
 
 class BaseName:
     def __init__(
-        self, name: str, scope: str = UNIVERSAL_SCOPE, language: Language = Language.ENG, identifier: str = "",
+        self,
+        name: str,
+        scope: str = UNIVERSAL_SCOPE,
+        language: Language = Language.ENG,
+        identifier: str = "",
     ) -> None:
-        self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
+        self.__identifier = (
+            str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
+        )
 
         self.name = name
         self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))

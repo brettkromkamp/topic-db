@@ -56,7 +56,9 @@ class Entity:
         self.__attributes = [*self.__attributes, *attributes]
 
     def remove_attribute(self, identifier: str) -> None:
-        self.__attributes[:] = [x for x in self.__attributes if x.identifier != identifier]
+        self.__attributes[:] = [
+            x for x in self.__attributes if x.identifier != identifier
+        ]
 
     def get_attribute(self, identifier: str) -> Optional[Attribute]:
         result = None
