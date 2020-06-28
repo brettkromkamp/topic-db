@@ -30,7 +30,7 @@ setup(
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,
-    install_requires=["psycopg2", "memory-profiler", "python-slugify", "pytest", "mypy", "typed-tree"],
+    install_requires=["psycopg2", "memory-profiler", "python-slugify", "pytest", "mypy", "typed-tree",],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

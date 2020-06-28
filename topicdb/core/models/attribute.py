@@ -28,13 +28,9 @@ class Attribute:
         language: Language = Language.ENG,
     ) -> None:
         self.__entity_identifier = (
-            entity_identifier
-            if entity_identifier == UNIVERSAL_SCOPE
-            else slugify(str(entity_identifier))
+            entity_identifier if entity_identifier == UNIVERSAL_SCOPE else slugify(str(entity_identifier))
         )
-        self.__identifier = (
-            str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
-        )
+        self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
         self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(scope)
 
         self.name = name
@@ -61,9 +57,7 @@ class Attribute:
     def entity_identifier(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__entity_identifier = (
-            value if value == UNIVERSAL_SCOPE else slugify(str(value))
-        )
+        self.__entity_identifier = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
     def identifier(self) -> str:

@@ -65,9 +65,7 @@ class Topic(Entity):
         self.__base_names = [*self.__base_names, *base_names]
 
     def remove_base_name(self, identifier: str) -> None:
-        self.__base_names[:] = [
-            x for x in self.__base_names if x.identifier != identifier
-        ]
+        self.__base_names[:] = [x for x in self.__base_names if x.identifier != identifier]
 
     def clear_base_names(self) -> None:
         del self.__base_names[:]
@@ -82,9 +80,7 @@ class Topic(Entity):
             self.__occurrences.append(occurrence)
 
     def remove_occurrence(self, identifier: str) -> None:
-        self.__occurrences[:] = [
-            x for x in self.__occurrences if x.identifier != identifier
-        ]
+        self.__occurrences[:] = [x for x in self.__occurrences if x.identifier != identifier]
 
     def get_occurrence(self, identifier: str) -> Optional[Occurrence]:
         result = None
