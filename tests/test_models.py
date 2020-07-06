@@ -26,12 +26,7 @@ def test_init_topic1():
 
 
 def test_init_topic2():
-    topic2 = Topic(
-        identifier="test-topic2",
-        instance_of="test",
-        name="Test Topic 2",
-        language=Language.SPA,
-    )
+    topic2 = Topic(identifier="test-topic2", instance_of="test", name="Test Topic 2", language=Language.SPA,)
 
     assert topic2.identifier == "test-topic2"
     assert topic2.instance_of == "test"
@@ -87,10 +82,7 @@ def test_init_association1():
 
 def test_init_association2():
     association2 = Association(
-        instance_of="test",
-        scope="test-scope",
-        src_topic_ref="test-topic1",
-        dest_topic_ref="test-topic2",
+        instance_of="test", scope="test-scope", src_topic_ref="test-topic1", dest_topic_ref="test-topic2",
     )
 
     assert association2.instance_of == "test"
@@ -118,12 +110,7 @@ def test_init_attribute1():
 
 def test_init_attribute2():
     attribute2 = Attribute(
-        "name",
-        "true",
-        "test-entity1",
-        scope="test-scope",
-        data_type=DataType.BOOLEAN,
-        language=Language.FRA,
+        "name", "true", "test-entity1", scope="test-scope", data_type=DataType.BOOLEAN, language=Language.FRA,
     )
 
     assert attribute2.name == "name"
