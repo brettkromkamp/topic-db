@@ -1125,7 +1125,8 @@ class TopicStore:
             FROM topicdb.occurrence
             WHERE topicmap_identifier = %s AND
             topic_identifier = %s
-            {0}"""
+            {0}
+            ORDER BY instance_of, scope, language"""
         if instance_of:
             if scope:
                 if language:
