@@ -760,22 +760,21 @@ class TopicStore:
             )
             self.set_topic(map_identifier, identifier_topic)
 
-        tag_identifier = f"{tag}-tag"
-        if not self.topic_exists(map_identifier, tag_identifier):
-            tag_topic = Topic(identifier=tag_identifier, name=self._normalize_topic_name(tag), instance_of="tag",)
+        if not self.topic_exists(map_identifier, tag):
+            tag_topic = Topic(identifier=tag, name=self._normalize_topic_name(tag), instance_of="tag",)
             self.set_topic(map_identifier, tag_topic)
 
         tag_association1 = Association(
             instance_of="categorization",
             src_topic_ref=identifier,
-            dest_topic_ref=tag_identifier,
+            dest_topic_ref=tag,
             src_role_spec="member",
             dest_role_spec="category",
         )
         tag_association2 = Association(
             instance_of="categorization",
             src_topic_ref="tags",
-            dest_topic_ref=tag_identifier,
+            dest_topic_ref=tag,
             src_role_spec="broader",
             dest_role_spec="narrower",
         )

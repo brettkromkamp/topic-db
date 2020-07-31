@@ -17,7 +17,7 @@ import os
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 19
+TOPIC_MAP_IDENTIFIER = 24
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
@@ -119,7 +119,7 @@ def store_topic(store, topic_map_identifier, topic):
         )
         # Persist objects to the topic store
         store.set_topic(topic_map_identifier, topic)
-        store.set_occurrence(topic_map_identifier, text_occurrence)
+        # store.set_occurrence(topic_map_identifier, text_occurrence)  # Not sure if these topics should have auto-generated topic text
         store.set_attribute(topic_map_identifier, modification_attribute)
         # Persist tags, if any
         tags_attribute = topic.get_attribute_by_name("tags")
