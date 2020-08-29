@@ -92,7 +92,10 @@ def create_tree():
         stack[index] = topic_identifier
         if index == 0:  # Root node
             tree.add_node(
-                topic_identifier, node_type="identifier", edge_type="relationship", payload=topic,
+                topic_identifier,
+                node_type="identifier",
+                edge_type="relationship",
+                payload=topic,
             )
         else:
             tree.add_node(
@@ -115,7 +118,10 @@ def store_topic(store, topic_map_identifier, topic):
         )
         timestamp = str(datetime.now())
         modification_attribute = Attribute(
-            "modification-timestamp", timestamp, topic.identifier, data_type=DataType.TIMESTAMP,
+            "modification-timestamp",
+            timestamp,
+            topic.identifier,
+            data_type=DataType.TIMESTAMP,
         )
         # Persist objects to the topic store
         store.set_topic(topic_map_identifier, topic)
@@ -133,7 +139,11 @@ def create_topics(store, topic_map_identifier):
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
 
         # Create the 'instance_of' topic if it doesn't already exist
-        instance_of_topic = Topic(node.payload.instance_of, "topic", normalize_topic_name(node.payload.instance_of),)
+        instance_of_topic = Topic(
+            node.payload.instance_of,
+            "topic",
+            normalize_topic_name(node.payload.instance_of),
+        )
         store_topic(store, topic_map_identifier, instance_of_topic)
 
         # Create the actual node topic
@@ -141,7 +151,13 @@ def create_topics(store, topic_map_identifier):
 
 
 def store_association(
-    store, topic_map_identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, instance_of="navigation",
+    store,
+    topic_map_identifier,
+    src_topic_ref,
+    src_role_spec,
+    dest_topic_ref,
+    dest_role_spec,
+    instance_of="navigation",
 ):
     store.open()
     association = Association(
@@ -167,29 +183,59 @@ def create_associations(store, topic_map_identifier):
             previous_identifier = siblings[index - 1].identifier
             next_identifier = node.identifier
             store_association(
-                store, topic_map_identifier, down_identifier, "child", up_identifier, "parent", "association",
+                store,
+                topic_map_identifier,
+                down_identifier,
+                "child",
+                up_identifier,
+                "parent",
+                "association",
             )
             if index == 0:  # First sibling
                 store_association(
-                    store, topic_map_identifier, down_identifier, "down", up_identifier, "up",
+                    store,
+                    topic_map_identifier,
+                    down_identifier,
+                    "down",
+                    up_identifier,
+                    "up",
                 )
             elif index == len(siblings) - 1:  # Last sibling
                 store_association(
-                    store, topic_map_identifier, down_identifier, "topic", up_identifier, "up",
+                    store,
+                    topic_map_identifier,
+                    down_identifier,
+                    "topic",
+                    up_identifier,
+                    "up",
                 )
                 store_association(
-                    store, topic_map_identifier, previous_identifier, "previous", next_identifier, "next",
+                    store,
+                    topic_map_identifier,
+                    previous_identifier,
+                    "previous",
+                    next_identifier,
+                    "next",
                 )
             else:  # In-between siblings
                 store_association(
-                    store, topic_map_identifier, previous_identifier, "previous", next_identifier, "next",
+                    store,
+                    topic_map_identifier,
+                    previous_identifier,
+                    "previous",
+                    next_identifier,
+                    "next",
                 )
 
 
 # ================================================================================
 if __name__ == "__main__":
     topic_store = TopicStore(
-        database_username, database_password, host=database_host, port=database_port, dbname=database_name,
+        database_username,
+        database_password,
+        host=database_host,
+        port=database_port,
+        dbname=database_name,
     )
     tree = Tree()
     create_tree()
