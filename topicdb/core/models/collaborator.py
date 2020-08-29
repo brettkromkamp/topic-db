@@ -10,7 +10,11 @@ from topicdb.core.models.collaborationmode import CollaborationMode
 
 class Collaborator:
     def __init__(
-        self, map_identifier: int, user_identifier: int, user_name: str, collaboration_mode: CollaborationMode,
+        self,
+        map_identifier: int,
+        user_identifier: int,
+        user_name: str,
+        collaboration_mode: CollaborationMode,
     ):
         self.__map_identifier = map_identifier
         self.__user_identifier = user_identifier

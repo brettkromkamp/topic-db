@@ -19,9 +19,9 @@ with open(os.path.join(here, "HISTORY.rst"), encoding="utf-8") as f:
 setup(
     name="topic-db",
     version="1.0.0",  # Bump version NUMBER *after* starting (git flow) release.
-    description="TopicDB is a topic map-based graph library (using PostgreSQL for persistence).",
+    description="TopicDB is a topic map-based graph store (using PostgreSQL for persistence).",
     long_description=README + "\n\n" + HISTORY,
-    keywords="topic map, concept map, graph database, semantic, knowledge management, unstructured data",
+    keywords="topic map, concept map, graph database, graph store, semantic, knowledge management, unstructured data",
     url="https://github.com/brettkromkamp/topic-db",
     author="Brett Alistair Kromkamp",
     author_email="brett.kromkamp@gmail.com",
@@ -30,7 +30,14 @@ setup(
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,
-    install_requires=["psycopg2", "memory-profiler", "python-slugify", "pytest", "mypy", "typed-tree",],
+    install_requires=[
+        "psycopg2",
+        "memory-profiler",
+        "python-slugify",
+        "pytest",
+        "mypy",
+        "typed-tree",
+    ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

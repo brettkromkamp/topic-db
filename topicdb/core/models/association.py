@@ -60,7 +60,11 @@ class Association(Topic):
         self.add_member(member)
 
     def create_members(
-        self, src_topic_ref: str, dest_topic_ref: str, src_role_spec: str = "related", dest_role_spec: str = "related",
+        self,
+        src_topic_ref: str,
+        dest_topic_ref: str,
+        src_role_spec: str = "related",
+        dest_role_spec: str = "related",
     ) -> None:
         members = [
             Member(src_topic_ref, src_role_spec),
