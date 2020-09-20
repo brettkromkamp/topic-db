@@ -905,7 +905,7 @@ class TopicStore:
 
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute(
-                "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NULL",
+                "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
                 (map_identifier, identifier),
             )
             topic_record = cursor.fetchone()
