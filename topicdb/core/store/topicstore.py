@@ -121,7 +121,7 @@ class TopicStore:
     def delete_association(self, map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
         with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            # Delete topic/association record
+            # Delete association record
             cursor.execute(
                 "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
                 (map_identifier, identifier),
@@ -152,6 +152,9 @@ class TopicStore:
                         "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
                         (map_identifier, member_record["identifier"]),
                     )
+        # Delete occurrences
+        self.delete_occurrences(map_identifier, identifier)
+
         # Delete attributes
         self.delete_attributes(map_identifier, identifier)
 
@@ -842,6 +845,21 @@ class TopicStore:
             for item in self.base_topics:
                 if item[TopicField.IDENTIFIER.value] == identifier:
                     raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
+
+        # Is this actually an association?
+        #
+        # An association is also a topic. Nonetheless, an association is also more than a topic. From a technical
+        # point-of-view, an association has a more complex data structure and although you could delete an
+        # association just like you would do a topic, in doing so, remnants of the (more complex) association data
+        # structure would be left dangling. So, deleting an association has to be handled differently.
+        with self.connection, self.connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
+                (map_identifier, identifier),
+            )
+            topic_record = cursor.fetchone()
+            if topic_record:
+                raise TopicDbError("Attempt to delete an association as if it were a topic")
 
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
         identifier IN
@@ -1557,6 +1575,19 @@ class TopicStore:
             )
             record = cursor.fetchone()
             if record:
+                result = True
+        return result
+
+    def is_topic(self, map_identifier: int, identifier: str) -> bool:
+        result = False
+
+        with self.connection, self.connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                "SELECT identifier, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                (map_identifier, identifier),
+            )
+            record = cursor.fetchone()
+            if record and record["scope"] is not None:
                 result = True
         return result
 
