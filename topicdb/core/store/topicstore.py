@@ -1530,7 +1530,7 @@ class TopicStore:
                 (instance_of, map_identifier, identifier),
             )
 
-    def set_basename(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
+    def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
@@ -1544,7 +1544,7 @@ class TopicStore:
                 ),
             )
 
-    def update_basename(
+    def update_base_name(
         self,
         map_identifier: int,
         identifier: str,
@@ -1558,7 +1558,7 @@ class TopicStore:
                 (name, scope, language.name.lower(), map_identifier, identifier),
             )
 
-    def delete_basename(self, map_identifier: int, identifier: str) -> None:
+    def delete_base_name(self, map_identifier: int, identifier: str) -> None:
         with self.connection, self.connection.cursor() as cursor:
             cursor.execute(
                 "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND identifier = %s",
