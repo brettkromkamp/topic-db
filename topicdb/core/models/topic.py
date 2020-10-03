@@ -58,6 +58,14 @@ class Topic(Entity):
                 break
         return result
 
+    def get_base_name_by_scope(self, scope: str) -> Optional[BaseName]:
+        result = None
+        for base_name in self.__base_names:
+            if base_name.scope == scope:
+                result = base_name
+                break
+        return result
+
     def add_base_name(self, base_name: BaseName) -> None:
         self.__base_names.append(base_name)
 
