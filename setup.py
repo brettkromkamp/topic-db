@@ -31,12 +31,12 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        "psycopg2",
         "memory-profiler",
         "python-slugify",
         "pytest",
         "mypy",
         "typed-tree",
+        "psycopg2",
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
