@@ -56,8 +56,8 @@ class TopicStore:
         self.port = port
         self.dbname = dbname
 
-        # https://www.psycopg.org/docs/pool.html
-        self.pool = psycopg2.pool.SimpleConnectionPool(
+        #  https://www.psycopg.org/docs/pool.html
+        self.pool = psycopg2.pool.ThreadedConnectionPool(
             MIN_CONNECTIONS,
             MAX_CONNECTIONS,
             user=self.username,
@@ -126,40 +126,42 @@ class TopicStore:
 
     def delete_association(self, map_identifier: int, identifier: str) -> None:
         # http://initd.org/psycopg/docs/usage.html#with-statement
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            # Delete association record
-            cursor.execute(
-                "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
-                (map_identifier, identifier),
-            )
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                # Delete association record
+                cursor.execute(
+                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
+                    (map_identifier, identifier),
+                )
 
-            # Delete base name record(s)
-            cursor.execute(
-                "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s",
-                (map_identifier, identifier),
-            )
+                # Delete base name record(s)
+                cursor.execute(
+                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND topic_identifier = %s",
+                    (map_identifier, identifier),
+                )
 
-            # Get members
-            cursor.execute(
-                "SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
-                (map_identifier, identifier),
-            )
-            member_records = cursor.fetchall()
+                # Get members
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
+                    (map_identifier, identifier),
+                )
+                member_records = cursor.fetchall()
 
-            # Delete members
-            cursor.execute(
-                "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
-                (map_identifier, identifier),
-            )
-            if member_records:
-                for member_record in member_records:
-                    # Delete topic refs
-                    cursor.execute(
-                        "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                        (map_identifier, member_record["identifier"]),
-                    )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                # Delete members
+                cursor.execute(
+                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
+                    (map_identifier, identifier),
+                )
+                if member_records:
+                    for member_record in member_records:
+                        # Delete topic refs
+                        cursor.execute(
+                            "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
+                            (map_identifier, member_record["identifier"]),
+                        )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         # Delete occurrences
         self.delete_occurrences(map_identifier, identifier)
 
@@ -177,97 +179,99 @@ class TopicStore:
     ) -> Optional[Association]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
-                (map_identifier, identifier),
-            )
-            association_record = cursor.fetchone()
-            if association_record:
-                result = Association(
-                    identifier=association_record["identifier"],
-                    instance_of=association_record["instance_of"],
-                    scope=association_record["scope"],
-                )
-                result.clear_base_names()
-                if scope:
-                    if language:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            scope = %s AND
-                            language = %s"""
-                        bind_variables = (
-                            map_identifier,
-                            identifier,
-                            scope,
-                            language.name.lower(),
-                        )
-                    else:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            scope = %s"""
-                        bind_variables = (map_identifier, identifier, scope)
-                else:
-                    if language:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            language = %s"""
-                        bind_variables = (
-                            map_identifier,
-                            identifier,
-                            language.name.lower(),
-                        )
-                    else:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s"""
-                        bind_variables = (map_identifier, identifier)
-                cursor.execute(sql, bind_variables)
-                base_name_records = cursor.fetchall()
-                if base_name_records:
-                    for base_name_record in base_name_records:
-                        result.add_base_name(
-                            BaseName(
-                                base_name_record["name"],
-                                base_name_record["scope"],
-                                Language[base_name_record["language"].upper()],
-                                base_name_record["identifier"],
-                            )
-                        )
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 cursor.execute(
-                    "SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
+                    "SELECT identifier, instance_of, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
                     (map_identifier, identifier),
                 )
-                member_records = cursor.fetchall()
-                if member_records:
-                    for member_record in member_records:
-                        role_spec = member_record["role_spec"]
-                        cursor.execute(
-                            "SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                            (map_identifier, member_record["identifier"]),
-                        )
-                        topic_ref_records = cursor.fetchall()
-                        if topic_ref_records:
-                            member = Member(
-                                role_spec=role_spec,
-                                identifier=member_record["identifier"],
+                association_record = cursor.fetchone()
+                if association_record:
+                    result = Association(
+                        identifier=association_record["identifier"],
+                        instance_of=association_record["instance_of"],
+                        scope=association_record["scope"],
+                    )
+                    result.clear_base_names()
+                    if scope:
+                        if language:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                scope = %s AND
+                                language = %s"""
+                            bind_variables = (
+                                map_identifier,
+                                identifier,
+                                scope,
+                                language.name.lower(),
                             )
-                            for topic_ref_record in topic_ref_records:
-                                member.add_topic_ref(topic_ref_record["topic_ref"])
-                            result.add_member(member)
-                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
-                if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                        else:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                scope = %s"""
+                            bind_variables = (map_identifier, identifier, scope)
+                    else:
+                        if language:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                language = %s"""
+                            bind_variables = (
+                                map_identifier,
+                                identifier,
+                                language.name.lower(),
+                            )
+                        else:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s"""
+                            bind_variables = (map_identifier, identifier)
+                    cursor.execute(sql, bind_variables)
+                    base_name_records = cursor.fetchall()
+                    if base_name_records:
+                        for base_name_record in base_name_records:
+                            result.add_base_name(
+                                BaseName(
+                                    base_name_record["name"],
+                                    base_name_record["scope"],
+                                    Language[base_name_record["language"].upper()],
+                                    base_name_record["identifier"],
+                                )
+                            )
+                    cursor.execute(
+                        "SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
+                        (map_identifier, identifier),
+                    )
+                    member_records = cursor.fetchall()
+                    if member_records:
+                        for member_record in member_records:
+                            role_spec = member_record["role_spec"]
+                            cursor.execute(
+                                "SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
+                                (map_identifier, member_record["identifier"]),
+                            )
+                            topic_ref_records = cursor.fetchall()
+                            if topic_ref_records:
+                                member = Member(
+                                    role_spec=role_spec,
+                                    identifier=member_record["identifier"],
+                                )
+                                for topic_ref_record in topic_ref_records:
+                                    member.add_topic_ref(topic_ref_record["topic_ref"])
+                                result.add_member(member)
+                    if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                        result.add_attributes(self.get_attributes(map_identifier, identifier))
+                    if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
+                        result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_association_groups(
@@ -330,58 +334,59 @@ class TopicStore:
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
                 raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
-
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)",
-                (
-                    map_identifier,
-                    association.identifier,
-                    association.instance_of,
-                    association.scope,
-                ),
-            )
-            for base_name in association.base_names:
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)",
                     (
                         map_identifier,
-                        base_name.identifier,
-                        base_name.name,
                         association.identifier,
-                        base_name.scope,
-                        base_name.language.name.lower(),
+                        association.instance_of,
+                        association.scope,
                     ),
                 )
-            for member in association.members:
-                cursor.execute(
-                    "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
-                    (
-                        map_identifier,
-                        member.identifier,
-                        member.role_spec,
-                        association.identifier,
-                    ),
-                )
-                for topic_ref in member.topic_refs:
+                for base_name in association.base_names:
                     cursor.execute(
-                        "INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier) VALUES (%s, %s, %s)",
-                        (map_identifier, topic_ref, member.identifier),
+                        "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (
+                            map_identifier,
+                            base_name.identifier,
+                            base_name.name,
+                            association.identifier,
+                            base_name.scope,
+                            base_name.language.name.lower(),
+                        ),
                     )
+                for member in association.members:
+                    cursor.execute(
+                        "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
+                        (
+                            map_identifier,
+                            member.identifier,
+                            member.role_spec,
+                            association.identifier,
+                        ),
+                    )
+                    for topic_ref in member.topic_refs:
+                        cursor.execute(
+                            "INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier) VALUES (%s, %s, %s)",
+                            (map_identifier, topic_ref, member.identifier),
+                        )
 
-            if not association.get_attribute_by_name("creation-timestamp"):
-                timestamp = str(datetime.now())
-                timestamp_attribute = Attribute(
-                    "creation-timestamp",
-                    timestamp,
-                    association.identifier,
-                    data_type=DataType.TIMESTAMP,
-                    scope=UNIVERSAL_SCOPE,
-                    language=Language.ENG,
-                )
-                association.add_attribute(timestamp_attribute)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                if not association.get_attribute_by_name("creation-timestamp"):
+                    timestamp = str(datetime.now())
+                    timestamp_attribute = Attribute(
+                        "creation-timestamp",
+                        timestamp,
+                        association.identifier,
+                        data_type=DataType.TIMESTAMP,
+                        scope=UNIVERSAL_SCOPE,
+                        language=Language.ENG,
+                    )
+                    association.add_attribute(timestamp_attribute)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         self.set_attributes(map_identifier, association.attributes)
 
     # ========== ATTRIBUTE ==========
@@ -389,57 +394,65 @@ class TopicStore:
     def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
         result = False
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND name = %s",
-                (map_identifier, entity_identifier, name),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = True
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s AND name = %s",
+                    (map_identifier, entity_identifier, name),
+                )
+                record = cursor.fetchone()
+                if record:
+                    result = True
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def delete_attribute(self, map_identifier: int, identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def delete_attributes(self, map_identifier: int, entity_identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s",
-                (map_identifier, entity_identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s AND parent_identifier = %s",
+                    (map_identifier, entity_identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def get_attribute(self, map_identifier: int, identifier: str) -> Optional[Attribute]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = Attribute(
-                    record["name"],
-                    record["value"],
-                    record["parent_identifier"],
-                    record["identifier"],
-                    DataType[record["data_type"].upper()],
-                    record["scope"],
-                    Language[record["language"].upper()],
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT * FROM topicdb.attribute WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
                 )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                record = cursor.fetchone()
+                if record:
+                    result = Attribute(
+                        record["name"],
+                        record["value"],
+                        record["parent_identifier"],
+                        record["identifier"],
+                        DataType[record["data_type"].upper()],
+                        record["scope"],
+                        Language[record["language"].upper()],
+                    )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_attributes(
@@ -487,22 +500,24 @@ class TopicStore:
                     parent_identifier = %s"""
                 bind_variables = (map_identifier, entity_identifier)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                attribute = Attribute(
-                    record["name"],
-                    record["value"],
-                    record["parent_identifier"],
-                    record["identifier"],
-                    DataType[record["data_type"].upper()],
-                    record["scope"],
-                    Language[record["language"].upper()],
-                )
-                result.append(attribute)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    attribute = Attribute(
+                        record["name"],
+                        record["value"],
+                        record["parent_identifier"],
+                        record["identifier"],
+                        DataType[record["data_type"].upper()],
+                        record["scope"],
+                        Language[record["language"].upper()],
+                    )
+                    result.append(attribute)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def set_attribute(
@@ -519,58 +534,66 @@ class TopicStore:
             if not scope_exists:
                 raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.attribute (topicmap_identifier, identifier, parent_identifier, name, value, data_type, scope, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (
-                    map_identifier,
-                    attribute.identifier,
-                    attribute.entity_identifier,
-                    attribute.name,
-                    attribute.value,
-                    attribute.data_type.name.lower(),
-                    attribute.scope,
-                    attribute.language.name.lower(),
-                ),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO topicdb.attribute (topicmap_identifier, identifier, parent_identifier, name, value, data_type, scope, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (
+                        map_identifier,
+                        attribute.identifier,
+                        attribute.entity_identifier,
+                        attribute.name,
+                        attribute.value,
+                        attribute.data_type.name.lower(),
+                        attribute.scope,
+                        attribute.language.name.lower(),
+                    ),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def set_attributes(self, map_identifier: int, attributes: List[Attribute]) -> None:
         for attribute in attributes:
             self.set_attribute(map_identifier, attribute)
 
     def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.attribute SET value = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (value, map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.attribute SET value = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (value, map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     # ========== OCCURRENCE ==========
 
     def delete_occurrence(self, map_identifier: int, identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         # Delete attributes
         self.delete_attributes(map_identifier, identifier)
 
     def delete_occurrences(self, map_identifier: int, topic_identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier = %s",
-                (map_identifier, topic_identifier),
-            )
-            records = cursor.fetchall()
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND topic_identifier = %s",
+                    (map_identifier, topic_identifier),
+                )
+                records = cursor.fetchall()
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         # Delete attributes for all of the topic's occurrences
         for record in records:
             self.delete_occurrence(map_identifier, record["identifier"])
@@ -584,46 +607,50 @@ class TopicStore:
     ) -> Optional[Occurrence]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                resource_data = None
-                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, identifier=identifier)
-                result = Occurrence(
-                    record["identifier"],
-                    record["instance_of"],
-                    record["topic_identifier"],
-                    record["scope"],
-                    record["resource_ref"],
-                    resource_data,
-                    Language[record["language"].upper()],
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
                 )
-                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                record = cursor.fetchone()
+                if record:
+                    resource_data = None
+                    if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
+                        resource_data = self.get_occurrence_data(map_identifier, identifier=identifier)
+                    result = Occurrence(
+                        record["identifier"],
+                        record["instance_of"],
+                        record["topic_identifier"],
+                        record["scope"],
+                        record["resource_ref"],
+                        resource_data,
+                        Language[record["language"].upper()],
+                    )
+                    if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                        result.add_attributes(self.get_attributes(map_identifier, identifier))
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_occurrence_data(self, map_identifier: int, identifier: str) -> Optional[bytes]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                # BYTEA field is returned as a 'memoryview' and needs to be converted to bytes
-                if record["resource_data"] is not None:
-                    result = bytes(record["resource_data"])
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT resource_data FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    # BYTEA field is returned as a 'memoryview' and needs to be converted to bytes
+                    if record["resource_data"] is not None:
+                        result = bytes(record["resource_data"])
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_occurrences(
@@ -698,42 +725,46 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, limit, offset)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                resource_data = None
-                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, identifier=record["identifier"])
-                occurrence = Occurrence(
-                    record["identifier"],
-                    record["instance_of"],
-                    record["topic_identifier"],
-                    record["scope"],
-                    record["resource_ref"],
-                    resource_data,
-                    Language[record["language"].upper()],
-                )
-                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
-                result.append(occurrence)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    resource_data = None
+                    if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
+                        resource_data = self.get_occurrence_data(map_identifier, identifier=record["identifier"])
+                    occurrence = Occurrence(
+                        record["identifier"],
+                        record["instance_of"],
+                        record["topic_identifier"],
+                        record["scope"],
+                        record["resource_ref"],
+                        resource_data,
+                        Language[record["language"].upper()],
+                    )
+                    if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                        occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
+                    result.append(occurrence)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def occurrence_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = True
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.occurrence WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    result = True
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def set_occurrence(
@@ -754,70 +785,78 @@ class TopicStore:
             if not scope_exists:
                 raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            resource_data = None
-            if occurrence.resource_data is not None:
-                resource_data = (
-                    occurrence.resource_data
-                    if isinstance(occurrence.resource_data, bytes)
-                    else bytes(occurrence.resource_data, encoding="utf-8")
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                resource_data = None
+                if occurrence.resource_data is not None:
+                    resource_data = (
+                        occurrence.resource_data
+                        if isinstance(occurrence.resource_data, bytes)
+                        else bytes(occurrence.resource_data, encoding="utf-8")
+                    )
+                cursor.execute(
+                    "INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    (
+                        map_identifier,
+                        occurrence.identifier,
+                        occurrence.instance_of,
+                        occurrence.scope,
+                        occurrence.resource_ref,
+                        psycopg2.Binary(resource_data),
+                        occurrence.topic_identifier,
+                        occurrence.language.name.lower(),
+                    ),
                 )
-            cursor.execute(
-                "INSERT INTO topicdb.occurrence (topicmap_identifier, identifier, instance_of, scope, resource_ref, resource_data, topic_identifier, language) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                (
-                    map_identifier,
+            if not occurrence.get_attribute_by_name("creation-timestamp"):
+                timestamp = str(datetime.now())
+                timestamp_attribute = Attribute(
+                    "creation-timestamp",
+                    timestamp,
                     occurrence.identifier,
-                    occurrence.instance_of,
-                    occurrence.scope,
-                    occurrence.resource_ref,
-                    psycopg2.Binary(resource_data),
-                    occurrence.topic_identifier,
-                    occurrence.language.name.lower(),
-                ),
-            )
-        if not occurrence.get_attribute_by_name("creation-timestamp"):
-            timestamp = str(datetime.now())
-            timestamp_attribute = Attribute(
-                "creation-timestamp",
-                timestamp,
-                occurrence.identifier,
-                data_type=DataType.TIMESTAMP,
-                scope=UNIVERSAL_SCOPE,
-                language=Language.ENG,
-            )
-            occurrence.add_attribute(timestamp_attribute)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                    data_type=DataType.TIMESTAMP,
+                    scope=UNIVERSAL_SCOPE,
+                    language=Language.ENG,
+                )
+                occurrence.add_attribute(timestamp_attribute)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         self.set_attributes(map_identifier, occurrence.attributes)
 
     def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]) -> None:
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (psycopg2.Binary(resource_data), map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET resource_data = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (psycopg2.Binary(resource_data), map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def update_occurrence_scope(self, map_identifier: int, identifier: str, scope: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.occurrence SET scope = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (scope, map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET scope = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (scope, map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def update_occurrence_topic_identifier(self, map_identifier: int, identifier: str, topic_identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.occurrence SET topic_identifier = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (topic_identifier, map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET topic_identifier = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (topic_identifier, map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     # ========== TAG ==========
 
@@ -897,45 +936,47 @@ class TopicStore:
         # point-of-view, an association has a more complex data structure and although you could delete an
         # association just like you would do a topic, in doing so, remnants of the (more complex) association data
         # structure would be left dangling. So, deleting an association has to be handled differently.
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
-                (map_identifier, identifier),
-            )
-            topic_record = cursor.fetchone()
-            if topic_record:
-                raise TopicDbError("Attempt to delete an association as if it were a topic")
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s AND scope IS NOT NULL",
+                    (map_identifier, identifier),
+                )
+                topic_record = cursor.fetchone()
+                if topic_record:
+                    raise TopicDbError("Attempt to delete an association as if it were a topic")
 
-        sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
-        identifier IN
-            (SELECT association_identifier FROM topicdb.member
-            WHERE topicmap_identifier = %s AND
-            identifier IN (
-                SELECT member_identifier FROM topicdb.topicref
+            sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
+            identifier IN
+                (SELECT association_identifier FROM topicdb.member
                 WHERE topicmap_identifier = %s AND
-                topic_ref = %s))"""
+                identifier IN (
+                    SELECT member_identifier FROM topicdb.topicref
+                    WHERE topicmap_identifier = %s AND
+                    topic_ref = %s))"""
 
-        # Delete associations
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, (map_identifier, map_identifier, map_identifier, identifier))
-            records = cursor.fetchall()
-            for record in records:
-                self.delete_association(map_identifier, record["identifier"])
+            # Delete associations
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (map_identifier, map_identifier, map_identifier, identifier))
+                records = cursor.fetchall()
+                for record in records:
+                    self.delete_association(map_identifier, record["identifier"])
 
-        # Delete occurrences
-        self.delete_occurrences(map_identifier, identifier)
+            # Delete occurrences
+            self.delete_occurrences(map_identifier, identifier)
 
-        # Delete attributes
-        self.delete_attributes(map_identifier, identifier)
+            # Delete attributes
+            self.delete_attributes(map_identifier, identifier)
 
-        # Delete topic
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+            # Delete topic
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def get_related_topics(
         self,
@@ -968,72 +1009,74 @@ class TopicStore:
     ) -> Optional[Topic]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            topic_record = cursor.fetchone()
-            if topic_record:
-                result = Topic(topic_record["identifier"], topic_record["instance_of"])
-                result.clear_base_names()
-                if scope:
-                    if language:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            scope = %s AND
-                            language = %s"""
-                        bind_variables = (
-                            map_identifier,
-                            identifier,
-                            scope,
-                            language.name.lower(),
-                        )
-                    else:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            scope = %s"""
-                        bind_variables = (map_identifier, identifier, scope)
-                else:
-                    if language:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s AND
-                            language = %s"""
-                        bind_variables = (
-                            map_identifier,
-                            identifier,
-                            language.name.lower(),
-                        )
-                    else:
-                        sql = """SELECT name, scope, language, identifier
-                            FROM topicdb.basename
-                            WHERE topicmap_identifier = %s AND
-                            topic_identifier = %s"""
-                        bind_variables = (map_identifier, identifier)
-                cursor.execute(sql, bind_variables)
-                base_name_records = cursor.fetchall()
-                if base_name_records:
-                    for base_name_record in base_name_records:
-                        result.add_base_name(
-                            BaseName(
-                                base_name_record["name"],
-                                base_name_record["scope"],
-                                Language[base_name_record["language"].upper()],
-                                base_name_record["identifier"],
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT identifier, instance_of FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+                topic_record = cursor.fetchone()
+                if topic_record:
+                    result = Topic(topic_record["identifier"], topic_record["instance_of"])
+                    result.clear_base_names()
+                    if scope:
+                        if language:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                scope = %s AND
+                                language = %s"""
+                            bind_variables = (
+                                map_identifier,
+                                identifier,
+                                scope,
+                                language.name.lower(),
                             )
-                        )
-                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
-                if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                        else:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                scope = %s"""
+                            bind_variables = (map_identifier, identifier, scope)
+                    else:
+                        if language:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s AND
+                                language = %s"""
+                            bind_variables = (
+                                map_identifier,
+                                identifier,
+                                language.name.lower(),
+                            )
+                        else:
+                            sql = """SELECT name, scope, language, identifier
+                                FROM topicdb.basename
+                                WHERE topicmap_identifier = %s AND
+                                topic_identifier = %s"""
+                            bind_variables = (map_identifier, identifier)
+                    cursor.execute(sql, bind_variables)
+                    base_name_records = cursor.fetchall()
+                    if base_name_records:
+                        for base_name_record in base_name_records:
+                            result.add_base_name(
+                                BaseName(
+                                    base_name_record["name"],
+                                    base_name_record["scope"],
+                                    Language[base_name_record["language"].upper()],
+                                    base_name_record["identifier"],
+                                )
+                            )
+                    if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                        result.add_attributes(self.get_attributes(map_identifier, identifier))
+                    if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
+                        result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_associations(
@@ -1089,21 +1132,23 @@ class TopicStore:
                     identifier,
                 )
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                association = self.get_association(
-                    map_identifier,
-                    record["identifier"],
-                    language=language,
-                    resolve_attributes=resolve_attributes,
-                    resolve_occurrences=resolve_occurrences,
-                )
-                if association:
-                    result.append(association)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    association = self.get_association(
+                        map_identifier,
+                        record["identifier"],
+                        language=language,
+                        resolve_attributes=resolve_attributes,
+                        resolve_occurrences=resolve_occurrences,
+                    )
+                    if association:
+                        result.append(association)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topics_network(
@@ -1199,13 +1244,15 @@ class TopicStore:
             query_filter = ""
             bind_variables = (map_identifier, query_string, limit, offset)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                result.append(record["identifier"])
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    result.append(record["identifier"])
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_names(  # TODO: Refactor method to return a namedtuple including 'scope' and 'language' fields
@@ -1221,13 +1268,15 @@ class TopicStore:
             ORDER BY topicdb.basename.name
             LIMIT %s OFFSET %s"""
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, (map_identifier, map_identifier, limit, offset))
-            records = cursor.fetchall()
-            for record in records:
-                result.append((record["name"], record["identifier"]))
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (map_identifier, map_identifier, limit, offset))
+                records = cursor.fetchall()
+                for record in records:
+                    result.append((record["name"], record["identifier"]))
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_occurrences(
@@ -1294,27 +1343,29 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, identifier)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                resource_data = None
-                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, record["identifier"])
-                occurrence = Occurrence(
-                    record["identifier"],
-                    record["instance_of"],
-                    record["topic_identifier"],
-                    record["scope"],
-                    record["resource_ref"],
-                    resource_data,
-                    Language[record["language"].upper()],
-                )
-                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
-                result.append(occurrence)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    resource_data = None
+                    if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
+                        resource_data = self.get_occurrence_data(map_identifier, record["identifier"])
+                    occurrence = Occurrence(
+                        record["identifier"],
+                        record["instance_of"],
+                        record["topic_identifier"],
+                        record["scope"],
+                        record["resource_ref"],
+                        resource_data,
+                        Language[record["language"].upper()],
+                    )
+                    if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                        occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
+                    result.append(occurrence)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topics(
@@ -1344,20 +1395,22 @@ class TopicStore:
                 LIMIT %s OFFSET %s"""
             bind_variables = (map_identifier, limit, offset)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                result.append(
-                    self.get_topic(
-                        map_identifier,
-                        record["identifier"],
-                        language=language,
-                        resolve_attributes=resolve_attributes,
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    result.append(
+                        self.get_topic(
+                            map_identifier,
+                            record["identifier"],
+                            language=language,
+                            resolve_attributes=resolve_attributes,
+                        )
                     )
-                )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_identifiers_by_attribute_name(
@@ -1438,13 +1491,15 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, map_identifier, name)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                result.append(record["identifier"])
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    result.append(record["identifier"])
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topics_by_attribute_name(
@@ -1526,20 +1581,22 @@ class TopicStore:
                     query_filter = ""
                     bind_variables = (map_identifier, map_identifier, name)
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql.format(query_filter), bind_variables)
-            records = cursor.fetchall()
-            for record in records:
-                result.append(
-                    self.get_topic(
-                        map_identifier,
-                        record["identifier"],
-                        language=language,
-                        resolve_attributes=resolve_attributes,
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql.format(query_filter), bind_variables)
+                records = cursor.fetchall()
+                for record in records:
+                    result.append(
+                        self.get_topic(
+                            map_identifier,
+                            record["identifier"],
+                            language=language,
+                            resolve_attributes=resolve_attributes,
+                        )
                     )
-                )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def set_topic(
@@ -1553,62 +1610,68 @@ class TopicStore:
             if not instance_of_exists:
                 raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of) VALUES (%s, %s, %s)",
-                (map_identifier, topic.identifier, topic.instance_of),
-            )
-            for base_name in topic.base_names:
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of) VALUES (%s, %s, %s)",
+                    (map_identifier, topic.identifier, topic.instance_of),
+                )
+                for base_name in topic.base_names:
+                    cursor.execute(
+                        "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
+                        (
+                            map_identifier,
+                            base_name.identifier,
+                            base_name.name,
+                            topic.identifier,
+                            base_name.scope,
+                            base_name.language.name.lower(),
+                        ),
+                    )
+            if not topic.get_attribute_by_name("creation-timestamp"):
+                timestamp = str(datetime.now())
+                timestamp_attribute = Attribute(
+                    "creation-timestamp",
+                    timestamp,
+                    topic.identifier,
+                    data_type=DataType.TIMESTAMP,
+                    scope=UNIVERSAL_SCOPE,
+                    language=Language.ENG,
+                )
+                topic.add_attribute(timestamp_attribute)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
+        self.set_attributes(map_identifier, topic.attributes)
+
+    def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (instance_of, map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
+
+    def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
                 cursor.execute(
                     "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
                     (
                         map_identifier,
                         base_name.identifier,
                         base_name.name,
-                        topic.identifier,
+                        identifier,
                         base_name.scope,
                         base_name.language.name.lower(),
                     ),
                 )
-        if not topic.get_attribute_by_name("creation-timestamp"):
-            timestamp = str(datetime.now())
-            timestamp_attribute = Attribute(
-                "creation-timestamp",
-                timestamp,
-                topic.identifier,
-                data_type=DataType.TIMESTAMP,
-                scope=UNIVERSAL_SCOPE,
-                language=Language.ENG,
-            )
-            topic.add_attribute(timestamp_attribute)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
-        self.set_attributes(map_identifier, topic.attributes)
-
-    def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.topic SET instance_of = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (instance_of, map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
-
-    def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.basename (topicmap_identifier, identifier, name, topic_identifier, scope, language) VALUES (%s, %s, %s, %s, %s, %s)",
-                (
-                    map_identifier,
-                    base_name.identifier,
-                    base_name.name,
-                    identifier,
-                    base_name.scope,
-                    base_name.language.name.lower(),
-                ),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def update_base_name(
         self,
@@ -1618,97 +1681,107 @@ class TopicStore:
         scope: str,
         language: Language = Language.ENG,
     ) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.basename SET name = %s, scope = %s, language = %s WHERE topicmap_identifier = %s AND identifier = %s",
-                (name, scope, language.name.lower(), map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.basename SET name = %s, scope = %s, language = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (name, scope, language.name.lower(), map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def delete_base_name(self, map_identifier: int, identifier: str) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def topic_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = True
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    result = True
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def is_topic(self, map_identifier: int, identifier: str) -> bool:
         result = False
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT identifier, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
-                (map_identifier, identifier),
-            )
-            record = cursor.fetchone()
-            if record and record["scope"] is not None:
-                result = True
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT identifier, scope FROM topicdb.topic WHERE topicmap_identifier = %s AND identifier = %s",
+                    (map_identifier, identifier),
+                )
+                record = cursor.fetchone()
+                if record and record["scope"] is not None:
+                    result = True
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     # ========== TOPICMAP ==========
 
     def delete_topic_map(self, map_identifier: int, user_identifier: int) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s",
-                    (map_identifier,),
+                    "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
+                    (user_identifier, map_identifier),
                 )
-                cursor.execute(
-                    "DELETE FROM topicdb.topicmap WHERE identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.member WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-                cursor.execute(
-                    "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s",
-                    (map_identifier,),
-                )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                record = cursor.fetchone()
+                if record:
+                    cursor.execute(
+                        "DELETE FROM topicdb.user_topicmap WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.topicmap WHERE identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.attribute WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.member WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.basename WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+                    cursor.execute(
+                        "DELETE FROM topicdb.topic WHERE topicmap_identifier = %s",
+                        (map_identifier,),
+                    )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def get_topic_map(self, map_identifier: int, user_identifier: int = None) -> Optional[TopicMap]:
         result = None
@@ -1729,46 +1802,50 @@ class TopicStore:
                 WHERE topicdb.user_topicmap.user_identifier = %s
                 AND topicdb.topicmap.identifier = %s"""
 
-            connection = self.pool.getconn()
-            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(sql, (user_identifier, map_identifier))
-                record = cursor.fetchone()
-                if record:
-                    result = TopicMap(
-                        record["topicmap_identifier"],
-                        record["name"],
-                        user_identifier=record["user_identifier"],
-                        description=record["description"],
-                        image_path=record["image_path"],
-                        initialised=record["initialised"],
-                        published=record["published"],
-                        promoted=record["promoted"],
-                        owner=record["owner"],
-                        collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
-                    )
-            self.pool.putconn(connection)  # Release the connection back to the connection pool
+            try:
+                connection = self.pool.getconn()
+                with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    cursor.execute(sql, (user_identifier, map_identifier))
+                    record = cursor.fetchone()
+                    if record:
+                        result = TopicMap(
+                            record["topicmap_identifier"],
+                            record["name"],
+                            user_identifier=record["user_identifier"],
+                            description=record["description"],
+                            image_path=record["image_path"],
+                            initialised=record["initialised"],
+                            published=record["published"],
+                            promoted=record["promoted"],
+                            owner=record["owner"],
+                            collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                        )
+            finally:
+                self.pool.putconn(connection)  # Release the connection back to the connection pool
         else:
-            connection = self.pool.getconn()
-            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(
-                    "SELECT * FROM topicdb.topicmap WHERE identifier = %s",
-                    (map_identifier,),
-                )
-                record = cursor.fetchone()
-                if record:
-                    result = TopicMap(
-                        record["identifier"],
-                        record["name"],
-                        user_identifier=None,
-                        description=record["description"],
-                        image_path=record["image_path"],
-                        initialised=record["initialised"],
-                        published=record["published"],
-                        promoted=record["promoted"],
-                        owner=None,
-                        collaboration_mode=None,
+            try:
+                connection = self.pool.getconn()
+                with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    cursor.execute(
+                        "SELECT * FROM topicdb.topicmap WHERE identifier = %s",
+                        (map_identifier,),
                     )
-            self.pool.putconn(connection)  # Release the connection back to the connection pool
+                    record = cursor.fetchone()
+                    if record:
+                        result = TopicMap(
+                            record["identifier"],
+                            record["name"],
+                            user_identifier=None,
+                            description=record["description"],
+                            image_path=record["image_path"],
+                            initialised=record["initialised"],
+                            published=record["published"],
+                            promoted=record["promoted"],
+                            owner=None,
+                            collaboration_mode=None,
+                        )
+            finally:
+                self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_maps(self, user_identifier: int) -> List[TopicMap]:
@@ -1789,73 +1866,79 @@ class TopicStore:
             WHERE topicdb.user_topicmap.user_identifier = %s
             ORDER BY topicmap_identifier"""
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(sql, (user_identifier,))
-            records = cursor.fetchall()
-            for record in records:
-                topic_map = TopicMap(
-                    record["topicmap_identifier"],
-                    record["name"],
-                    user_identifier=record["user_identifier"],
-                    description=record["description"],
-                    image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=record["owner"],
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
-                )
-                result.append(topic_map)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(sql, (user_identifier,))
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record["topicmap_identifier"],
+                        record["name"],
+                        user_identifier=record["user_identifier"],
+                        description=record["description"],
+                        image_path=record["image_path"],
+                        initialised=record["initialised"],
+                        published=record["published"],
+                        promoted=record["promoted"],
+                        owner=record["owner"],
+                        collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                    )
+                    result.append(topic_map)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_published_topic_maps(self) -> List[TopicMap]:
         result = []
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM topicdb.topicmap WHERE published = TRUE ORDER BY identifier")
-            records = cursor.fetchall()
-            for record in records:
-                topic_map = TopicMap(
-                    record["identifier"],
-                    record["name"],
-                    user_identifier=None,
-                    description=record["description"],
-                    image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=None,
-                    collaboration_mode=None,
-                )
-                result.append(topic_map)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE published = TRUE ORDER BY identifier")
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record["identifier"],
+                        record["name"],
+                        user_identifier=None,
+                        description=record["description"],
+                        image_path=record["image_path"],
+                        initialised=record["initialised"],
+                        published=record["published"],
+                        promoted=record["promoted"],
+                        owner=None,
+                        collaboration_mode=None,
+                    )
+                    result.append(topic_map)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_promoted_topic_maps(self) -> List[TopicMap]:
         result = []
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
-            records = cursor.fetchall()
-            for record in records:
-                topic_map = TopicMap(
-                    record["identifier"],
-                    record["name"],
-                    user_identifier=None,
-                    description=record["description"],
-                    image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=None,
-                    collaboration_mode=None,
-                )
-                result.append(topic_map)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM topicdb.topicmap WHERE promoted = TRUE ORDER BY identifier")
+                records = cursor.fetchall()
+                for record in records:
+                    topic_map = TopicMap(
+                        record["identifier"],
+                        record["name"],
+                        user_identifier=None,
+                        description=record["description"],
+                        image_path=record["image_path"],
+                        initialised=record["initialised"],
+                        published=record["published"],
+                        promoted=record["promoted"],
+                        owner=None,
+                        collaboration_mode=None,
+                    )
+                    result.append(topic_map)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def set_topic_map(
@@ -1868,25 +1951,27 @@ class TopicStore:
         published: bool = False,
         promoted: bool = False,
     ) -> int:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.topicmap (name, description, image_path, initialised, published, promoted) VALUES (%s, %s, %s, %s, %s, %s) RETURNING identifier",
-                (
-                    name,
-                    description,
-                    image_path,
-                    initialised,
-                    published,
-                    promoted,
-                ),
-            )
-            result = cursor.fetchone()[0]
-            cursor.execute(
-                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, '', %s, %s)",
-                (user_identifier, result, True, CollaborationMode.EDIT.name.lower()),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO topicdb.topicmap (name, description, image_path, initialised, published, promoted) VALUES (%s, %s, %s, %s, %s, %s) RETURNING identifier",
+                    (
+                        name,
+                        description,
+                        image_path,
+                        initialised,
+                        published,
+                        promoted,
+                    ),
+                )
+                result = cursor.fetchone()[0]
+                cursor.execute(
+                    "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, '', %s, %s)",
+                    (user_identifier, result, True, CollaborationMode.EDIT.name.lower()),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def update_topic_map(
@@ -1899,35 +1984,39 @@ class TopicStore:
         published: bool = False,
         promoted: bool = False,
     ) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, published = %s, promoted = %s WHERE identifier = %s",
-                (
-                    name,
-                    description,
-                    image_path,
-                    initialised,
-                    published,
-                    promoted,
-                    map_identifier,
-                ),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.topicmap SET name = %s, description = %s, image_path = %s, initialised = %s, published = %s, promoted = %s WHERE identifier = %s",
+                    (
+                        name,
+                        description,
+                        image_path,
+                        initialised,
+                        published,
+                        promoted,
+                        map_identifier,
+                    ),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def is_topic_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
         result = False
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = True
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner = TRUE",
+                    (user_identifier, map_identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    result = True
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def collaborate(
@@ -1937,45 +2026,51 @@ class TopicStore:
         user_name: str,
         collaboration_mode: CollaborationMode = CollaborationMode.VIEW,
     ) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, %s, %s, %s)",
-                (
-                    user_identifier,
-                    map_identifier,
-                    user_name,
-                    False,
-                    collaboration_mode.name.lower(),
-                ),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO topicdb.user_topicmap (user_identifier, topicmap_identifier, user_name, owner, collaboration_mode) VALUES (%s, %s, %s, %s, %s)",
+                    (
+                        user_identifier,
+                        map_identifier,
+                        user_name,
+                        False,
+                        collaboration_mode.name.lower(),
+                    ),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def stop_collaboration(self, map_identifier: int, user_identifier: int) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner IS NOT TRUE",
-                (
-                    user_identifier,
-                    map_identifier,
-                ),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s AND owner IS NOT TRUE",
+                    (
+                        user_identifier,
+                        map_identifier,
+                    ),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT collaboration_mode FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = CollaborationMode[record["collaboration_mode"].upper()]
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT collaboration_mode FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                    (user_identifier, map_identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    result = CollaborationMode[record["collaboration_mode"].upper()]
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def update_collaboration_mode(
@@ -1984,53 +2079,59 @@ class TopicStore:
         user_identifier: int,
         collaboration_mode: CollaborationMode,
     ) -> None:
-        connection = self.pool.getconn()
-        with connection, connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE topicdb.user_topicmap SET collaboration_mode = %s WHERE user_identifier = %s AND topicmap_identifier = %s",
-                (collaboration_mode.name.lower(), user_identifier, map_identifier),
-            )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.user_topicmap SET collaboration_mode = %s WHERE user_identifier = %s AND topicmap_identifier = %s",
+                    (collaboration_mode.name.lower(), user_identifier, map_identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
         result = []
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.user_topicmap WHERE topicmap_identifier = %s AND owner IS FALSE ORDER BY user_identifier",
-                (map_identifier,),
-            )
-            records = cursor.fetchall()
-            for record in records:
-                collaborator = Collaborator(
-                    record["topicmap_identifier"],
-                    record["user_identifier"],
-                    record["user_name"],
-                    CollaborationMode[record["collaboration_mode"].upper()],
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT * FROM topicdb.user_topicmap WHERE topicmap_identifier = %s AND owner IS FALSE ORDER BY user_identifier",
+                    (map_identifier,),
                 )
-                result.append(collaborator)
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                records = cursor.fetchall()
+                for record in records:
+                    collaborator = Collaborator(
+                        record["topicmap_identifier"],
+                        record["user_identifier"],
+                        record["user_name"],
+                        CollaborationMode[record["collaboration_mode"].upper()],
+                    )
+                    result.append(collaborator)
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
         result = None
 
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                result = Collaborator(
-                    record["topicmap_identifier"],
-                    record["user_identifier"],
-                    record["user_name"],
-                    CollaborationMode[record["collaboration_mode"].upper()],
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "SELECT * FROM topicdb.user_topicmap WHERE user_identifier = %s AND topicmap_identifier = %s",
+                    (user_identifier, map_identifier),
                 )
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+                record = cursor.fetchone()
+                if record:
+                    result = Collaborator(
+                        record["topicmap_identifier"],
+                        record["user_identifier"],
+                        record["user_name"],
+                        CollaborationMode[record["collaboration_mode"].upper()],
+                    )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
@@ -2044,13 +2145,15 @@ class TopicStore:
                 )
                 self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
 
-            connection = self.pool.getconn()
-            with connection, connection.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s",
-                    (map_identifier,),
-                )
-            self.pool.putconn(connection)  # Release the connection back to the connection pool
+            try:
+                connection = self.pool.getconn()
+                with connection, connection.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE topicdb.topicmap SET initialised = TRUE WHERE identifier = %s",
+                        (map_identifier,),
+                    )
+            finally:
+                self.pool.putconn(connection)  # Release the connection back to the connection pool
 
     # ========== STATISTICS ==========
 
@@ -2065,24 +2168,25 @@ class TopicStore:
             "url": 0,
             "text": 0,
         }
-
-        connection = self.pool.getconn()
-        with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            if scope:
-                cursor.execute(
-                    "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of, scope HAVING topicmap_identifier = %s AND topic_identifier = %s AND scope = %s",
-                    (map_identifier, identifier, scope),
-                )
-                records = cursor.fetchall()
-            else:
-                cursor.execute(
-                    "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of HAVING topicmap_identifier = %s AND topic_identifier = %s",
-                    (map_identifier, identifier),
-                )
-                records = cursor.fetchall()
-            for record in records:
-                result[record["instance_of"]] = record["count"]
-        self.pool.putconn(connection)  # Release the connection back to the connection pool
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                if scope:
+                    cursor.execute(
+                        "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of, scope HAVING topicmap_identifier = %s AND topic_identifier = %s AND scope = %s",
+                        (map_identifier, identifier, scope),
+                    )
+                    records = cursor.fetchall()
+                else:
+                    cursor.execute(
+                        "SELECT instance_of, COUNT(identifier) FROM topicdb.occurrence GROUP BY topicmap_identifier, topic_identifier, instance_of HAVING topicmap_identifier = %s AND topic_identifier = %s",
+                        (map_identifier, identifier),
+                    )
+                    records = cursor.fetchall()
+                for record in records:
+                    result[record["instance_of"]] = record["count"]
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
         return result
 
     def get_topic_map_statistics(self, map_identifier: int) -> Dict:
