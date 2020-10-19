@@ -125,9 +125,9 @@ class TopicStore:
     # ========== ASSOCIATION ==========
 
     def delete_association(self, map_identifier: int, identifier: str) -> None:
-        # http://initd.org/psycopg/docs/usage.html#with-statement
         try:
-            connection = self.pool.getconn()
+            connection = self.pool.getconn()  # Get a connection from the connection pool
+            # http://initd.org/psycopg/docs/usage.html#with-statement
             with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
                 # Delete association record
                 cursor.execute(
