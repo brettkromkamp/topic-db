@@ -72,6 +72,7 @@ class TopicStore:
             ("home", "Home"),
             ("entity", "Entity"),
             ("topic", "Topic"),
+            ("base-topic", "Base Topic"),
             ("association", "Association"),
             ("occurrence", "Occurrence"),
             ("navigation", "Navigation"),
@@ -2141,6 +2142,7 @@ class TopicStore:
             for item in self.base_topics:
                 topic = Topic(
                     identifier=item[TopicField.IDENTIFIER.value],
+                    instance_of="base-topic",
                     name=item[TopicField.BASE_NAME.value],
                 )
                 self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
