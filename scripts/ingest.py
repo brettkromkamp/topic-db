@@ -17,7 +17,7 @@ import os
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 25
+TOPIC_MAP_IDENTIFIER = 1
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
@@ -132,7 +132,6 @@ def store_topic(store, topic_map_identifier, topic):
         if tags_attribute:
             for tag in tags_attribute.value.split(","):
                 store.set_tag(topic_map_identifier, topic.identifier, tag)
-    store.close()
 
 
 def create_topics(store, topic_map_identifier):
@@ -170,7 +169,6 @@ def store_association(
     )
     # Persist object to the topic store
     store.set_association(topic_map_identifier, association)
-    store.close()
 
 
 def create_associations(store, topic_map_identifier):
