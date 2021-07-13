@@ -1656,6 +1656,35 @@ class TopicStore:
         finally:
             self.pool.putconn(connection)  # Release the connection back to the connection pool
 
+    def update_topic_identifier(self, map_identifier: int, old_identifier: str, new_identifier: str) -> None:
+        if self.topic_exists(map_identifier, new_identifier):
+            raise TopicDbError("Topic identifier already exists")
+        try:
+            connection = self.pool.getconn()
+            with connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE topicdb.topic SET identifier = %s WHERE topicmap_identifier = %s AND identifier = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.basename SET topic_identifier = %s WHERE topicmap_identifier = %s AND topic_identifier = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.occurrence SET topic_identifier = %s WHERE topicmap_identifier = %s AND topic_identifier = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.attribute SET parent_identifier = %s WHERE topicmap_identifier = %s AND parent_identifier = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.topicref SET topic_ref = %s WHERE topicmap_identifier = %s AND topic_ref = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+        finally:
+            self.pool.putconn(connection)  # Release the connection back to the connection pool
+
     def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
         try:
             connection = self.pool.getconn()
