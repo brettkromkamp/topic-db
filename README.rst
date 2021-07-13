@@ -29,7 +29,7 @@ Feature Support
 Installation
 ------------
 
-TopicDB officially supports Python 3.6–3.8. To install TopicDB, simply::
+TopicDB officially supports Python 3.6–3.9. To install TopicDB, simply::
 
     $ pip install topic-db
 
