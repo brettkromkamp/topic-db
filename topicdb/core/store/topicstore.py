@@ -30,7 +30,7 @@ from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
-from topicdb.core.store.taxonomymode import TaxonomyMode
+from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.topicdberror import TopicDbError
 
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
@@ -324,16 +324,16 @@ class TopicStore:
         self,
         map_identifier: int,
         association: Association,
-        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
-        if taxonomy_mode is TaxonomyMode.STRICT:
+        if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
         try:
             connection = self.pool.getconn()
             with connection, connection.cursor() as cursor:
@@ -524,15 +524,15 @@ class TopicStore:
         self,
         map_identifier: int,
         attribute: Attribute,
-        taxonomy_mode: TaxonomyMode = TaxonomyMode.LENIENT,
+        ontology_mode: OntologyMode = OntologyMode.LENIENT,
     ) -> None:
         if attribute.entity_identifier == "":
             raise TopicDbError("Attribute has an empty 'entity identifier' property")
 
-        if taxonomy_mode is TaxonomyMode.STRICT:
+        if ontology_mode is OntologyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
 
         try:
             connection = self.pool.getconn()
@@ -771,19 +771,19 @@ class TopicStore:
         self,
         map_identifier: int,
         occurrence: Occurrence,
-        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
         if occurrence.topic_identifier == "":
             raise TopicDbError("Occurrence has an empty 'topic identifier' property")
 
-        if taxonomy_mode is TaxonomyMode.STRICT:
+        if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
 
         try:
             connection = self.pool.getconn()
@@ -923,11 +923,11 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
-        if taxonomy_mode is TaxonomyMode.STRICT:
+        if ontology_mode is OntologyMode.STRICT:
             if identifier in self.base_topics.keys():
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
+                raise TopicDbError("Ontology 'STRICT' mode violation: attempt to delete a base topic")
 
         # Is this actually an association?
         #
@@ -1602,12 +1602,12 @@ class TopicStore:
         self,
         map_identifier: int,
         topic: Topic,
-        taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
+        ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
-        if taxonomy_mode is TaxonomyMode.STRICT:
+        if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Taxonomy 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
 
         try:
             connection = self.pool.getconn()
@@ -1658,7 +1658,7 @@ class TopicStore:
         if self.topic_exists(map_identifier, new_identifier):
             raise TopicDbError("Topic identifier already exists")
         if old_identifier in self.base_topics.keys():
-            raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to update a base topic")
+            raise TopicDbError("Ontology 'STRICT' mode violation: attempt to update a base topic")
         try:
             connection = self.pool.getconn()
             with connection, connection.cursor() as cursor:
@@ -2174,7 +2174,7 @@ class TopicStore:
                     instance_of="base-topic",
                     name=v,
                 )
-                self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
+                self.set_topic(map_identifier, topic, OntologyMode.LENIENT)
 
             try:
                 connection = self.pool.getconn()

@@ -8,7 +8,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 from enum import Enum
 
 
-class TaxonomyMode(Enum):
+class OntologyMode(Enum):
     STRICT = 1
     LENIENT = 2
 
