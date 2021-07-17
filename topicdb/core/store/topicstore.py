@@ -31,7 +31,6 @@ from topicdb.core.models.topic import Topic
 from topicdb.core.models.topicmap import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.taxonomymode import TaxonomyMode
-from topicdb.core.store.topicfield import TopicField
 from topicdb.core.topicdberror import TopicDbError
 
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
@@ -68,45 +67,45 @@ class TopicStore:
         )
 
         self.base_topics = {
-            (UNIVERSAL_SCOPE, "Universal"),
-            ("home", "Home"),
-            ("entity", "Entity"),
-            ("topic", "Topic"),
-            ("base-topic", "Base Topic"),
-            ("association", "Association"),
-            ("occurrence", "Occurrence"),
-            ("navigation", "Navigation"),
-            ("member", "Member"),
-            ("category", "Category"),
-            ("categorization", "Categorization"),
-            ("tag", "Tag"),
-            ("tags", "Tags"),
-            ("note", "Note"),
-            ("notes", "Notes"),
-            ("broader", "Broader"),
-            ("narrower", "Narrower"),
-            ("related", "Related"),
-            ("parent", "Parent"),
-            ("child", "Child"),
-            ("previous", "Previous"),
-            ("next", "Next"),
-            ("up", "Up"),
-            ("down", "Down"),
-            ("image", "Image"),
-            ("video", "Video"),
-            ("audio", "Audio"),
-            ("note", "Note"),
-            ("file", "File"),
-            ("url", "URL"),
-            ("text", "Text"),
-            ("3d-scene", "3D Scene"),
-            ("string", "String"),
-            ("number", "Number"),
-            ("timestamp", "Timestamp"),
-            ("boolean", "Boolean"),
-            ("eng", "English Language"),
-            ("spa", "Spanish Language"),
-            ("nld", "Dutch Language"),
+            UNIVERSAL_SCOPE: "Universal",
+            "home": "Home",
+            "entity": "Entity",
+            "topic": "Topic",
+            "base-topic": "Base Topic",
+            "association": "Association",
+            "occurrence": "Occurrence",
+            "navigation": "Navigation",
+            "member": "Member",
+            "category": "Category",
+            "categorization": "Categorization",
+            "tag": "Tag",
+            "tags": "Tags",
+            "note": "Note",
+            "notes": "Notes",
+            "broader": "Broader",
+            "narrower": "Narrower",
+            "related": "Related",
+            "parent": "Parent",
+            "child": "Child",
+            "previous": "Previous",
+            "next": "Next",
+            "up": "Up",
+            "down": "Down",
+            "image": "Image",
+            "video": "Video",
+            "audio": "Audio",
+            "note": "Note",
+            "file": "File",
+            "url": "URL",
+            "text": "Text",
+            "3d-scene": "3D Scene",
+            "string": "String",
+            "number": "Number",
+            "timestamp": "Timestamp",
+            "boolean": "Boolean",
+            "eng": "English Language",
+            "spa": "Spanish Language",
+            "nld": "Dutch Language",
         }
 
     def open(self) -> TopicStore:
@@ -927,9 +926,8 @@ class TopicStore:
         taxonomy_mode: TaxonomyMode = TaxonomyMode.STRICT,
     ) -> None:
         if taxonomy_mode is TaxonomyMode.STRICT:
-            for item in self.base_topics:
-                if item[TopicField.IDENTIFIER.value] == identifier:
-                    raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
+            if identifier in self.base_topics.keys():
+                raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to delete a base topic")
 
         # Is this actually an association?
         #
@@ -1659,6 +1657,8 @@ class TopicStore:
     def update_topic_identifier(self, map_identifier: int, old_identifier: str, new_identifier: str) -> None:
         if self.topic_exists(map_identifier, new_identifier):
             raise TopicDbError("Topic identifier already exists")
+        if old_identifier in self.base_topics.keys():
+            raise TopicDbError("Taxonomy 'STRICT' mode violation: attempt to update a base topic")
         try:
             connection = self.pool.getconn()
             with connection, connection.cursor() as cursor:
@@ -2168,11 +2168,11 @@ class TopicStore:
         topic_map = self.get_topic_map(map_identifier, user_identifier)
 
         if topic_map and not topic_map.initialised and not self.topic_exists(map_identifier, "home"):
-            for item in self.base_topics:
+            for k, v in self.base_topics.items():
                 topic = Topic(
-                    identifier=item[TopicField.IDENTIFIER.value],
+                    identifier=k,
                     instance_of="base-topic",
-                    name=item[TopicField.BASE_NAME.value],
+                    name=v,
                 )
                 self.set_topic(map_identifier, topic, TaxonomyMode.LENIENT)
 
