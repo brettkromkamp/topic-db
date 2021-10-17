@@ -21,7 +21,7 @@ import pypff
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 9
+TOPIC_MAP_IDENTIFIER = 15
 
 PERSIST_TO_TOPICMAP = True
 
@@ -85,6 +85,9 @@ def populate_topic_map(file_name: str, topic_store: TopicStore):
                     folder_topic = Topic(folder_topic_identifier, instance_of="email-folder", name=folder_topic_name)
                     topic_store.set_topic(TOPIC_MAP_IDENTIFIER, folder_topic)
 
+                    # Tagging
+                    topic_store.set_tag(TOPIC_MAP_IDENTIFIER, folder_topic_identifier, "email-folder-tag")
+
             # Create sender topic
             sender_topic_identifier = slugify(message["sender"])
             if sender_topic_identifier not in senders:
@@ -95,6 +98,9 @@ def populate_topic_map(file_name: str, topic_store: TopicStore):
                     sender_topic = Topic(sender_topic_identifier, instance_of="email-sender", name=sender_topic_name)
                     topic_store.set_topic(TOPIC_MAP_IDENTIFIER, sender_topic)
 
+                    # Tagging
+                    topic_store.set_tag(TOPIC_MAP_IDENTIFIER, sender_topic_identifier, "email-sender-tag")
+
             # Create message topic
             message_topic_identifier = slugify(f"message-{message['datetime']}-{str(message_count).zfill(4)}")
             message_count += 1
@@ -103,17 +109,13 @@ def populate_topic_map(file_name: str, topic_store: TopicStore):
                 date_time_attribute = Attribute(
                     "date-time-timestamp",
                     message["datetime"],
-                    message_topic_identifier.identifier,
+                    message_topic_identifier,
                     data_type=DataType.TIMESTAMP,
                 )
                 # Persist objects to the topic store
                 message_topic = Topic(message_topic_identifier, instance_of="email-message", name=message_topic_name)
                 topic_store.set_topic(TOPIC_MAP_IDENTIFIER, message_topic)
                 topic_store.set_attribute(TOPIC_MAP_IDENTIFIER, date_time_attribute)
-
-            # Relate folder and message topics
-
-            # Relate sender and message topics
 
 
 def parse_folder(folder):
@@ -143,8 +145,10 @@ def main():
         dbname=database_name,
     )
 
+    print("Start...")
     create_type_topics(topic_store)
-    populate_topic_map("archivo-2012.pst", topic_store)
+    populate_topic_map("./scripts/archive-2012.pst", topic_store)
+    print("Done!")
 
 
 if __name__ == "__main__":
