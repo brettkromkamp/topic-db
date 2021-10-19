@@ -21,7 +21,7 @@ import pypff
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 15
+TOPIC_MAP_IDENTIFIER = 16
 
 PERSIST_TO_TOPICMAP = True
 
@@ -36,18 +36,18 @@ database_port = config["DATABASE"]["Port"]
 
 
 class EmailImportError(Exception):
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return repr(self.value)
 
 
-def normalize_name(topic_name: str):
+def normalize_name(topic_name: str) -> str:
     return " ".join([word.capitalize() for word in topic_name.strip().split(" ")])
 
 
-def create_type_topics(topic_store: TopicStore):
+def create_type_topics(topic_store: TopicStore) -> None:
     topics = {
         "email-folder": "Email Folder",
         "email-sender": "Email Sender",
@@ -59,7 +59,7 @@ def create_type_topics(topic_store: TopicStore):
             topic_store.set_topic(TOPIC_MAP_IDENTIFIER, topic, OntologyMode.LENIENT)
 
 
-def populate_topic_map(file_name: str, topic_store: TopicStore):
+def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
     pst = pypff.file()
     pst.open(file_name)
     root = pst.get_root_folder()
@@ -117,6 +117,10 @@ def populate_topic_map(file_name: str, topic_store: TopicStore):
                 topic_store.set_topic(TOPIC_MAP_IDENTIFIER, message_topic)
                 topic_store.set_attribute(TOPIC_MAP_IDENTIFIER, date_time_attribute)
 
+            # TODO: Create associations between the message and the sender and folder, respectively
+
+            # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
+
 
 def parse_folder(folder):
     messages = []
@@ -136,7 +140,7 @@ def parse_folder(folder):
     return messages
 
 
-def main():
+def main() -> None:
     topic_store = TopicStore(
         database_username,
         database_password,
