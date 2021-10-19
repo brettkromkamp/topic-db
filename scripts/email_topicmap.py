@@ -1,8 +1,4 @@
-from datetime import datetime
 from topicdb.core.store.ontologymode import OntologyMode
-
-from typedtree.tree import Tree
-from typedtree.traversalmode import TraversalMode
 
 from slugify import slugify
 
@@ -117,7 +113,7 @@ def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
                 topic_store.set_topic(TOPIC_MAP_IDENTIFIER, message_topic)
                 topic_store.set_attribute(TOPIC_MAP_IDENTIFIER, date_time_attribute)
 
-            # TODO: Create associations between the message and the sender and folder, respectively
+            # TODO: Create associations between the message topic and the sender and folder topics, respectively
 
             # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
 
@@ -151,6 +147,7 @@ def main() -> None:
 
     print("Start...")
     create_type_topics(topic_store)
+    print("Populating the topic map")
     populate_topic_map("./scripts/archive-2012.pst", topic_store)
     print("Done!")
 
