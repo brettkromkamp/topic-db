@@ -283,7 +283,7 @@ class TopicStore:
         scope: str = None,
     ) -> DoubleKeyDict:
         if identifier == "" and associations is None:
-            raise TopicDbError("At least one of the 'identifier' or 'associations' parameters is required")
+            raise TopicDbError("At least one of the following parameters is required: 'identifier' or 'associations'")
 
         result = DoubleKeyDict()
 
