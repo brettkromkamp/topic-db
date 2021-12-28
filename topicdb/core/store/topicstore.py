@@ -1086,10 +1086,12 @@ class TopicStore:
                     instance_of_in_condition += "%s) "
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = %s "
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier)
+                bind_variables = (
+                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
+                )
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier)
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
         else:
             if scope:
                 query_filter = " AND scope = %s"

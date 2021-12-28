@@ -17,7 +17,7 @@ import os
 
 SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
 USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 1
+TOPIC_MAP_IDENTIFIER = 3
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
