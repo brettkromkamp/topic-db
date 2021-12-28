@@ -26,10 +26,10 @@ class Member:
             raise TopicDbError("Empty 'src_role spec' parameter")
         if dest_role_spec == "":
             raise TopicDbError("Empty 'dest_role spec' parameter")
-        self.__src_role_spec = slugify(str(src_role_spec))
         self.__src_topic_ref = slugify(str(src_topic_ref))
-        self.__dest_role_spec = slugify(str(dest_role_spec))
+        self.__src_role_spec = slugify(str(src_role_spec))
         self.__dest_topic_ref = slugify(str(dest_topic_ref))
+        self.__dest_role_spec = slugify(str(dest_role_spec))
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
     @property

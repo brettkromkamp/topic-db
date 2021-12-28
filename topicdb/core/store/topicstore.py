@@ -237,12 +237,16 @@ class TopicStore:
                     )
                     member_record = cursor.fetchone()
                     if member_record:
-                        # TODO: Non-hypergraph refactor
                         member = Member(
-                            role_spec=role_spec,
+                            src_topic_ref=member_record["src_topic_ref"],
+                            src_role_spec=member_record["src_role_spec"],
+                            dest_topic_ref=member_record["dest_topic_ref"],
+                            dest_role_spec=member_record["dest_role_spec"],
                             identifier=member_record["identifier"],
                         )
                         result.member = member
+                    else:
+                        raise TopicDbError("Association member is missing")
 
                     if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(map_identifier, identifier))
@@ -336,13 +340,15 @@ class TopicStore:
                             base_name.language.name.lower(),
                         ),
                     )
-                # TODO: Non-hypergraph refactor
                 cursor.execute(
-                    "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO topicdb.member (topicmap_identifier, identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, association_identifier) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                     (
                         map_identifier,
                         member.identifier,
-                        member.role_spec,
+                        member.src_topic_ref,
+                        member.src_role_spec,
+                        member.dest_topic_ref,
+                        member.dest_role_spec,
                         association.identifier,
                     ),
                 )

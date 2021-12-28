@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS topicdb.member (
     topicmap_identifier INT NOT NULL,
     identifier TEXT NOT NULL,
     association_identifier TEXT NOT NULL,
-    src_role_spec TEXT NOT NULL,
     src_topic_ref TEXT NOT NULL,
+    src_role_spec TEXT NOT NULL,
+    dest_topic_ref TEXT NOT NULL,
     dest_role_spec TEXT NOT NULL,
-    dest_topic_ref TEXT NOT NULL,    
     PRIMARY KEY (topicmap_identifier, identifier)
 );
 CREATE INDEX member_1_index ON topicdb.member (topicmap_identifier);

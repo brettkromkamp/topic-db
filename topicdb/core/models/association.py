@@ -26,14 +26,14 @@ class Association(Topic):
         language: Language = Language.ENG,
         scope: str = UNIVERSAL_SCOPE,
         src_topic_ref: str = "",
-        dest_topic_ref: str = "",
         src_role_spec: str = "related",
+        dest_topic_ref: str = "",
         dest_role_spec: str = "related",
     ) -> None:
         super().__init__(identifier, instance_of, name, scope, language)  # Base name 'scope' parameter
 
         self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))  # Association 'scope' parameter
-        self.member: Member
+        self.member: Member = None
 
         if src_topic_ref != "" and src_role_spec != "" and dest_topic_ref != "" and dest_role_spec != "":
             member = Member(src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec)
