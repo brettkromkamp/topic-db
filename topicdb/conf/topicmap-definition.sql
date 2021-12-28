@@ -2,68 +2,6 @@
 CREATE SCHEMA IF NOT EXISTS topicdb;
 
 
-/* ========== MEMBER ========== */
-CREATE TABLE IF NOT EXISTS topicdb.member (
-    topicmap_identifier INT NOT NULL,
-    identifier TEXT NOT NULL,
-    role_spec TEXT NOT NULL,
-    association_identifier TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, identifier)
-);
-CREATE INDEX member_1_index ON topicdb.member (topicmap_identifier);
-CREATE INDEX member_2_index ON topicdb.member (topicmap_identifier, association_identifier);
-
-
-/* ========== ATTRIBUTE ========== */
-CREATE TABLE IF NOT EXISTS topicdb.attribute (
-    topicmap_identifier INT NOT NULL,
-    identifier TEXT NOT NULL,
-    parent_identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    value TEXT NOT NULL,
-    data_type TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, parent_identifier, name, scope, language)
-);
-CREATE INDEX attribute_1_index ON topicdb.attribute (topicmap_identifier);
-CREATE INDEX attribute_2_index ON topicdb.attribute (topicmap_identifier, identifier);
-CREATE INDEX attribute_3_index ON topicdb.attribute (topicmap_identifier, parent_identifier);
-CREATE INDEX attribute_4_index ON topicdb.attribute (topicmap_identifier, parent_identifier, language);
-CREATE INDEX attribute_5_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope);
-CREATE INDEX attribute_6_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope, language);
-
-
-/* ========== OCCURRENCE ========== */
-CREATE TABLE IF NOT EXISTS topicdb.occurrence (
-    topicmap_identifier INT NOT NULL,
-    identifier TEXT NOT NULL,
-    instance_of TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    resource_ref TEXT NOT NULL,
-    resource_data BYTEA,
-    topic_identifier TEXT NOT NULL,
-    language TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, identifier)
-);
-CREATE INDEX occurrence_1_index ON topicdb.occurrence (topicmap_identifier);
-CREATE INDEX occurrence_2_index ON topicdb.occurrence (topicmap_identifier, topic_identifier);
-CREATE INDEX occurrence_3_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, scope, language);
-CREATE INDEX occurrence_4_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, instance_of, scope, language);
-
-
-/* ========== TOPICREF ========== */
-CREATE TABLE IF NOT EXISTS topicdb.topicref (
-    topicmap_identifier INT NOT NULL,
-    topic_ref TEXT NOT NULL,
-    member_identifier TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, topic_ref, member_identifier)
-);
-CREATE INDEX topicref_1_index ON topicdb.topicref (topicmap_identifier);
-CREATE INDEX topicref_2_index ON topicdb.topicref (topicmap_identifier, member_identifier);
-CREATE INDEX topicref_3_index ON topicdb.topicref (topicmap_identifier, topic_ref);
-
-
 /* ========== TOPIC ========== */
 CREATE TABLE IF NOT EXISTS topicdb.topic (
     topicmap_identifier INT NOT NULL,
@@ -92,6 +30,59 @@ CREATE INDEX basename_1_index ON topicdb.basename (topicmap_identifier);
 CREATE INDEX basename_2_index ON topicdb.basename (topicmap_identifier, topic_identifier);
 CREATE INDEX basename_3_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope);
 CREATE INDEX basename_4_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope, language);
+
+
+/* ========== MEMBER ========== */
+CREATE TABLE IF NOT EXISTS topicdb.member (
+    topicmap_identifier INT NOT NULL,
+    identifier TEXT NOT NULL,
+    association_identifier TEXT NOT NULL,
+    src_role_spec TEXT NOT NULL,
+    src_topic_ref TEXT NOT NULL,
+    dest_role_spec TEXT NOT NULL,
+    dest_topic_ref TEXT NOT NULL,    
+    PRIMARY KEY (topicmap_identifier, identifier)
+);
+CREATE INDEX member_1_index ON topicdb.member (topicmap_identifier);
+CREATE INDEX member_2_index ON topicdb.member (topicmap_identifier, association_identifier);
+
+
+/* ========== OCCURRENCE ========== */
+CREATE TABLE IF NOT EXISTS topicdb.occurrence (
+    topicmap_identifier INT NOT NULL,
+    identifier TEXT NOT NULL,
+    instance_of TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    resource_ref TEXT NOT NULL,
+    resource_data BYTEA,
+    topic_identifier TEXT NOT NULL,
+    language TEXT NOT NULL,
+    PRIMARY KEY (topicmap_identifier, identifier)
+);
+CREATE INDEX occurrence_1_index ON topicdb.occurrence (topicmap_identifier);
+CREATE INDEX occurrence_2_index ON topicdb.occurrence (topicmap_identifier, topic_identifier);
+CREATE INDEX occurrence_3_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, scope, language);
+CREATE INDEX occurrence_4_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, instance_of, scope, language);
+
+
+/* ========== ATTRIBUTE ========== */
+CREATE TABLE IF NOT EXISTS topicdb.attribute (
+    topicmap_identifier INT NOT NULL,
+    identifier TEXT NOT NULL,
+    parent_identifier TEXT NOT NULL,
+    name TEXT NOT NULL,
+    value TEXT NOT NULL,
+    data_type TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    language TEXT NOT NULL,
+    PRIMARY KEY (topicmap_identifier, parent_identifier, name, scope, language)
+);
+CREATE INDEX attribute_1_index ON topicdb.attribute (topicmap_identifier);
+CREATE INDEX attribute_2_index ON topicdb.attribute (topicmap_identifier, identifier);
+CREATE INDEX attribute_3_index ON topicdb.attribute (topicmap_identifier, parent_identifier);
+CREATE INDEX attribute_4_index ON topicdb.attribute (topicmap_identifier, parent_identifier, language);
+CREATE INDEX attribute_5_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope);
+CREATE INDEX attribute_6_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope, language);
 
 
 /* ========== TOPICMAP ========== */

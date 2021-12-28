@@ -14,38 +14,64 @@ from topicdb.core.topicdberror import TopicDbError
 
 
 class Member:
-    def __init__(self, topic_ref: str = "", role_spec: str = "related", identifier: str = "") -> None:
-        if role_spec == "":
-            raise TopicDbError("Empty 'role spec' parameter")
-        self.__role_spec = slugify(str(role_spec))
-        self.__topic_refs = [] if topic_ref == "" else [slugify(str(topic_ref))]
+    def __init__(
+        self,
+        src_topic_ref: str = "",
+        src_role_spec: str = "related",
+        dest_topic_ref: str = "",
+        dest_role_spec: str = "related",
+        identifier: str = "",
+    ) -> None:
+        if src_role_spec == "":
+            raise TopicDbError("Empty 'src_role spec' parameter")
+        if dest_role_spec == "":
+            raise TopicDbError("Empty 'dest_role spec' parameter")
+        self.__src_role_spec = slugify(str(src_role_spec))
+        self.__src_topic_ref = slugify(str(src_topic_ref))
+        self.__dest_role_spec = slugify(str(dest_role_spec))
+        self.__dest_topic_ref = slugify(str(dest_topic_ref))
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
     @property
-    def role_spec(self) -> str:
-        return self.__role_spec
+    def src_role_spec(self) -> str:
+        return self.__src_role_spec
 
-    @role_spec.setter
-    def role_spec(self, value: str) -> None:
+    @src_role_spec.setter
+    def src_role_spec(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__role_spec = slugify(str(value))
+        self.__src_role_spec = slugify(str(value))
+
+    @property
+    def src_topic_ref(self) -> str:
+        return self.__src_topic_ref
+
+    @src_topic_ref.setter
+    def src_topic_ref(self, value: str) -> None:
+        if value == "":
+            raise TopicDbError("Empty 'value' parameter")
+        self.__src_topic_ref = slugify(str(value))
+
+    @property
+    def dest_role_spec(self) -> str:
+        return self.__dest_role_spec
+
+    @dest_role_spec.setter
+    def dest_role_spec(self, value: str) -> None:
+        if value == "":
+            raise TopicDbError("Empty 'value' parameter")
+        self.__dest_role_spec = slugify(str(value))
+
+    @property
+    def dest_topic_ref(self) -> str:
+        return self.__dest_topic_ref
+
+    @dest_topic_ref.setter
+    def dest_topic_ref(self, value: str) -> None:
+        if value == "":
+            raise TopicDbError("Empty 'value' parameter")
+        self.__dest_topic_ref = slugify(str(value))
 
     @property
     def identifier(self) -> str:
         return self.__identifier
-
-    @property
-    def topic_refs(self) -> List[str]:
-        return self.__topic_refs
-
-    def add_topic_ref(self, topic_ref: str) -> None:
-        if topic_ref == "":
-            raise TopicDbError("Empty 'topic ref' parameter")
-        self.__topic_refs.append(slugify(str(topic_ref)))
-
-    def remove_topic_ref(self, topic_ref: str) -> None:
-        self.__topic_refs[:] = [x for x in self.__topic_refs if x != topic_ref]
-
-    def clear_topic_refs(self) -> None:
-        del self.__topic_refs[:]

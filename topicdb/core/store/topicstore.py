@@ -141,25 +141,11 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
 
-                # Get members
-                cursor.execute(
-                    "SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
-                    (map_identifier, identifier),
-                )
-                member_records = cursor.fetchall()
-
                 # Delete members
                 cursor.execute(
                     "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
                     (map_identifier, identifier),
                 )
-                if member_records:
-                    for member_record in member_records:
-                        # Delete topic refs
-                        cursor.execute(
-                            "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                            (map_identifier, member_record["identifier"]),
-                        )
         finally:
             self.pool.putconn(connection)  # Release the connection back to the connection pool
         # Delete occurrences
@@ -249,23 +235,15 @@ class TopicStore:
                         "SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
                         (map_identifier, identifier),
                     )
-                    member_records = cursor.fetchall()
-                    if member_records:
-                        for member_record in member_records:
-                            role_spec = member_record["role_spec"]
-                            cursor.execute(
-                                "SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                                (map_identifier, member_record["identifier"]),
-                            )
-                            topic_ref_records = cursor.fetchall()
-                            if topic_ref_records:
-                                member = Member(
-                                    role_spec=role_spec,
-                                    identifier=member_record["identifier"],
-                                )
-                                for topic_ref_record in topic_ref_records:
-                                    member.add_topic_ref(topic_ref_record["topic_ref"])
-                                result.add_member(member)
+                    member_record = cursor.fetchone()
+                    if member_record:
+                        # TODO: Non-hypergraph refactor
+                        member = Member(
+                            role_spec=role_spec,
+                            identifier=member_record["identifier"],
+                        )
+                        result.member = member
+
                     if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(map_identifier, identifier))
                     if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
@@ -358,22 +336,16 @@ class TopicStore:
                             base_name.language.name.lower(),
                         ),
                     )
-                for member in association.members:
-                    cursor.execute(
-                        "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
-                        (
-                            map_identifier,
-                            member.identifier,
-                            member.role_spec,
-                            association.identifier,
-                        ),
-                    )
-                    for topic_ref in member.topic_refs:
-                        cursor.execute(
-                            "INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier) VALUES (%s, %s, %s)",
-                            (map_identifier, topic_ref, member.identifier),
-                        )
-
+                # TODO: Non-hypergraph refactor
+                cursor.execute(
+                    "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
+                    (
+                        map_identifier,
+                        member.identifier,
+                        member.role_spec,
+                        association.identifier,
+                    ),
+                )
                 if not association.get_attribute_by_name("creation-timestamp"):
                     timestamp = str(datetime.now())
                     timestamp_attribute = Attribute(
