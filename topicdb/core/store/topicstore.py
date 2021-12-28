@@ -294,9 +294,12 @@ class TopicStore:
     def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
         result: List[TopicRefs] = []
 
-        for member in association.members:
-            for topic_ref in member.topic_refs:
-                result.append(TopicRefs(association.instance_of, member.role_spec, topic_ref))
+        result.append(
+            TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
+        )
+        result.append(
+            TopicRefs(association.instance_of, association.member.dest_role_spec, association.member.dest_topic_ref)
+        )
         return result
 
     def get_associations(self):
@@ -344,11 +347,11 @@ class TopicStore:
                     "INSERT INTO topicdb.member (topicmap_identifier, identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, association_identifier) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                     (
                         map_identifier,
-                        member.identifier,
-                        member.src_topic_ref,
-                        member.src_role_spec,
-                        member.dest_topic_ref,
-                        member.dest_role_spec,
+                        association.member.identifier,
+                        association.member.src_topic_ref,
+                        association.member.src_role_spec,
+                        association.member.dest_topic_ref,
+                        association.member.dest_role_spec,
                         association.identifier,
                     ),
                 )
@@ -924,6 +927,7 @@ class TopicStore:
                 if topic_record:
                     raise TopicDbError("Attempt to delete an association as if it were a topic")
 
+            # TODO: Non-hypergraph refactor
             sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
             identifier IN
                 (SELECT association_identifier FROM topicdb.member
@@ -1067,14 +1071,12 @@ class TopicStore:
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
     ) -> List[Association]:
         result = []
+
+        # TODO: Non-hypergraph refactor
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND
         identifier IN
             (SELECT association_identifier FROM topicdb.member
-             WHERE topicmap_identifier = %s AND
-             identifier IN (
-                SELECT member_identifier FROM topicdb.topicref
-                    WHERE topicmap_identifier = %s
-                    AND topic_ref = %s))"""
+             WHERE topicmap_identifier = %s AND (src_topic_ref = %s OR dest_topic_ref = %s))"""
         if instance_ofs:
             instance_of_in_condition = " AND instance_of IN ("
             for index, value in enumerate(instance_ofs):
@@ -1084,12 +1086,10 @@ class TopicStore:
                     instance_of_in_condition += "%s) "
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = %s "
-                bind_variables = (
-                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, map_identifier, identifier)
-                )
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier)
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, map_identifier, identifier)
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier)
         else:
             if scope:
                 query_filter = " AND scope = %s"
@@ -1097,7 +1097,7 @@ class TopicStore:
                     map_identifier,
                     scope,
                     map_identifier,
-                    map_identifier,
+                    identifier,
                     identifier,
                 )
             else:
@@ -1105,7 +1105,7 @@ class TopicStore:
                 bind_variables = (
                     map_identifier,
                     map_identifier,
-                    map_identifier,
+                    identifier,
                     identifier,
                 )
 
@@ -1656,6 +1656,8 @@ class TopicStore:
                     "UPDATE topicdb.attribute SET parent_identifier = %s WHERE topicmap_identifier = %s AND parent_identifier = %s",
                     (new_identifier, map_identifier, old_identifier),
                 )
+
+                # TODO: Non-hypergraph refactor
                 cursor.execute(
                     "UPDATE topicdb.topicref SET topic_ref = %s WHERE topicmap_identifier = %s AND topic_ref = %s",
                     (new_identifier, map_identifier, old_identifier),
@@ -1770,10 +1772,6 @@ class TopicStore:
                     )
                     cursor.execute(
                         "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s",
-                        (map_identifier,),
-                    )
-                    cursor.execute(
-                        "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s",
                         (map_identifier,),
                     )
                     cursor.execute(
