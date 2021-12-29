@@ -927,19 +927,15 @@ class TopicStore:
                 if topic_record:
                     raise TopicDbError("Attempt to delete an association as if it were a topic")
 
-            # TODO: Non-hypergraph refactor
+            # TODO: Verify non-hypergraph refactor
             sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
             identifier IN
                 (SELECT association_identifier FROM topicdb.member
-                WHERE topicmap_identifier = %s AND
-                identifier IN (
-                    SELECT member_identifier FROM topicdb.topicref
-                    WHERE topicmap_identifier = %s AND
-                    topic_ref = %s))"""
+                WHERE topicmap_identifier = %s AND (src_topic_ref = %s OR dest_topic_ref = %s))"""
 
             # Delete associations
             with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(sql, (map_identifier, map_identifier, map_identifier, identifier))
+                cursor.execute(sql, (map_identifier, map_identifier, identifier, identifier))
                 records = cursor.fetchall()
                 for record in records:
                     self.delete_association(map_identifier, record["identifier"])
@@ -1072,7 +1068,6 @@ class TopicStore:
     ) -> List[Association]:
         result = []
 
-        # TODO: Non-hypergraph refactor
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND
         identifier IN
             (SELECT association_identifier FROM topicdb.member
@@ -1110,7 +1105,6 @@ class TopicStore:
                     identifier,
                     identifier,
                 )
-
         try:
             connection = self.pool.getconn()
             with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -1658,10 +1652,12 @@ class TopicStore:
                     "UPDATE topicdb.attribute SET parent_identifier = %s WHERE topicmap_identifier = %s AND parent_identifier = %s",
                     (new_identifier, map_identifier, old_identifier),
                 )
-
-                # TODO: Non-hypergraph refactor
                 cursor.execute(
-                    "UPDATE topicdb.topicref SET topic_ref = %s WHERE topicmap_identifier = %s AND topic_ref = %s",
+                    "UPDATE topicdb.member SET src_topic_ref = %s WHERE topicmap_identifier = %s AND src_topic_ref = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.member SET dest_topic_ref = %s WHERE topicmap_identifier = %s AND dest_topic_ref = %s",
                     (new_identifier, map_identifier, old_identifier),
                 )
         finally:
