@@ -396,9 +396,9 @@ class TopicStore:
     def is_topic(self, map_identifier: int, identifier: str) -> bool:
         pass
 
-    # ========== TOPICMAP ==========
+    # ========== TOPIC MAP ==========
 
-    def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
+    def initialise_map(self, map_identifier: int, user_identifier: int) -> None:
         pass
 
     # ========== STATISTICS ==========
@@ -406,5 +406,5 @@ class TopicStore:
     def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         pass
 
-    def get_topic_map_statistics(self, map_identifier: int) -> Dict:
+    def get_map_statistics(self, map_identifier: int) -> Dict:
         pass

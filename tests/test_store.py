@@ -20,31 +20,18 @@ from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.topicstore import TopicStore
 
 
-SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
-
-config = configparser.ConfigParser()
-config.read(SETTINGS_FILE_PATH)
-
-database_username = config["DATABASE"]["Username"]
-database_password = config["DATABASE"]["Password"]
-database_name = config["DATABASE"]["Database"]
-
-TOPIC_MAP_IDENTIFIER = 1
-
-
 def test_topic():
     topic1 = Topic(identifier="test-topic1", name="Test Topic 1", language=Language.SPA)
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Persist topic to store.
-        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, "test-topic1"):
-            store.set_topic(TOPIC_MAP_IDENTIFIER, topic1)
+        if not store.topic_exists("test-topic1"):
+            store.set_topic(topic1)
 
         # Retrieve topic from store.
         topic2 = store.get_topic(
-            TOPIC_MAP_IDENTIFIER,
             "test-topic1",
             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
@@ -67,15 +54,14 @@ def test_occurrence():
     )
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Persist occurrence to store.
-        if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, "test-occurrence1"):
-            store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
+        if not store.occurrence_exists("test-occurrence1"):
+            store.set_occurrence(occurrence1)
 
         # Retrieve occurrence from store.
         occurrence2 = store.get_occurrence(
-            TOPIC_MAP_IDENTIFIER,
             "test-occurrence1",
             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
@@ -92,11 +78,10 @@ def test_occurrence():
 
 def test_topic_occurrences():
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Retrieve topic from store.
         topic2 = store.get_topic(
-            TOPIC_MAP_IDENTIFIER,
             "test-topic1",
             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
             resolve_occurrences=RetrievalMode.RESOLVE_OCCURRENCES,
@@ -129,15 +114,14 @@ def test_occurrence_resource_data():
     )
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Persist occurrence to store.
-        if not store.occurrence_exists(TOPIC_MAP_IDENTIFIER, "test-occurrence2"):
-            store.set_occurrence(TOPIC_MAP_IDENTIFIER, occurrence1)
+        if not store.occurrence_exists("test-occurrence2"):
+            store.set_occurrence(occurrence1)
 
         # Retrieve occurrence from store.
         occurrence2 = store.get_occurrence(
-            TOPIC_MAP_IDENTIFIER,
             "test-occurrence2",
             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
             inline_resource_data=RetrievalMode.INLINE_RESOURCE_DATA,
@@ -166,16 +150,15 @@ def test_association():
     )
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Associations are topics, as well (in TopicDB). For that reason, to check for the existence of an
         # association we can use the *topic_exists* method.
-        if not store.topic_exists(TOPIC_MAP_IDENTIFIER, "test-association1"):
-            store.set_association(TOPIC_MAP_IDENTIFIER, association1)  # Persist association to store.
+        if not store.topic_exists("test-association1"):
+            store.set_association(association1)  # Persist association to store.
 
         # Retrieve occurrence from store.
         association2 = store.get_association(
-            TOPIC_MAP_IDENTIFIER,
             "test-association1",
             resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
@@ -208,14 +191,14 @@ def test_attribute():
     )
 
     # Instantiate and open topic store.
-    with TopicStore(database_username, database_password, dbname=database_name) as store:
+    with TopicStore() as store:
 
         # Persist attribute to store.
-        if not store.attribute_exists(TOPIC_MAP_IDENTIFIER, "test-entity1", "name"):
-            store.set_attribute(TOPIC_MAP_IDENTIFIER, attribute1)
+        if not store.attribute_exists("test-entity1", "name"):
+            store.set_attribute(attribute1)
 
         # Retrieve attribute from store.
-        attribute2 = store.get_attribute(TOPIC_MAP_IDENTIFIER, "test-attribute1")
+        attribute2 = store.get_attribute("test-attribute1")
 
     assert attribute2.identifier == "test-attribute1"
     assert attribute2.name == "name"

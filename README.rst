@@ -1,7 +1,7 @@
 TopicDB by Brett Kromkamp
 =========================
 
-TopicDB is a topic map-based graph library (using `PostgreSQL`_ for persistence). Topic maps provide a way to
+TopicDB is a topic map-based graph library (using `SQLite`_ for persistence). Topic maps provide a way to
 describe complex relationships between abstract concepts and real-world (information) resources.
 
 .. image:: resources/topic-maps.png
@@ -29,23 +29,15 @@ Feature Support
 Installation
 ------------
 
-TopicDB officially supports Python 3.6–3.9. To install TopicDB, simply::
+TopicDB officially supports Python 3.6–3.10. To install TopicDB, simply::
 
     $ pip install topic-db
-
-After having installed the TopicDB library itself, you would have to separately install and configure the database.
-Brief instructions on how to do so are provided, here: `Setting up the TopicDB database`_. You need to ensure that the
-database username, password and database name match with the ``settings.ini`` file in the project's root folder.
 
 Install the Development Version
 -------------------------------
 
 If you have `Git <https://git-scm.com/>`_ installed on your system, it is possible to install the development version
 of TopicDB.
-
-Certain build prerequisites need to be met including the presence of a C compiler, the Python header files, the ``libpq``
-header files and the ``pg_config`` program as outlined, here: `Build
-prerequisites <http://initd.org/psycopg/docs/install.html#build-prerequisites>`_.
 
 Before installing the development version, you may need to uninstall the standard version of TopicDB using
 ``pip``::
@@ -65,16 +57,6 @@ Then, if you want to update TopicDB at any time, in the same directory do::
 
     $ git pull
 
-After having installed TopicDB, you would have to separately install and configure the PostgreSQL database. Brief
-instructions on how to do so are provided, here: `Setting up the TopicDB
-database <https://gist.github.com/brettkromkamp/87aaa99b056578ff1dc23a43a49aca89>`_. You need to ensure that the
-database username, password and database name match with the ``settings.ini`` file in the project's root folder.
-
-Tutorial
---------
-
-To get a better understanding of how to use TopicDB, check out the tutorial, here: `TopicDB Tutorial`_ (work-in-progress).
-
 Documentation
 -------------
 
@@ -88,11 +70,9 @@ How to Contribute
 #. Write a test which shows that the bug was fixed or that the feature works as expected.
 #. Send a pull request and bug the maintainer until it gets merged and published. :) Make sure to add yourself to AUTHORS_.
 
-.. _PostgreSQL: https://www.postgresql.org/
+.. _SQLite: https://www.sqlite.org/index.html
 .. _An Introduction to Topic Maps: https://msdn.microsoft.com/en-us/library/aa480048.aspx
 .. _ISO/IEC 13250 Topic Maps: http://www.iso.org/iso/home/store/catalogue_tc/catalogue_detail.htm?csnumber=38068
 .. _the repository: https://github.com/brettkromkamp/topic-db
 .. _Contextualise: https://github.com/brettkromkamp/contextualise
 .. _AUTHORS: https://github.com/brettkromkamp/topic-db/blob/master/AUTHORS.rst
-.. _TopicDB Tutorial: https://github.com/brettkromkamp/topic-db/blob/master/TUTORIAL.rst
-.. _Setting up the TopicDB database: https://gist.github.com/brettkromkamp/87aaa99b056578ff1dc23a43a49aca89

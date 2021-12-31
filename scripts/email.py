@@ -15,20 +15,7 @@ import os
 import pypff
 
 
-SETTINGS_FILE_PATH = os.path.join(os.path.dirname(__file__), "../settings.ini")
-USER_IDENTIFIER = 1
-TOPIC_MAP_IDENTIFIER = 16
-
 PERSIST_TO_TOPICMAP = True
-
-config = configparser.ConfigParser()
-config.read(SETTINGS_FILE_PATH)
-
-database_username = config["DATABASE"]["Username"]
-database_password = config["DATABASE"]["Password"]
-database_name = config["DATABASE"]["Database"]
-database_host = config["DATABASE"]["Host"]
-database_port = config["DATABASE"]["Port"]
 
 
 class EmailImportError(Exception):
@@ -52,7 +39,7 @@ def create_type_topics(topic_store: TopicStore) -> None:
     if PERSIST_TO_TOPICMAP:
         for k, v in topics.items():
             topic = Topic(identifier=k, instance_of="topic", name=v)
-            topic_store.set_topic(TOPIC_MAP_IDENTIFIER, topic, OntologyMode.LENIENT)
+            topic_store.set_topic(topic, OntologyMode.LENIENT)
 
 
 def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
@@ -79,10 +66,10 @@ def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
 
                 if PERSIST_TO_TOPICMAP:
                     folder_topic = Topic(folder_topic_identifier, instance_of="email-folder", name=folder_topic_name)
-                    topic_store.set_topic(TOPIC_MAP_IDENTIFIER, folder_topic)
+                    topic_store.set_topic(folder_topic)
 
                     # Tagging
-                    topic_store.set_tag(TOPIC_MAP_IDENTIFIER, folder_topic_identifier, "email-folder-tag")
+                    topic_store.set_tag(folder_topic_identifier, "email-folder-tag")
 
             # Create sender topic
             sender_topic_identifier = slugify(message["sender"])
@@ -92,10 +79,10 @@ def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
 
                 if PERSIST_TO_TOPICMAP:
                     sender_topic = Topic(sender_topic_identifier, instance_of="email-sender", name=sender_topic_name)
-                    topic_store.set_topic(TOPIC_MAP_IDENTIFIER, sender_topic)
+                    topic_store.set_topic(sender_topic)
 
                     # Tagging
-                    topic_store.set_tag(TOPIC_MAP_IDENTIFIER, sender_topic_identifier, "email-sender-tag")
+                    topic_store.set_tag(sender_topic_identifier, "email-sender-tag")
 
             # Create message topic
             message_topic_identifier = slugify(f"message-{message['datetime']}-{str(message_count).zfill(4)}")
@@ -110,8 +97,8 @@ def populate_topic_map(file_name: str, topic_store: TopicStore) -> None:
                 )
                 # Persist objects to the topic store
                 message_topic = Topic(message_topic_identifier, instance_of="email-message", name=message_topic_name)
-                topic_store.set_topic(TOPIC_MAP_IDENTIFIER, message_topic)
-                topic_store.set_attribute(TOPIC_MAP_IDENTIFIER, date_time_attribute)
+                topic_store.set_topic(message_topic)
+                topic_store.set_attribute(date_time_attribute)
 
             # TODO: Create associations between the message topic and the sender and folder topics, respectively
 
@@ -137,13 +124,7 @@ def parse_folder(folder):
 
 
 def main() -> None:
-    topic_store = TopicStore(
-        database_username,
-        database_password,
-        host=database_host,
-        port=database_port,
-        dbname=database_name,
-    )
+    topic_store = TopicStore()
 
     print("Start...")
     create_type_topics(topic_store)
