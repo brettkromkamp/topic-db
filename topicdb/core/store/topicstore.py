@@ -527,8 +527,7 @@ class TopicStore:
         finally:
             connection.close()
 
-        map = self.get_map()
-        if map and not self.topic_exists("home"):
+        if not self.topic_exists("home"):
             for k, v in self.base_topics.items():
                 topic = Topic(
                     identifier=k,
@@ -537,7 +536,7 @@ class TopicStore:
                 )
                 self.set_topic(topic, OntologyMode.LENIENT)
 
-    def set_map(self, map: Map) -> None:
+    def update_map(self, map: Map) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
