@@ -452,6 +452,17 @@ class TopicStore:
                     "INSERT INTO topic (identifier, instance_of) VALUES (?, ?)",
                     (topic.identifier, topic.instance_of),
                 )
+                for base_name in topic.base_names:
+                    connection.execute(
+                        "INSERT INTO basename (identifier, name, topic_identifier, scope, language) VALUES (?, ?, ?, ?, ?)",
+                        (
+                            base_name.identifier,
+                            base_name.name,
+                            topic.identifier,
+                            base_name.scope,
+                            base_name.language.name.lower(),
+                        ),
+                    )
             if not topic.get_attribute_by_name("creation-timestamp"):
                 timestamp = datetime.utcnow().replace(microsecond=0).isoformat()
                 timestamp_attribute = Attribute(
