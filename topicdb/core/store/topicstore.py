@@ -1,5 +1,5 @@
 """
-TopicStore class. Part of the StoryTechnologies project.
+TopicStore class. Part of the Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

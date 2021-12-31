@@ -1,5 +1,5 @@
 """
-Collaborator class. Part of the StoryTechnologies project.
+Collaborator class. Part of the Contextualise (https://contextualise.dev) project.
 
 April 08, 2020
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

@@ -1,5 +1,5 @@
 """
-test_topicstore.py file. Part of the StoryTechnologies project.
+test_topicstore.py file. Part of the Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
@@ -44,7 +44,9 @@ def test_topic():
 
         # Retrieve topic from store.
         topic2 = store.get_topic(
-            TOPIC_MAP_IDENTIFIER, "test-topic1", resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
+            TOPIC_MAP_IDENTIFIER,
+            "test-topic1",
+            resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
 
     assert topic2.identifier == "test-topic1"
@@ -73,7 +75,9 @@ def test_occurrence():
 
         # Retrieve occurrence from store.
         occurrence2 = store.get_occurrence(
-            TOPIC_MAP_IDENTIFIER, "test-occurrence1", resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
+            TOPIC_MAP_IDENTIFIER,
+            "test-occurrence1",
+            resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
 
     assert occurrence2.identifier == "test-occurrence1"
@@ -119,7 +123,9 @@ def test_topic_occurrences():
 def test_occurrence_resource_data():
     resource_data = b'<p>This is some text with a <a href="https://www.google.com">test</a> link.</p>'
     occurrence1 = Occurrence(
-        identifier="test-occurrence2", topic_identifier="test-topic1", resource_data=resource_data,
+        identifier="test-occurrence2",
+        topic_identifier="test-topic1",
+        resource_data=resource_data,
     )
 
     # Instantiate and open topic store.
@@ -154,7 +160,9 @@ def test_delete_occurrences():
 
 def test_association():
     association1 = Association(
-        identifier="test-association1", src_topic_ref="test-topic1", dest_topic_ref="test-topic2",
+        identifier="test-association1",
+        src_topic_ref="test-topic1",
+        dest_topic_ref="test-topic2",
     )
 
     # Instantiate and open topic store.
@@ -167,7 +175,9 @@ def test_association():
 
         # Retrieve occurrence from store.
         association2 = store.get_association(
-            TOPIC_MAP_IDENTIFIER, "test-association1", resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
+            TOPIC_MAP_IDENTIFIER,
+            "test-association1",
+            resolve_attributes=RetrievalMode.RESOLVE_ATTRIBUTES,
         )
 
     assert association2.identifier == "test-association1"
@@ -189,7 +199,12 @@ def test_delete_association():
 
 def test_attribute():
     attribute1 = Attribute(
-        "name", "true", "test-entity1", identifier="test-attribute1", data_type=DataType.BOOLEAN, language=Language.FRA,
+        "name",
+        "true",
+        "test-entity1",
+        identifier="test-attribute1",
+        data_type=DataType.BOOLEAN,
+        language=Language.FRA,
     )
 
     # Instantiate and open topic store.

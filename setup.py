@@ -1,5 +1,5 @@
 """
-setup.py file. Part of the StoryTechnologies project.
+setup.py file. Part of the Contextualise (https://contextualise.dev) project.
 
 December 21, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

@@ -1,5 +1,5 @@
 """
-initialise.py file. Part of the StoryTechnologies project.
+initialise.py file. Part of the Contextualise (https://contextualise.dev) project.
 
 February 25, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
