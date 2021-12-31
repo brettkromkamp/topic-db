@@ -65,3 +65,19 @@ CREATE INDEX attribute_2_index ON attribute(entity_identifier);
 CREATE INDEX attribute_3_index ON attribute(entity_identifier, language);
 CREATE INDEX attribute_4_index ON attribute(entity_identifier, scope);
 CREATE INDEX attribute_5_index ON attribute(entity_identifier, scope, language);
+
+
+-- ************ TOPIC MAP ************
+CREATE TABLE IF NOT EXISTS topicmap (
+    name TEXT NOT NULL PRIMARY KEY,
+    description TEXT,
+    image_path TEXT,
+    initialised INTEGER DEFAULT 0
+);
+
+
+-- ************ FULL-TEXT SEARCH ************
+CREATE VIRTUAL TABLE text USING fts5 (
+    occurrence_identifier,
+    resource_data
+);
