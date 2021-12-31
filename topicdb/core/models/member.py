@@ -2,7 +2,7 @@
 Member class. Part of the Contextualise (https://contextualise.dev) project.
 
 July 03, 2016
-Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
+Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 import uuid

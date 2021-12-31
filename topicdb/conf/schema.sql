@@ -68,11 +68,11 @@ CREATE INDEX attribute_5_index ON attribute(entity_identifier, scope, language);
 
 
 -- ************ TOPIC MAP ************
-CREATE TABLE IF NOT EXISTS topicmap (
+CREATE TABLE IF NOT EXISTS map (
     name TEXT NOT NULL PRIMARY KEY,
     description TEXT,
-    image_path TEXT,
-    initialised INTEGER DEFAULT 0
+    creation_datetime TEXT,
+    modification_datetime TEXT
 );
 
 

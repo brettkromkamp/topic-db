@@ -2,7 +2,7 @@
 test_topicstore.py file. Part of the Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
-Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
+Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
 To run tests in the terminal: brettk@brettk-X550CC:~/Source/storytechnologies/topic_db$ python -m pytest -v
 """

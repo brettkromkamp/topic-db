@@ -2,7 +2,7 @@
 DataType enumeration. Part of the Contextualise (https://contextualise.dev) project.
 
 June 12, 2016
-Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
+Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 from enum import Enum
