@@ -6,7 +6,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
 
-class TopicMap:
+class Map:
     def __init__(
         self,
         name: str,

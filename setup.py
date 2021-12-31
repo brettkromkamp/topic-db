@@ -12,9 +12,10 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README.rst"), encoding="utf-8") as f:
     README = f.read()
-
 with open(os.path.join(here, "HISTORY.rst"), encoding="utf-8") as f:
     HISTORY = f.read()
+with open(os.path.join(here, "requirements.txt")) as f:
+    REQUIRED = f.read().splitlines()
 
 setup(
     name="topic-db",
@@ -30,7 +31,7 @@ setup(
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,
-    install_requires=["memory-profiler", "python-slugify", "pytest", "mypy", "typed-tree"],
+    install_requires=REQUIRED,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",

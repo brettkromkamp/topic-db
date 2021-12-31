@@ -22,7 +22,7 @@ from topicdb.core.models.language import Language
 from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
-from topicdb.core.models.topicmap import TopicMap
+from topicdb.core.models.map import TopicMap
 from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.topicdberror import TopicDbError
