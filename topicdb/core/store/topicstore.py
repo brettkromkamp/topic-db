@@ -33,12 +33,9 @@ import sqlite3
 
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
-UNIVERSAL_SCOPE = "*"
-FALSE = 0
-TRUE = 1
-DATABASE_PATH = "data" + os.path.sep + "topics.db"
-
-DDL = """
+_UNIVERSAL_SCOPE = "*"
+_DATABASE_PATH = "data" + os.path.sep + "topics.db"
+_DDL = """
 CREATE TABLE IF NOT EXISTS topic (
     identifier TEXT NOT NULL PRIMARY KEY,
     instance_of TEXT NOT NULL,
@@ -113,11 +110,11 @@ CREATE VIRTUAL TABLE text USING fts5 (
 
 
 class TopicStore:
-    def __init__(self, database_path=DATABASE_PATH) -> None:
+    def __init__(self, database_path=_DATABASE_PATH) -> None:
         self.database_path = database_path
 
         self.base_topics = {
-            UNIVERSAL_SCOPE: "Universal",
+            _UNIVERSAL_SCOPE: "Universal",
             "home": "Home",
             "entity": "Entity",
             "topic": "Topic",
@@ -470,7 +467,7 @@ class TopicStore:
                     timestamp,
                     topic.identifier,
                     data_type=DataType.TIMESTAMP,
-                    scope=UNIVERSAL_SCOPE,
+                    scope=_UNIVERSAL_SCOPE,
                     language=Language.ENG,
                 )
                 topic.add_attribute(timestamp_attribute)
@@ -584,7 +581,7 @@ class TopicStore:
     # ========== DATABASE ==========
 
     def create_database(self):
-        statements = DDL.split(";")
+        statements = _DDL.split(";")
 
         connection = sqlite3.connect(self.database_path)
         try:
