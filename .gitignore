@@ -133,3 +133,7 @@ cython_debug/
 
 # Visual Studio Code
 .vscode/
+
+# Application settings
+settings.ini
+**/scripts/archive-2012.pst
