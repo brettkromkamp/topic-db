@@ -1,6 +1,6 @@
-psycopg2>=2.9.1
-memory-profiler>=0.58.0
+psycopg2>=2.9.3
+memory-profiler>=0.60.0
 python-slugify>=5.0.2
-pytest>=6.2.4
-mypy>=0.910
+pytest>=6.2.5
+mypy>=0.930
 typed-tree>=1.0.3

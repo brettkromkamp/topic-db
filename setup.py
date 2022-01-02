@@ -12,9 +12,10 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README.rst"), encoding="utf-8") as f:
     README = f.read()
-
 with open(os.path.join(here, "HISTORY.rst"), encoding="utf-8") as f:
     HISTORY = f.read()
+with open(os.path.join(here, "requirements.txt")) as f:
+    REQUIRED = f.read().splitlines()
 
 setup(
     name="topic-db",
@@ -26,18 +27,11 @@ setup(
     author="Brett Alistair Kromkamp",
     author_email="brett.kromkamp@gmail.com",
     license="MIT",
-    packages=find_packages(exclude=["docs", "tests*", "scripts"]),
+    packages=find_packages(exclude=["tests*", "tools"]),
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        "memory-profiler",
-        "python-slugify",
-        "pytest",
-        "mypy",
-        "typed-tree",
-        "psycopg2",
-    ],
+    install_requires=REQUIRED,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -47,6 +41,8 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
