@@ -1,5 +1,5 @@
 """
-TopicStore class. Part of the StoryTechnologies project.
+TopicStore class. Part of the Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
@@ -141,25 +141,11 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
 
-                # Get members
-                cursor.execute(
-                    "SELECT identifier FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
-                    (map_identifier, identifier),
-                )
-                member_records = cursor.fetchall()
-
                 # Delete members
                 cursor.execute(
                     "DELETE FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
                     (map_identifier, identifier),
                 )
-                if member_records:
-                    for member_record in member_records:
-                        # Delete topic refs
-                        cursor.execute(
-                            "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                            (map_identifier, member_record["identifier"]),
-                        )
         finally:
             self.pool.putconn(connection)  # Release the connection back to the connection pool
         # Delete occurrences
@@ -249,23 +235,19 @@ class TopicStore:
                         "SELECT * FROM topicdb.member WHERE topicmap_identifier = %s AND association_identifier = %s",
                         (map_identifier, identifier),
                     )
-                    member_records = cursor.fetchall()
-                    if member_records:
-                        for member_record in member_records:
-                            role_spec = member_record["role_spec"]
-                            cursor.execute(
-                                "SELECT * FROM topicdb.topicref WHERE topicmap_identifier = %s AND member_identifier = %s",
-                                (map_identifier, member_record["identifier"]),
-                            )
-                            topic_ref_records = cursor.fetchall()
-                            if topic_ref_records:
-                                member = Member(
-                                    role_spec=role_spec,
-                                    identifier=member_record["identifier"],
-                                )
-                                for topic_ref_record in topic_ref_records:
-                                    member.add_topic_ref(topic_ref_record["topic_ref"])
-                                result.add_member(member)
+                    member_record = cursor.fetchone()
+                    if member_record:
+                        member = Member(
+                            src_topic_ref=member_record["src_topic_ref"],
+                            src_role_spec=member_record["src_role_spec"],
+                            dest_topic_ref=member_record["dest_topic_ref"],
+                            dest_role_spec=member_record["dest_role_spec"],
+                            identifier=member_record["identifier"],
+                        )
+                        result.member = member
+                    else:
+                        raise TopicDbError("Association member is missing")
+
                     if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                         result.add_attributes(self.get_attributes(map_identifier, identifier))
                     if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
@@ -312,9 +294,12 @@ class TopicStore:
     def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
         result: List[TopicRefs] = []
 
-        for member in association.members:
-            for topic_ref in member.topic_refs:
-                result.append(TopicRefs(association.instance_of, member.role_spec, topic_ref))
+        result.append(
+            TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
+        )
+        result.append(
+            TopicRefs(association.instance_of, association.member.dest_role_spec, association.member.dest_topic_ref)
+        )
         return result
 
     def get_associations(self):
@@ -358,22 +343,18 @@ class TopicStore:
                             base_name.language.name.lower(),
                         ),
                     )
-                for member in association.members:
-                    cursor.execute(
-                        "INSERT INTO topicdb.member (topicmap_identifier, identifier, role_spec, association_identifier) VALUES (%s, %s, %s, %s)",
-                        (
-                            map_identifier,
-                            member.identifier,
-                            member.role_spec,
-                            association.identifier,
-                        ),
-                    )
-                    for topic_ref in member.topic_refs:
-                        cursor.execute(
-                            "INSERT INTO topicdb.topicref (topicmap_identifier, topic_ref, member_identifier) VALUES (%s, %s, %s)",
-                            (map_identifier, topic_ref, member.identifier),
-                        )
-
+                cursor.execute(
+                    "INSERT INTO topicdb.member (topicmap_identifier, identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, association_identifier) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    (
+                        map_identifier,
+                        association.member.identifier,
+                        association.member.src_topic_ref,
+                        association.member.src_role_spec,
+                        association.member.dest_topic_ref,
+                        association.member.dest_role_spec,
+                        association.identifier,
+                    ),
+                )
                 if not association.get_attribute_by_name("creation-timestamp"):
                     timestamp = str(datetime.now())
                     timestamp_attribute = Attribute(
@@ -946,18 +927,15 @@ class TopicStore:
                 if topic_record:
                     raise TopicDbError("Attempt to delete an association as if it were a topic")
 
+            # TODO: Verify non-hypergraph refactor
             sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s AND
             identifier IN
                 (SELECT association_identifier FROM topicdb.member
-                WHERE topicmap_identifier = %s AND
-                identifier IN (
-                    SELECT member_identifier FROM topicdb.topicref
-                    WHERE topicmap_identifier = %s AND
-                    topic_ref = %s))"""
+                WHERE topicmap_identifier = %s AND (src_topic_ref = %s OR dest_topic_ref = %s))"""
 
             # Delete associations
             with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(sql, (map_identifier, map_identifier, map_identifier, identifier))
+                cursor.execute(sql, (map_identifier, map_identifier, identifier, identifier))
                 records = cursor.fetchall()
                 for record in records:
                     self.delete_association(map_identifier, record["identifier"])
@@ -1089,14 +1067,11 @@ class TopicStore:
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
     ) -> List[Association]:
         result = []
+
         sql = """SELECT identifier FROM topicdb.topic WHERE topicmap_identifier = %s {0} AND
         identifier IN
             (SELECT association_identifier FROM topicdb.member
-             WHERE topicmap_identifier = %s AND
-             identifier IN (
-                SELECT member_identifier FROM topicdb.topicref
-                    WHERE topicmap_identifier = %s
-                    AND topic_ref = %s))"""
+             WHERE topicmap_identifier = %s AND (src_topic_ref = %s OR dest_topic_ref = %s))"""
         if instance_ofs:
             instance_of_in_condition = " AND instance_of IN ("
             for index, value in enumerate(instance_ofs):
@@ -1107,11 +1082,11 @@ class TopicStore:
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = %s "
                 bind_variables = (
-                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, map_identifier, identifier)
+                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
                 )
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, map_identifier, identifier)
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
         else:
             if scope:
                 query_filter = " AND scope = %s"
@@ -1119,7 +1094,7 @@ class TopicStore:
                     map_identifier,
                     scope,
                     map_identifier,
-                    map_identifier,
+                    identifier,
                     identifier,
                 )
             else:
@@ -1127,10 +1102,9 @@ class TopicStore:
                 bind_variables = (
                     map_identifier,
                     map_identifier,
-                    map_identifier,
+                    identifier,
                     identifier,
                 )
-
         try:
             connection = self.pool.getconn()
             with connection, connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -1679,7 +1653,11 @@ class TopicStore:
                     (new_identifier, map_identifier, old_identifier),
                 )
                 cursor.execute(
-                    "UPDATE topicdb.topicref SET topic_ref = %s WHERE topicmap_identifier = %s AND topic_ref = %s",
+                    "UPDATE topicdb.member SET src_topic_ref = %s WHERE topicmap_identifier = %s AND src_topic_ref = %s",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                cursor.execute(
+                    "UPDATE topicdb.member SET dest_topic_ref = %s WHERE topicmap_identifier = %s AND dest_topic_ref = %s",
                     (new_identifier, map_identifier, old_identifier),
                 )
         finally:
@@ -1792,10 +1770,6 @@ class TopicStore:
                     )
                     cursor.execute(
                         "DELETE FROM topicdb.occurrence WHERE topicmap_identifier = %s",
-                        (map_identifier,),
-                    )
-                    cursor.execute(
-                        "DELETE FROM topicdb.topicref WHERE topicmap_identifier = %s",
                         (map_identifier,),
                     )
                     cursor.execute(

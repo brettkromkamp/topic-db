@@ -1,5 +1,5 @@
 """
-CollaborationMode enumeration. Part of the StoryTechnologies project.
+CollaborationMode enumeration. Part of the Contextualise (https://contextualise.dev) project.
 
 April 04, 2020
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

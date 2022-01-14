@@ -1,5 +1,5 @@
 """
-TopicMap class. Part of the StoryTechnologies project.
+TopicMap class. Part of the Contextualise (https://contextualise.dev) project.
 
 January 07, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)

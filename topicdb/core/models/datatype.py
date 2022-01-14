@@ -1,5 +1,5 @@
 """
-DataType enumeration. Part of the StoryTechnologies project.
+DataType enumeration. Part of the Contextualise (https://contextualise.dev) project.
 
 June 12, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
