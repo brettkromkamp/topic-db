@@ -10,24 +10,25 @@ from __future__ import annotations
 from collections import namedtuple
 from datetime import datetime
 from typing import Optional, List, Union, Dict, Tuple
+from pkg_resources import ResolutionError
 
 from typedtree.tree import Tree  # type: ignore
 
-from topicdb.core.models.association import Association
-from topicdb.core.models.attribute import Attribute
-from topicdb.core.models.basename import BaseName
-from topicdb.core.models.collaborationmode import CollaborationMode
-from topicdb.core.models.collaborator import Collaborator
-from topicdb.core.models.datatype import DataType
-from topicdb.core.models.doublekeydict import DoubleKeyDict
-from topicdb.core.models.language import Language
-from topicdb.core.models.member import Member
-from topicdb.core.models.occurrence import Occurrence
-from topicdb.core.models.topic import Topic
-from topicdb.core.models.map import Map
-from topicdb.core.store.retrievalmode import RetrievalMode
-from topicdb.core.store.ontologymode import OntologyMode
-from topicdb.core.topicdberror import TopicDbError
+from core.models.association import Association
+from core.models.attribute import Attribute
+from core.models.basename import BaseName
+from core.models.collaborationmode import CollaborationMode
+from core.models.collaborator import Collaborator
+from core.models.datatype import DataType
+from core.models.doublekeydict import DoubleKeyDict
+from core.models.language import Language
+from core.models.member import Member
+from core.models.occurrence import Occurrence
+from core.models.topic import Topic
+from core.models.map import Map
+from core.store.retrievalmode import RetrievalMode
+from core.store.ontologymode import OntologyMode
+from core.topicdberror import TopicDbError
 
 import os
 import sqlite3
@@ -561,7 +562,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT identifier FROM topic WHERE map_identifier =? AND identifier = ?", (map_identifier, identifier)
+                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
             )
             record = cursor.fetchone()
             if record:
@@ -577,9 +578,24 @@ class TopicStore:
     def is_topic(self, map_identifier: int, identifier: str) -> bool:
         pass
 
+    # ========== DATABASE ==========
+
+    def create_database(self):
+        statements = _DDL.split(";")
+
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                for statement in statements:
+                    connection.execute(statement)
+        except sqlite3.Error as error:
+            raise TopicDbError("Error creating the database")
+        finally:
+            connection.close()
+
     # ========== TOPIC MAP ==========
 
-    def initialise_map(self, map_identifier: int, user_identifier: int) -> None:
+    def populate_map(self, map_identifier: int, user_identifier: int) -> None:
         map = self.get_map(map_identifier, user_identifier)
 
         if map and not map.initialised and not self.topic_exists("home"):
@@ -592,7 +608,27 @@ class TopicStore:
                 self.set_topic(map_identifier, topic, OntologyMode.LENIENT)
 
     def delete_map(self, map_identifier: int, user_identifier: int) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ? AND owner = 1",  # 1 = True
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                cursor.execute("DELETE FROM user_map WHERE map_identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM map WHERE identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM attribute WHERE map_identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM occurrence WHERE map_identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM member WHERE map_identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
+                cursor.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
+        except sqlite3.Error as error:
+            raise TopicDbError("Error deleting the topic map")
+        finally:
+            cursor.close()
+            connection.close()
 
     def get_map(self, map_identifier: int, user_identifier: int = None) -> Optional[Map]:
         result = None
@@ -613,9 +649,10 @@ class TopicStore:
                 user_map.owner AS owner,
                 user_map.collaboration_mode AS collaboration_mode
                 FROM map
-                JOIN user_map ON map.identifier = user_map.map_identifier
+                INNER JOIN user_map ON map.identifier = user_map.map_identifier
                 WHERE user_map.user_identifier = ?
-                AND map.identifier = ?"""
+                AND map.identifier = ?
+                ORDER BY map_identifier"""
             try:
                 cursor.execute(sql, (user_identifier, map_identifier))
                 record = cursor.fetchone()
@@ -662,7 +699,49 @@ class TopicStore:
         return result
 
     def get_maps(self, user_identifier: int) -> List[Map]:
-        pass
+        result = []
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+
+        sql = """SELECT
+            map.identifier AS map_identifier,
+            map.name AS name,
+            map.description AS description,
+            map.image_path AS image_path,
+            map.initialised AS initialised,
+            map.published AS published,
+            map.promoted AS promoted,
+            user_map.user_identifier AS user_identifier,
+            user_map.owner AS owner,
+            user_map.collaboration_mode AS collaboration_mode
+            FROM map
+            INNER JOIN user_map ON map.identifier = user_map.map_identifier
+            WHERE user_map.user_identifier = ?
+            ORDER BY map_identifier"""
+        try:
+            cursor.execute(sql, (user_identifier,))
+            records = cursor.fetchall()
+            for record in records:
+                map = Map(
+                    record["map_identifier"],
+                    record["name"],
+                    user_identifier=record["user_identifier"],
+                    description=record["description"],
+                    image_path=record["image_path"],
+                    initialised=record["initialised"],
+                    published=record["published"],
+                    promoted=record["promoted"],
+                    owner=record["owner"],
+                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                )
+                result.append(map)
+        except sqlite3.Error as error:
+            raise TopicDbError("Error retrieving the topic maps")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def set_map(
         self,
@@ -674,7 +753,33 @@ class TopicStore:
         published: bool = False,
         promoted: bool = False,
     ) -> int:
-        pass
+        result = -1
+        try:
+            connection = sqlite3.connect(self.database_path)
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO map (name, description, image_path, initialised, published, promoted) VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    name,
+                    description,
+                    image_path,
+                    initialised,
+                    published,
+                    promoted,
+                ),
+            )
+            cursor.execute("SELECT seq from sqlite_sequence WHERE name = 'map'")
+            result = cursor.fetchone()[0]
+            cursor.execute(
+                "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
+                (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
+            )
+        except sqlite3.Error as error:
+            raise TopicDbError("Error setting the topic map")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def update_map(
         self,
@@ -686,16 +791,104 @@ class TopicStore:
         published: bool = False,
         promoted: bool = False,
     ) -> None:
-        pass
+        try:
+            connection = sqlite3.connect(self.database_path)
+            cursor = connection.cursor()
+            cursor.execute(
+                "UPDATE map SET name = ?, description = ?, image_path = ?, initialised = ?, published = ?, promoted = ? WHERE identifier = ?",
+                (
+                    name,
+                    description,
+                    image_path,
+                    initialised,
+                    published,
+                    promoted,
+                    map_identifier,
+                ),
+            )
+        except sqlite3.Error as error:
+            raise TopicDbError("Error setting the topic map")
+        finally:
+            cursor.close()
+            connection.close()
 
     def get_published_maps(self) -> List[Map]:
-        pass
+        result = []
+        try:
+            connection = sqlite3.connect(self.database_path)
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM map WHERE published = 1 ORDER BY identifier")  # 1 = True
+            records = cursor.fetchall()
+            for record in records:
+                map = Map(
+                    record["identifier"],
+                    record["name"],
+                    user_identifier=None,
+                    description=record["description"],
+                    image_path=record["image_path"],
+                    initialised=record["initialised"],
+                    published=record["published"],
+                    promoted=record["promoted"],
+                    owner=None,
+                    collaboration_mode=None,
+                )
+                result.append(map)
+        except sqlite3.Error as error:
+            raise TopicDbError("Error getting the published maps")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def get_promoted_maps(self) -> List[Map]:
-        pass
+        result = []
+        try:
+            connection = sqlite3.connect(self.database_path)
+            cursor = connection.cursor()
+            cursor.execute("SELECT * FROM map WHERE promoted = 1 ORDER BY identifier")  # 1 = True
+            records = cursor.fetchall()
+            for record in records:
+                map = Map(
+                    record["identifier"],
+                    record["name"],
+                    user_identifier=None,
+                    description=record["description"],
+                    image_path=record["image_path"],
+                    initialised=record["initialised"],
+                    published=record["published"],
+                    promoted=record["promoted"],
+                    owner=None,
+                    collaboration_mode=None,
+                )
+                result.append(map)
+        except sqlite3.Error as error:
+            raise TopicDbError("Error getting the promoted maps")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def is_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
-        pass
+        result = False
+
+        try:
+            connection = sqlite3.connect(self.database_path)
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT * FROM user_map WHERE user_identifier = ? AND topicmap_identifier = ? AND owner = 1",  # 1 = True
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = True
+        except sqlite3.Error as error:
+            raise TopicDbError("Error getting the promoted maps")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
+
+    # ========== COLLABORATORS ==========
 
     def collaborate(
         self,
@@ -724,21 +917,6 @@ class TopicStore:
 
     def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
         pass
-
-    # ========== DATABASE ==========
-
-    def create_database(self):
-        statements = _DDL.split(";")
-
-        connection = sqlite3.connect(self.database_path)
-        try:
-            with connection:
-                for statement in statements:
-                    connection.execute(statement)
-        except sqlite3.Error as error:
-            raise TopicDbError("Error creating the database")
-        finally:
-            connection.close()
 
     # ========== STATISTICS ==========
 
