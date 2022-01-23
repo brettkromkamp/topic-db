@@ -27,7 +27,7 @@ setup(
     author="Brett Alistair Kromkamp",
     author_email="brettkromkamp@gmail.com",
     license="MIT",
-    packages=find_packages(exclude=["docs", "tests*", "scripts"]),
+    packages=find_packages(exclude=["tests*", "tools"]),
     package_data={"": ["LICENSE"]},
     include_package_data=True,
     zip_safe=False,

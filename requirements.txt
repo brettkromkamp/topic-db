@@ -1,3 +1,4 @@
+psycopg2>=2.9.3
 memory-profiler>=0.60.0
 python-slugify>=5.0.2
 pytest>=6.2.5
