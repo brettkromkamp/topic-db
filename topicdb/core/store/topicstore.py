@@ -16,6 +16,8 @@ from typedtree.tree import Tree  # type: ignore
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.basename import BaseName
+from topicdb.core.models.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborator import Collaborator
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.models.language import Language
@@ -36,76 +38,7 @@ TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 _UNIVERSAL_SCOPE = "*"
 _DATABASE_PATH = "data" + os.path.sep + "topics.db"
 _DDL = """
-CREATE TABLE IF NOT EXISTS topic (
-    identifier TEXT NOT NULL PRIMARY KEY,
-    instance_of TEXT NOT NULL,
-    scope TEXT
-);
-CREATE INDEX topic_1_index ON topic(instance_of);
-CREATE INDEX topic_2_index ON topic(scope);
-CREATE INDEX topic_3_index ON topic(instance_of, scope);
 
-CREATE TABLE IF NOT EXISTS basename (
-    identifier TEXT NOT NULL PRIMARY KEY,
-    topic_identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL
-);
-CREATE UNIQUE INDEX basename_1_index ON basename(topic_identifier, name);
-CREATE INDEX basename_2_index ON basename(topic_identifier);
-CREATE INDEX basename_3_index ON basename(topic_identifier, scope);
-CREATE INDEX basename_4_index ON basename(topic_identifier, scope, language);
-
-CREATE TABLE IF NOT EXISTS member (
-    identifier TEXT NOT NULL PRIMARY KEY,
-    association_identifier TEXT NOT NULL,
-    src_role_spec TEXT NOT NULL,
-    src_topic_ref TEXT NOT NULL,
-    dest_role_spec TEXT NOT NULL,
-    dest_topic_ref TEXT NOT NULL
-);
-CREATE UNIQUE INDEX member_1_index ON member(association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
-
-CREATE TABLE IF NOT EXISTS occurrence (
-    identifier TEXT NOT NULL PRIMARY KEY,
-    topic_identifier TEXT NOT NULL,
-    instance_of TEXT NOT NULL,
-    resource_ref TEXT NOT NULL,
-    resource_data BLOB,    
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL
-);
-CREATE INDEX occurrence_1_index ON occurrence(topic_identifier);
-CREATE INDEX occurrence_2_index ON occurrence(topic_identifier, scope, language);
-CREATE INDEX occurrence_3_index ON occurrence(topic_identifier, instance_of, scope, language);
-
-CREATE TABLE IF NOT EXISTS attribute (
-    identifier TEXT NOT NULL PRIMARY KEY,
-    entity_identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    value TEXT NOT NULL,
-    data_type TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL
-);
-CREATE UNIQUE INDEX attribute_1_index ON attribute(entity_identifier, name, scope, language);
-CREATE INDEX attribute_2_index ON attribute(entity_identifier);
-CREATE INDEX attribute_3_index ON attribute(entity_identifier, language);
-CREATE INDEX attribute_4_index ON attribute(entity_identifier, scope);
-CREATE INDEX attribute_5_index ON attribute(entity_identifier, scope, language);
-
-CREATE TABLE IF NOT EXISTS map (
-    name TEXT NOT NULL PRIMARY KEY,
-    description TEXT,
-    creation_datetime TEXT,
-    modification_datetime TEXT
-);
-
-CREATE VIRTUAL TABLE text USING fts5 (
-    occurrence_identifier,
-    resource_data
-);
 """
 
 
@@ -157,11 +90,12 @@ class TopicStore:
 
     # ========== ASSOCIATION ==========
 
-    def delete_association(self, identifier: str) -> None:
+    def delete_association(self, map_identifier: int, identifier: str) -> None:
         pass
 
     def get_association(
         self,
+        map_identifier: int,
         identifier: str,
         scope: str = None,
         language: Language = None,
@@ -172,6 +106,7 @@ class TopicStore:
 
     def get_association_groups(
         self,
+        map_identifier: int,
         identifier: str = "",
         associations: Optional[List[Association]] = None,
         instance_ofs: Optional[List[str]] = None,
@@ -193,6 +128,7 @@ class TopicStore:
 
     def set_association(
         self,
+        map_identifier: int,
         association: Association,
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
@@ -200,20 +136,21 @@ class TopicStore:
 
     # ========== ATTRIBUTE ==========
 
-    def attribute_exists(self, entity_identifier: str, name: str) -> bool:
+    def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
         pass
 
-    def delete_attribute(self, identifier: str) -> None:
+    def delete_attribute(self, map_identifier: int, identifier: str) -> None:
         pass
 
-    def delete_attributes(self, entity_identifier: str) -> None:
+    def delete_attributes(self, map_identifier: int, entity_identifier: str) -> None:
         pass
 
-    def get_attribute(self, identifier: str) -> Optional[Attribute]:
+    def get_attribute(self, map_identifier: int, identifier: str) -> Optional[Attribute]:
         pass
 
     def get_attributes(
         self,
+        map_identifier: int,
         entity_identifier: str,
         scope: str = None,
         language: Language = None,
@@ -222,6 +159,7 @@ class TopicStore:
 
     def set_attribute(
         self,
+        map_identifier: int,
         attribute: Attribute,
         ontology_mode: OntologyMode = OntologyMode.LENIENT,
     ) -> None:
@@ -254,19 +192,19 @@ class TopicStore:
         finally:
             connection.close()
 
-    def set_attributes(self, attributes: List[Attribute]) -> None:
+    def set_attributes(self, map_identifier: int, attributes: List[Attribute]) -> None:
         for attribute in attributes:
             self.set_attribute(attribute)
 
-    def update_attribute_value(self, identifier: str, value: str) -> None:
+    def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
         pass
 
     # ========== OCCURRENCE ==========
 
-    def delete_occurrence(self, identifier: str) -> None:
+    def delete_occurrence(self, map_identifier: int, identifier: str) -> None:
         pass
 
-    def delete_occurrences(self, topic_identifier: str) -> None:
+    def delete_occurrences(self, map_identifier: int, topic_identifier: str) -> None:
         pass
 
     def get_occurrence(
@@ -278,11 +216,12 @@ class TopicStore:
     ) -> Optional[Occurrence]:
         pass
 
-    def get_occurrence_data(self, identifier: str) -> Optional[bytes]:
+    def get_occurrence_data(self, map_identifier: int, identifier: str) -> Optional[bytes]:
         pass
 
     def get_occurrences(
         self,
+        map_identifier: int,
         instance_of: str = None,
         scope: str = None,
         language: Language = None,
@@ -293,34 +232,35 @@ class TopicStore:
     ) -> List[Occurrence]:
         pass
 
-    def occurrence_exists(self, identifier: str) -> bool:
+    def occurrence_exists(self, map_identifier: int, identifier: str) -> bool:
         pass
 
     def set_occurrence(
         self,
+        map_identifier: int,
         occurrence: Occurrence,
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
         pass
 
-    def update_occurrence_data(self, identifier: str, resource_data: Union[str, bytes]) -> None:
+    def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]) -> None:
         pass
 
-    def update_occurrence_scope(self, identifier: str, scope: str) -> None:
+    def update_occurrence_scope(self, map_identifier: int, identifier: str, scope: str) -> None:
         pass
 
-    def update_occurrence_topic_identifier(self, identifier: str, topic_identifier: str) -> None:
+    def update_occurrence_topic_identifier(self, map_identifier: int, identifier: str, topic_identifier: str) -> None:
         pass
 
     # ========== TAG ==========
 
-    def get_tags(self, identifier: str) -> List[Optional[str]]:
+    def get_tags(self, map_identifier: int, identifier: str) -> List[Optional[str]]:
         pass
 
-    def set_tag(self, identifier: str, tag: str) -> None:
+    def set_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
         pass
 
-    def set_tags(self, identifier: str, tags: List[str]) -> None:
+    def set_tags(self, map_identifier: int, identifier: str, tags: List[str]) -> None:
         pass
 
     # ========== TOPIC ==========
@@ -331,6 +271,7 @@ class TopicStore:
 
     def delete_topic(
         self,
+        map_identifier: int,
         identifier: str,
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
@@ -338,6 +279,7 @@ class TopicStore:
 
     def get_related_topics(
         self,
+        map_identifier: int,
         identifier: str,
         instance_ofs: Optional[List[str]] = None,
         scope: str = None,
@@ -346,6 +288,7 @@ class TopicStore:
 
     def get_topic(
         self,
+        map_identifier: int,
         identifier: str,
         scope: str = None,
         language: Language = None,
@@ -356,6 +299,7 @@ class TopicStore:
 
     def get_topic_associations(
         self,
+        map_identifier: int,
         identifier: str,
         instance_ofs: Optional[List[str]] = None,
         scope: str = None,
@@ -367,6 +311,7 @@ class TopicStore:
 
     def get_topics_network(
         self,
+        map_identifier: int,
         identifier: str,
         maximum_depth: int = 3,
         cumulative_depth: int = 0,
@@ -379,6 +324,7 @@ class TopicStore:
 
     def get_topic_identifiers(
         self,
+        map_identifier: int,
         query: str,
         instance_ofs: Optional[List[str]] = None,
         offset: int = 0,
@@ -387,12 +333,16 @@ class TopicStore:
         pass
 
     def get_topic_names(  # TODO: Refactor method to return a namedtuple including 'scope' and 'language' fields
-        self, offset: int = 0, limit: int = 100
+        self,
+        map_identifier: int,
+        offset: int = 0,
+        limit: int = 100,
     ) -> List[Tuple[str, str]]:
         pass
 
     def get_topic_occurrences(
         self,
+        map_identifier: int,
         identifier: str,
         instance_of: str = None,
         scope: str = None,
@@ -404,6 +354,7 @@ class TopicStore:
 
     def get_topics(
         self,
+        map_identifier: int,
         instance_of: str = None,
         language: Language = None,
         offset: int = 0,
@@ -414,6 +365,7 @@ class TopicStore:
 
     def get_topic_identifiers_by_attribute_name(
         self,
+        map_identifier: int,
         name: str = None,
         instance_of: str = None,
         scope: str = None,
@@ -423,6 +375,7 @@ class TopicStore:
 
     def get_topics_by_attribute_name(
         self,
+        map_identifier: int,
         name: str = None,
         instance_of: str = None,
         scope: str = None,
@@ -433,6 +386,7 @@ class TopicStore:
 
     def set_topic(
         self,
+        map_identifier: int,
         topic: Topic,
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
@@ -477,17 +431,18 @@ class TopicStore:
             connection.close()
         self.set_attributes(topic.attributes)
 
-    def update_topic_instance_of(self, identifier: str, instance_of: str) -> None:
+    def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
         pass
 
-    def update_topic_identifier(self, old_identifier: str, new_identifier: str) -> None:
+    def update_topic_identifier(self, map_identifier: int, old_identifier: str, new_identifier: str) -> None:
         pass
 
-    def set_base_name(self, identifier: str, base_name: BaseName) -> None:
+    def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
         pass
 
     def update_base_name(
         self,
+        map_identifier: int,
         identifier: str,
         name: str,
         scope: str,
@@ -495,10 +450,10 @@ class TopicStore:
     ) -> None:
         pass
 
-    def delete_base_name(self, identifier: str) -> None:
+    def delete_base_name(self, map_identifier: int, identifier: str) -> None:
         pass
 
-    def topic_exists(self, identifier: str) -> bool:
+    def topic_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
 
         connection = sqlite3.connect(self.database_path)
@@ -516,84 +471,86 @@ class TopicStore:
 
         return result
 
-    def is_topic(self, identifier: str) -> bool:
+    def is_topic(self, map_identifier: int, identifier: str) -> bool:
         pass
 
     # ========== TOPIC MAP ==========
 
-    def initialise_map(self, name, description):
-        map = Map(name, description)
-        connection = sqlite3.connect(self.database_path)
-        try:
-            with connection:
-                connection.execute(
-                    "INSERT INTO map (name, description, creation_datetime) VALUES (?, ?, ?)",
-                    (name, description, map.creation_datetime),
-                )
-        except sqlite3.Error as error:
-            raise TopicDbError("Error initialising the topic map")
-        finally:
-            connection.close()
+    def delete_topic_map(self, map_identifier: int, user_identifier: int) -> None:
+        pass
 
-        if not self.topic_exists("home"):
-            for k, v in self.base_topics.items():
-                topic = Topic(
-                    identifier=k,
-                    instance_of="base-topic",
-                    name=v,
-                )
-                self.set_topic(topic, OntologyMode.LENIENT)
+    def get_topic_map(self, map_identifier: int, user_identifier: int = None) -> Optional[Map]:
+        pass
 
-    def update_map(self, map: Map) -> None:
-        connection = sqlite3.connect(self.database_path)
-        try:
-            with connection:
-                connection.execute(
-                    "UPDATE map (name, description, modification_datetime) VALUES (?, ?, ?)",
-                    (map.name, map.description, datetime.utcnow().replace(microsecond=0).isoformat()),
-                )
-        except sqlite3.Error as error:
-            raise TopicDbError("Error updating the topic map")
-        finally:
-            connection.close()
+    def get_topic_maps(self, user_identifier: int) -> List[Map]:
+        pass
 
-    def get_map(self) -> Map:
-        result = None
+    def get_published_topic_maps(self) -> List[Map]:
+        pass
 
-        connection = sqlite3.connect(self.database_path)
-        connection.row_factory = sqlite3.Row
-        cursor = connection.cursor()
-        try:
-            cursor.execute("SELECT name, description, creation_datetime, modification_datetime FROM map")
-            record = cursor.fetchone()
-            if record:
-                result = Map(name=record["name"], description=record["description"])
-                result.creation_datetime = record["creation_datetime"]
-                result.modification_datetime = record["modification_datetime"]
-        except sqlite3.Error as error:
-            raise TopicDbError("Error retrieving the topic map")
-        finally:
-            cursor.close()
-            connection.close()
+    def get_promoted_topic_maps(self) -> List[Map]:
+        pass
 
-        return result
+    def set_topic_map(
+        self,
+        user_identifier: int,
+        name: str,
+        description: str = "",
+        image_path: str = "",
+        initialised: bool = False,
+        published: bool = False,
+        promoted: bool = False,
+    ) -> int:
+        pass
 
-    # ========== DATABASE ==========
+    def update_topic_map(
+        self,
+        map_identifier: int,
+        name: str,
+        description: str = "",
+        image_path: str = "",
+        initialised: bool = True,
+        published: bool = False,
+        promoted: bool = False,
+    ) -> None:
+        pass
 
-    def create_database(self):
-        statements = _DDL.split(";")
+    def is_topic_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
+        pass
 
-        connection = sqlite3.connect(self.database_path)
-        try:
-            with connection:
-                for statement in statements:
-                    connection.execute(statement)
-        except sqlite3.Error as error:
-            raise TopicDbError("Error creating the database")
-        finally:
-            connection.close()
+    def collaborate(
+        self,
+        map_identifier: int,
+        user_identifier: int,
+        user_name: str,
+        collaboration_mode: CollaborationMode = CollaborationMode.VIEW,
+    ) -> None:
+        pass
+
+    def stop_collaboration(self, map_identifier: int, user_identifier: int) -> None:
+        pass
+
+    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
+        pass
+
+    def update_collaboration_mode(
+        self,
+        map_identifier: int,
+        user_identifier: int,
+        collaboration_mode: CollaborationMode,
+    ) -> None:
+        pass
+
+    def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
+        pass
+
+    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
+        pass
+
+    def initialise_topic_map(self, map_identifier: int, user_identifier: int) -> None:
+        pass
 
     # ========== STATISTICS ==========
 
-    def get_topic_occurrences_statistics(self, identifier: str, scope: str = None) -> Dict:
+    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         pass

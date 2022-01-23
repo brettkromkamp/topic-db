@@ -1,55 +1,51 @@
-/* ========== TOPICDB ========== */
-CREATE SCHEMA IF NOT EXISTS topicdb;
-
-
 /* ========== TOPIC ========== */
-CREATE TABLE IF NOT EXISTS topicdb.topic (
-    topicmap_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS topic (
+    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
     scope TEXT,
-    PRIMARY KEY (topicmap_identifier, identifier)
+    PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX topic_1_index ON topicdb.topic (topicmap_identifier);
-CREATE INDEX topic_2_index ON topicdb.topic (topicmap_identifier, identifier, scope);
-CREATE INDEX topic_3_index ON topicdb.topic (topicmap_identifier, instance_of, scope);
-CREATE INDEX topic_4_index ON topicdb.topic (topicmap_identifier, scope);
+CREATE INDEX topic_1_index ON topic (map_identifier);
+CREATE INDEX topic_2_index ON topic (map_identifier, instance_of);
+CREATE INDEX topic_3_index ON topic (map_identifier, identifier, scope);
+CREATE INDEX topic_4_index ON topic (map_identifier, instance_of, scope);
+CREATE INDEX topic_5_index ON topic (map_identifier, scope);
 
 
 /* ========== BASENAME ========== */
-CREATE TABLE IF NOT EXISTS topicdb.basename (
-    topicmap_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS basename (
+    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     name TEXT NOT NULL,
     topic_identifier TEXT NOT NULL,
     scope TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, identifier)
+    PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX basename_1_index ON topicdb.basename (topicmap_identifier);
-CREATE INDEX basename_2_index ON topicdb.basename (topicmap_identifier, topic_identifier);
-CREATE INDEX basename_3_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope);
-CREATE INDEX basename_4_index ON topicdb.basename (topicmap_identifier, topic_identifier, scope, language);
+CREATE INDEX basename_1_index ON basename (map_identifier);
+CREATE INDEX basename_2_index ON basename (map_identifier, topic_identifier);
+CREATE INDEX basename_3_index ON basename (map_identifier, topic_identifier, scope);
+CREATE INDEX basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
 
 
 /* ========== MEMBER ========== */
-CREATE TABLE IF NOT EXISTS topicdb.member (
-    topicmap_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS member (
+    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     association_identifier TEXT NOT NULL,
     src_topic_ref TEXT NOT NULL,
     src_role_spec TEXT NOT NULL,
     dest_topic_ref TEXT NOT NULL,
     dest_role_spec TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, identifier)
+    PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX member_1_index ON topicdb.member (topicmap_identifier);
-CREATE INDEX member_2_index ON topicdb.member (topicmap_identifier, association_identifier);
+CREATE UNIQUE INDEX member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
 
 
 /* ========== OCCURRENCE ========== */
-CREATE TABLE IF NOT EXISTS topicdb.occurrence (
-    topicmap_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS occurrence (
+    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
     scope TEXT NOT NULL,
@@ -57,17 +53,17 @@ CREATE TABLE IF NOT EXISTS topicdb.occurrence (
     resource_data BYTEA,
     topic_identifier TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, identifier)
+    PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX occurrence_1_index ON topicdb.occurrence (topicmap_identifier);
-CREATE INDEX occurrence_2_index ON topicdb.occurrence (topicmap_identifier, topic_identifier);
-CREATE INDEX occurrence_3_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, scope, language);
-CREATE INDEX occurrence_4_index ON topicdb.occurrence (topicmap_identifier, topic_identifier, instance_of, scope, language);
+CREATE INDEX occurrence_1_index ON occurrence (map_identifier);
+CREATE INDEX occurrence_2_index ON occurrence (map_identifier, topic_identifier);
+CREATE INDEX occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
+CREATE INDEX occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
 
 
 /* ========== ATTRIBUTE ========== */
-CREATE TABLE IF NOT EXISTS topicdb.attribute (
-    topicmap_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS attribute (
+    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     parent_identifier TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -75,21 +71,19 @@ CREATE TABLE IF NOT EXISTS topicdb.attribute (
     data_type TEXT NOT NULL,
     scope TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (topicmap_identifier, parent_identifier, name, scope, language)
+    PRIMARY KEY (map_identifier, parent_identifier, name, scope, language)
 );
-CREATE INDEX attribute_1_index ON topicdb.attribute (topicmap_identifier);
-CREATE INDEX attribute_2_index ON topicdb.attribute (topicmap_identifier, identifier);
-CREATE INDEX attribute_3_index ON topicdb.attribute (topicmap_identifier, parent_identifier);
-CREATE INDEX attribute_4_index ON topicdb.attribute (topicmap_identifier, parent_identifier, language);
-CREATE INDEX attribute_5_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope);
-CREATE INDEX attribute_6_index ON topicdb.attribute (topicmap_identifier, parent_identifier, scope, language);
+CREATE INDEX attribute_1_index ON attribute (map_identifier);
+CREATE INDEX attribute_2_index ON attribute (map_identifier, identifier);
+CREATE INDEX attribute_3_index ON attribute (map_identifier, parent_identifier);
+CREATE INDEX attribute_4_index ON attribute (map_identifier, parent_identifier, language);
+CREATE INDEX attribute_5_index ON attribute (map_identifier, parent_identifier, scope);
+CREATE INDEX attribute_6_index ON attribute (map_identifier, parent_identifier, scope, language);
 
 
-/* ========== TOPICMAP ========== */
-CREATE SEQUENCE topicdb.topic_map_id_sequence;
-
-CREATE TABLE IF NOT EXISTS topicdb.topicmap (
-    identifier INT NOT NULL DEFAULT nextval('topicdb.topic_map_id_sequence'),
+/* ========== MAP ========== */
+CREATE TABLE IF NOT EXISTS map (
+    identifier INTEGER,
     name TEXT NOT NULL,
     description TEXT,
     image_path TEXT,
@@ -98,19 +92,24 @@ CREATE TABLE IF NOT EXISTS topicdb.topicmap (
     promoted BOOLEAN DEFAULT FALSE NOT NULL,
     PRIMARY KEY (identifier)
 );
-CREATE INDEX topicmap_1_index ON topicdb.topicmap (published);
-CREATE INDEX topicmap_2_index ON topicdb.topicmap (promoted);
-
-ALTER SEQUENCE topicdb.topic_map_id_sequence OWNED BY topicdb.topicmap.identifier;
+CREATE INDEX map_1_index ON map (published);
+CREATE INDEX map_2_index ON map (promoted);
 
 
-/* ========== USER_TOPICMAP ========== */
-CREATE TABLE IF NOT EXISTS topicdb.user_topicmap (
+/* ========== USER_MAP ========== */
+CREATE TABLE IF NOT EXISTS user_map (
     user_identifier INT NOT NULL,
-    topicmap_identifier INT NOT NULL,
+    map_identifier INT NOT NULL,
     user_name TEXT,
     owner BOOLEAN DEFAULT FALSE NOT NULL,
     collaboration_mode TEXT NOT NULL,
-    PRIMARY KEY (user_identifier, topicmap_identifier)
+    PRIMARY KEY (user_identifier, map_identifier)
 );
-CREATE INDEX user_topicmap_1_index ON topicdb.user_topicmap (owner);
+CREATE INDEX user_map_1_index ON user_map (owner);
+
+
+/* ========== FULL-TEXT SEARCH ========== */
+CREATE VIRTUAL TABLE text USING fts5 (
+    occurrence_identifier,
+    resource_data
+);
