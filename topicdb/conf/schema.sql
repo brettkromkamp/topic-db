@@ -100,7 +100,6 @@ CREATE INDEX map_2_index ON map (promoted);
 CREATE TABLE IF NOT EXISTS user_map (
     user_identifier INT NOT NULL,
     map_identifier INT NOT NULL,
-    user_name TEXT,
     owner BOOLEAN DEFAULT FALSE NOT NULL,
     collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, map_identifier)
