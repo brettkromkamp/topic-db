@@ -1,10 +1,10 @@
 """
-test_topicstore.py file. Part of the Contextualise (https://contextualise.dev) project.
+test_store.py file. Part of the Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
-To run tests in the terminal: brettk@brettk-X550CC:~/Source/storytechnologies/topic_db$ python -m pytest -v
+To run tests in the terminal: $ ~/Source/storytechnologies/topic_db$ python -m pytest -v
 """
 
 import configparser

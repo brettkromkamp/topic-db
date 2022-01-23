@@ -888,7 +888,7 @@ class TopicStore:
             connection.close()
         return result
 
-    # ========== COLLABORATORS ==========
+    # ========== COLLABORATION ==========
 
     def collaborate(
         self,
