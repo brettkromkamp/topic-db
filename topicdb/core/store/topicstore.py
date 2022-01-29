@@ -611,19 +611,20 @@ class TopicStore:
         connection = sqlite3.connect(self.database_path)
         cursor = connection.cursor()
         try:
-            cursor.execute(
-                "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ? AND owner = 1",  # 1 = True
-                (user_identifier, map_identifier),
-            )
-            record = cursor.fetchone()
-            if record:
-                cursor.execute("DELETE FROM user_map WHERE map_identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM map WHERE identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM attribute WHERE map_identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM occurrence WHERE map_identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM member WHERE map_identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
-                cursor.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
+            with connection:
+                cursor.execute(
+                    "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ? AND owner = 1",  # 1 = True
+                    (user_identifier, map_identifier),
+                )
+                record = cursor.fetchone()
+                if record:
+                    connection.execute("DELETE FROM user_map WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM map WHERE identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM attribute WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM occurrence WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM member WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
         except sqlite3.Error as error:
             raise TopicDbError("Error deleting the topic map")
         finally:
@@ -754,26 +755,28 @@ class TopicStore:
         promoted: bool = False,
     ) -> int:
         result = -1
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
         try:
-            connection = sqlite3.connect(self.database_path)
-            cursor = connection.cursor()
-            cursor.execute(
-                "INSERT INTO map (name, description, image_path, initialised, published, promoted) VALUES (?, ?, ?, ?, ?, ?)",
-                (
-                    name,
-                    description,
-                    image_path,
-                    initialised,
-                    published,
-                    promoted,
-                ),
-            )
-            cursor.execute("SELECT seq from sqlite_sequence WHERE name = 'map'")
-            result = cursor.fetchone()[0]
-            cursor.execute(
-                "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
-                (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
-            )
+            with connection:
+                connection.execute(
+                    "INSERT INTO map (name, description, image_path, initialised, published, promoted) VALUES (?, ?, ?, ?, ?, ?)",
+                    (
+                        name,
+                        description,
+                        image_path,
+                        initialised,
+                        published,
+                        promoted,
+                    ),
+                )
+                cursor.execute("SELECT seq from sqlite_sequence WHERE name = 'map'")
+                result = cursor.fetchone()[0]
+                connection.execute(
+                    "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
+                    (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
+                )
         except sqlite3.Error as error:
             raise TopicDbError("Error setting the topic map")
         finally:
@@ -791,32 +794,32 @@ class TopicStore:
         published: bool = False,
         promoted: bool = False,
     ) -> None:
+        connection = sqlite3.connect(self.database_path)
         try:
-            connection = sqlite3.connect(self.database_path)
-            cursor = connection.cursor()
-            cursor.execute(
-                "UPDATE map SET name = ?, description = ?, image_path = ?, initialised = ?, published = ?, promoted = ? WHERE identifier = ?",
-                (
-                    name,
-                    description,
-                    image_path,
-                    initialised,
-                    published,
-                    promoted,
-                    map_identifier,
-                ),
-            )
+            with connection:
+                connection.execute(
+                    "UPDATE map SET name = ?, description = ?, image_path = ?, initialised = ?, published = ?, promoted = ? WHERE identifier = ?",
+                    (
+                        name,
+                        description,
+                        image_path,
+                        initialised,
+                        published,
+                        promoted,
+                        map_identifier,
+                    ),
+                )
         except sqlite3.Error as error:
             raise TopicDbError("Error setting the topic map")
         finally:
-            cursor.close()
             connection.close()
 
     def get_published_maps(self) -> List[Map]:
         result = []
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
         try:
-            connection = sqlite3.connect(self.database_path)
-            cursor = connection.cursor()
             cursor.execute("SELECT * FROM map WHERE published = 1 ORDER BY identifier")  # 1 = True
             records = cursor.fetchall()
             for record in records:
@@ -842,9 +845,10 @@ class TopicStore:
 
     def get_promoted_maps(self) -> List[Map]:
         result = []
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
         try:
-            connection = sqlite3.connect(self.database_path)
-            cursor = connection.cursor()
             cursor.execute("SELECT * FROM map WHERE promoted = 1 ORDER BY identifier")  # 1 = True
             records = cursor.fetchall()
             for record in records:
@@ -871,11 +875,11 @@ class TopicStore:
     def is_map_owner(self, map_identifier: int, user_identifier: int) -> bool:
         result = False
 
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
         try:
-            connection = sqlite3.connect(self.database_path)
-            cursor = connection.cursor()
             cursor.execute(
-                "SELECT * FROM user_map WHERE user_identifier = ? AND topicmap_identifier = ? AND owner = 1",  # 1 = True
+                "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ? AND owner = 1",  # 1 = True
                 (user_identifier, map_identifier),
             )
             record = cursor.fetchone()
