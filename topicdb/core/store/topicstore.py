@@ -396,7 +396,96 @@ class TopicStore:
         inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
     ) -> List[Occurrence]:
-        pass
+        result = []
+
+        sql = """SELECT * FROM occurrence
+            WHERE map_identifier = ?
+            {0}
+            ORDER BY topic_identifier, identifier
+            LIMIT ? OFFSET ?"""
+        if instance_of:
+            if scope:
+                if language:
+                    query_filter = " AND instance_of = ? AND scope = ? AND language = ?"
+                    bind_variables = (
+                        map_identifier,
+                        instance_of,
+                        scope,
+                        language.name.lower(),
+                        limit,
+                        offset,
+                    )
+                else:
+                    query_filter = " AND instance_of = ? AND scope = ?"
+                    bind_variables = (map_identifier, instance_of, scope, limit, offset)
+            else:
+                if language:
+                    query_filter = " AND instance_of = ? AND language = ?"
+                    bind_variables = (
+                        map_identifier,
+                        instance_of,
+                        language.name.lower(),
+                        limit,
+                        offset,
+                    )
+                else:
+                    query_filter = " AND instance_of = ?"
+                    bind_variables = (map_identifier, instance_of, limit, offset)
+        else:
+            if scope:
+                if language:
+                    query_filter = " AND scope = ? AND language = ?"
+                    bind_variables = (
+                        map_identifier,
+                        scope,
+                        language.name.lower(),
+                        limit,
+                        offset,
+                    )
+                else:
+                    query_filter = " AND scope = ?"
+                    bind_variables = (map_identifier, scope, limit, offset)
+            else:
+                if language:
+                    query_filter = " AND language = ?"
+                    bind_variables = (
+                        map_identifier,
+                        language.name.lower(),
+                        limit,
+                        offset,
+                    )
+                else:
+                    query_filter = ""
+                    bind_variables = (map_identifier, limit, offset)
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql.format(query_filter), bind_variables)
+            records = cursor.fetchall()
+            for record in records:
+                resource_data = None
+                if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
+                    resource_data = self.get_occurrence_data(map_identifier, identifier=record["identifier"])
+                occurrence = Occurrence(
+                    record["identifier"],
+                    record["instance_of"],
+                    record["topic_identifier"],
+                    record["scope"],
+                    record["resource_ref"],
+                    resource_data,  # Type: bytes
+                    Language[record["language"].upper()],
+                )
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                    occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
+                result.append(occurrence)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error getting the occurrences: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def occurrence_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
@@ -619,14 +708,14 @@ class TopicStore:
 
         sql = """SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language
             FROM occurrence
-            WHERE map_identifier = %s AND
-            topic_identifier = %s
+            WHERE map_identifier = ? AND
+            topic_identifier = ?
             {0}
             ORDER BY instance_of, scope, language"""
         if instance_of:
             if scope:
                 if language:
-                    query_filter = " AND instance_of = %s AND scope = %s AND language = %s"
+                    query_filter = " AND instance_of = ? AND scope = ? AND language = ?"
                     bind_variables = (
                         map_identifier,
                         identifier,
@@ -635,11 +724,11 @@ class TopicStore:
                         language.name.lower(),
                     )
                 else:
-                    query_filter = " AND instance_of = %s AND scope = %s"
+                    query_filter = " AND instance_of = ? AND scope = ?"
                     bind_variables = (map_identifier, identifier, instance_of, scope)
             else:
                 if language:
-                    query_filter = " AND instance_of = %s AND language = %s"
+                    query_filter = " AND instance_of = ? AND language = ?"
                     bind_variables = (
                         map_identifier,
                         identifier,
@@ -647,12 +736,12 @@ class TopicStore:
                         language.name.lower(),
                     )
                 else:
-                    query_filter = " AND instance_of = %s"
+                    query_filter = " AND instance_of = ?"
                     bind_variables = (map_identifier, identifier, instance_of)
         else:
             if scope:
                 if language:
-                    query_filter = " AND scope = %s AND language = %s"
+                    query_filter = " AND scope = ? AND language = ?"
                     bind_variables = (
                         map_identifier,
                         identifier,
@@ -660,11 +749,11 @@ class TopicStore:
                         language.name.lower(),
                     )
                 else:
-                    query_filter = " AND scope = %s"
+                    query_filter = " AND scope = ?"
                     bind_variables = (map_identifier, identifier, scope)
             else:
                 if language:
-                    query_filter = " AND language = %s"
+                    query_filter = " AND language = ?"
                     bind_variables = (map_identifier, identifier, language.name.lower())
                 else:
                     query_filter = ""
