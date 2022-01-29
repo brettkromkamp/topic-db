@@ -10,25 +10,26 @@ from __future__ import annotations
 from collections import namedtuple
 from datetime import datetime
 from typing import Optional, List, Union, Dict, Tuple
+from black import err
 from pkg_resources import ResolutionError
 
 from typedtree.tree import Tree  # type: ignore
 
-from core.models.association import Association
-from core.models.attribute import Attribute
-from core.models.basename import BaseName
-from core.models.collaborationmode import CollaborationMode
-from core.models.collaborator import Collaborator
-from core.models.datatype import DataType
-from core.models.doublekeydict import DoubleKeyDict
-from core.models.language import Language
-from core.models.member import Member
-from core.models.occurrence import Occurrence
-from core.models.topic import Topic
-from core.models.map import Map
-from core.store.retrievalmode import RetrievalMode
-from core.store.ontologymode import OntologyMode
-from core.topicdberror import TopicDbError
+from topicdb.core.models.association import Association
+from topicdb.core.models.attribute import Attribute
+from topicdb.core.models.basename import BaseName
+from topicdb.core.models.collaborationmode import CollaborationMode
+from topicdb.core.models.collaborator import Collaborator
+from topicdb.core.models.datatype import DataType
+from topicdb.core.models.doublekeydict import DoubleKeyDict
+from topicdb.core.models.language import Language
+from topicdb.core.models.member import Member
+from topicdb.core.models.occurrence import Occurrence
+from topicdb.core.models.topic import Topic
+from topicdb.core.models.map import Map
+from topicdb.core.store.retrievalmode import RetrievalMode
+from topicdb.core.store.ontologymode import OntologyMode
+from topicdb.core.topicdberror import TopicDbError
 
 import os
 import sqlite3
@@ -37,7 +38,7 @@ import sqlite3
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
 _UNIVERSAL_SCOPE = "*"
-_DATABASE_PATH = "data" + os.path.sep + "topics.db"
+_DATABASE_PATH = "topics.db"
 _DDL = """
 CREATE TABLE IF NOT EXISTS topic (
     map_identifier INTEGER NOT NULL,
@@ -51,7 +52,6 @@ CREATE INDEX topic_2_index ON topic (map_identifier, instance_of);
 CREATE INDEX topic_3_index ON topic (map_identifier, identifier, scope);
 CREATE INDEX topic_4_index ON topic (map_identifier, instance_of, scope);
 CREATE INDEX topic_5_index ON topic (map_identifier, scope);
-
 CREATE TABLE IF NOT EXISTS basename (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -65,7 +65,6 @@ CREATE INDEX basename_1_index ON basename (map_identifier);
 CREATE INDEX basename_2_index ON basename (map_identifier, topic_identifier);
 CREATE INDEX basename_3_index ON basename (map_identifier, topic_identifier, scope);
 CREATE INDEX basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
-
 CREATE TABLE IF NOT EXISTS member (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -77,7 +76,6 @@ CREATE TABLE IF NOT EXISTS member (
     PRIMARY KEY (map_identifier, identifier)
 );
 CREATE UNIQUE INDEX member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
-
 CREATE TABLE IF NOT EXISTS occurrence (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -93,48 +91,42 @@ CREATE INDEX occurrence_1_index ON occurrence (map_identifier);
 CREATE INDEX occurrence_2_index ON occurrence (map_identifier, topic_identifier);
 CREATE INDEX occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
 CREATE INDEX occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
-
 CREATE TABLE IF NOT EXISTS attribute (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
-    parent_identifier TEXT NOT NULL,
+    entity_identifier TEXT NOT NULL,
     name TEXT NOT NULL,
     value TEXT NOT NULL,
     data_type TEXT NOT NULL,
     scope TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, parent_identifier, name, scope, language)
+    PRIMARY KEY (map_identifier, entity_identifier, name, scope, language)
 );
 CREATE INDEX attribute_1_index ON attribute (map_identifier);
 CREATE INDEX attribute_2_index ON attribute (map_identifier, identifier);
-CREATE INDEX attribute_3_index ON attribute (map_identifier, parent_identifier);
-CREATE INDEX attribute_4_index ON attribute (map_identifier, parent_identifier, language);
-CREATE INDEX attribute_5_index ON attribute (map_identifier, parent_identifier, scope);
-CREATE INDEX attribute_6_index ON attribute (map_identifier, parent_identifier, scope, language);
-
+CREATE INDEX attribute_3_index ON attribute (map_identifier, entity_identifier);
+CREATE INDEX attribute_4_index ON attribute (map_identifier, entity_identifier, language);
+CREATE INDEX attribute_5_index ON attribute (map_identifier, entity_identifier, scope);
+CREATE INDEX attribute_6_index ON attribute (map_identifier, entity_identifier, scope, language);
 CREATE TABLE IF NOT EXISTS map (
-    identifier INTEGER,
+    identifier INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
     image_path TEXT,
     initialised BOOLEAN DEFAULT FALSE NOT NULL,
     published BOOLEAN DEFAULT FALSE NOT NULL,
-    promoted BOOLEAN DEFAULT FALSE NOT NULL,
-    PRIMARY KEY (identifier)
+    promoted BOOLEAN DEFAULT FALSE NOT NULL
 );
 CREATE INDEX map_1_index ON map (published);
 CREATE INDEX map_2_index ON map (promoted);
-
 CREATE TABLE IF NOT EXISTS user_map (
     user_identifier INT NOT NULL,
     map_identifier INT NOT NULL,
-    user_name TEXT,
     owner BOOLEAN DEFAULT FALSE NOT NULL,
     collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, map_identifier)
 );
 CREATE INDEX user_map_1_index ON user_map (owner);
-
 CREATE VIRTUAL TABLE text USING fts5 (
     occurrence_identifier,
     resource_data
@@ -289,6 +281,7 @@ class TopicStore:
                     ),
                 )
         except sqlite3.Error as error:
+            print(error)
             raise TopicDbError("Error creating the attribute")
         finally:
             connection.close()
@@ -531,7 +524,7 @@ class TopicStore:
             raise TopicDbError("Error creating the topic")
         finally:
             connection.close()
-        self.set_attributes(topic.attributes)
+        self.set_attributes(map_identifier, topic.attributes)
 
     def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
         pass
@@ -589,6 +582,7 @@ class TopicStore:
                 for statement in statements:
                     connection.execute(statement)
         except sqlite3.Error as error:
+            print(error)
             raise TopicDbError("Error creating the database")
         finally:
             connection.close()
@@ -598,7 +592,7 @@ class TopicStore:
     def populate_map(self, map_identifier: int, user_identifier: int) -> None:
         map = self.get_map(map_identifier, user_identifier)
 
-        if map and not map.initialised and not self.topic_exists("home"):
+        if map and not map.initialised and not self.topic_exists(map_identifier, "home"):
             for k, v in self.base_topics.items():
                 topic = Topic(
                     identifier=k,
@@ -633,10 +627,10 @@ class TopicStore:
 
     def get_map(self, map_identifier: int, user_identifier: int = None) -> Optional[Map]:
         result = None
+
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
-
         if user_identifier:
             sql = """SELECT
                 map.identifier AS map_identifier,
@@ -701,10 +695,10 @@ class TopicStore:
 
     def get_maps(self, user_identifier: int) -> List[Map]:
         result = []
+
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
-
         sql = """SELECT
             map.identifier AS map_identifier,
             map.name AS name,
@@ -778,6 +772,7 @@ class TopicStore:
                     (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
                 )
         except sqlite3.Error as error:
+            print(error)
             raise TopicDbError("Error setting the topic map")
         finally:
             cursor.close()

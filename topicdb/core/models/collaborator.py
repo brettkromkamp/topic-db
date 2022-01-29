@@ -34,4 +34,4 @@ class Collaborator:
 
     @property
     def collaboration_mode(self) -> CollaborationMode:
-        return self.
+        return self.__collaboration_mode
