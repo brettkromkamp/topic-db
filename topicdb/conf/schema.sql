@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS occurrence (
     instance_of TEXT NOT NULL,
     scope TEXT NOT NULL,
     resource_ref TEXT NOT NULL,
-    resource_data BYTEA,
+    resource_data BLOB,
     topic_identifier TEXT NOT NULL,
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
