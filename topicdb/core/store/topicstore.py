@@ -10,8 +10,6 @@ from __future__ import annotations
 from collections import namedtuple
 from datetime import datetime
 from typing import Optional, List, Union, Dict, Tuple
-from black import err
-from pkg_resources import ResolutionError
 
 from typedtree.tree import Tree  # type: ignore
 
@@ -281,8 +279,7 @@ class TopicStore:
                     ),
                 )
         except sqlite3.Error as error:
-            print(error)
-            raise TopicDbError("Error creating the attribute")
+            raise TopicDbError(f"Error creating the attribute: {error}")
         finally:
             connection.close()
 
@@ -521,7 +518,7 @@ class TopicStore:
                 )
                 topic.add_attribute(timestamp_attribute)
         except sqlite3.Error as error:
-            raise TopicDbError("Error creating the topic")
+            raise TopicDbError(f"Error creating the topic: {error}")
         finally:
             connection.close()
         self.set_attributes(map_identifier, topic.attributes)
@@ -561,7 +558,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError("Error retrieving the topic map")
+            raise TopicDbError(f"Error confirming existence of the topic: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -582,8 +579,7 @@ class TopicStore:
                 for statement in statements:
                     connection.execute(statement)
         except sqlite3.Error as error:
-            print(error)
-            raise TopicDbError("Error creating the database")
+            raise TopicDbError(f"Error creating the database: {error}")
         finally:
             connection.close()
 
@@ -620,7 +616,7 @@ class TopicStore:
                     connection.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
                     connection.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
         except sqlite3.Error as error:
-            raise TopicDbError("Error deleting the topic map")
+            raise TopicDbError(f"Error deleting the map: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -665,7 +661,7 @@ class TopicStore:
                         collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                     )
             except sqlite3.Error as error:
-                raise TopicDbError("Error retrieving the topic map")
+                raise TopicDbError(f"Error retrieving the map: {error}")
             finally:
                 cursor.close()
                 connection.close()
@@ -687,7 +683,7 @@ class TopicStore:
                         collaboration_mode=None,
                     )
             except sqlite3.Error as error:
-                raise TopicDbError("Error retrieving the topic map")
+                raise TopicDbError(f"Error retrieving the topic map: {error}")
             finally:
                 cursor.close()
                 connection.close()
@@ -732,7 +728,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError("Error retrieving the topic maps")
+            raise TopicDbError(f"Error retrieving the maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -772,8 +768,7 @@ class TopicStore:
                     (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
                 )
         except sqlite3.Error as error:
-            print(error)
-            raise TopicDbError("Error setting the topic map")
+            raise TopicDbError(f"Error setting the map: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -805,7 +800,7 @@ class TopicStore:
                     ),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError("Error setting the topic map")
+            raise TopicDbError(f"Error updating the map: {error}")
         finally:
             connection.close()
 
@@ -832,7 +827,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError("Error getting the published maps")
+            raise TopicDbError(f"Error getting the published maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -861,7 +856,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError("Error getting the promoted maps")
+            raise TopicDbError(f"Error getting the promoted maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -881,7 +876,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError("Error getting the promoted maps")
+            raise TopicDbError(f"Error confirming owner of the map: {error}")
         finally:
             cursor.close()
             connection.close()
