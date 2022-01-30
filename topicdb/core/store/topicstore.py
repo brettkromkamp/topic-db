@@ -180,30 +180,6 @@ class TopicStore:
 
     # ========== ASSOCIATION ==========
 
-    def delete_association(self, map_identifier: int, identifier: str) -> None:
-        pass
-
-    def get_association(
-        self,
-        map_identifier: int,
-        identifier: str,
-        scope: str = None,
-        language: Language = None,
-        resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
-        resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
-    ) -> Optional[Association]:
-        pass
-
-    def get_association_groups(
-        self,
-        map_identifier: int,
-        identifier: str = "",
-        associations: Optional[List[Association]] = None,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
-    ) -> DoubleKeyDict:
-        pass
-
     @staticmethod
     def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
         result: List[TopicRefs] = []
@@ -216,13 +192,243 @@ class TopicStore:
         )
         return result
 
+    def delete_association(self, map_identifier: int, identifier: str) -> None:
+        connection = sqlite3.connect(self.database_path)
+        try:
+            # https://docs.python.org/3/library/sqlite3.html#using-the-connection-as-a-context-manager
+            with connection:
+                # Delete association
+                connection.execute(
+                    "DELETE FROM topic WHERE map_identifier = ? AND identifier = ? AND scope IS NOT NULL",
+                    (map_identifier, identifier),
+                )
+
+                # Delete base name record(s)
+                connection.execute(
+                    "DELETE FROM basename WHERE map_identifier = ? AND topic_identifier = ?",
+                    (map_identifier, identifier),
+                )
+
+                # Delete members
+                connection.execute(
+                    "DELETE FROM member WHERE map_identifier = ? AND association_identifier = ?",
+                    (map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting the association: {error}")
+        finally:
+            connection.close()
+
+        self.delete_occurrences(map_identifier, identifier)
+        self.delete_attributes(map_identifier, identifier)
+
+    def get_association(
+        self,
+        map_identifier: int,
+        identifier: str,
+        scope: str = None,
+        language: Language = None,
+        resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+        resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
+    ) -> Optional[Association]:
+        result = None
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT identifier, instance_of, scope FROM topic WHERE map_identifier = ? AND identifier = ? AND scope IS NOT NULL",
+                (map_identifier, identifier),
+            )
+            association_record = cursor.fetchone()
+            if association_record:
+                result = Association(
+                    identifier=association_record["identifier"],
+                    instance_of=association_record["instance_of"],
+                    scope=association_record["scope"],
+                )
+                result.clear_base_names()
+                if scope:
+                    if language:
+                        sql = """SELECT name, scope, language, identifier
+                            FROM basename
+                            WHERE map_identifier = ? AND
+                            topic_identifier = ? AND
+                            scope = ? AND
+                            language = ?"""
+                        bind_variables = (
+                            map_identifier,
+                            identifier,
+                            scope,
+                            language.name.lower(),
+                        )
+                    else:
+                        sql = """SELECT name, scope, language, identifier
+                            FROM basename
+                            WHERE map_identifier =? AND
+                            topic_identifier = ? AND
+                            scope = ?"""
+                        bind_variables = (map_identifier, identifier, scope)
+                else:
+                    if language:
+                        sql = """SELECT name, scope, language, identifier
+                            FROM basename
+                            WHERE map_identifier = ? AND
+                            topic_identifier = ? AND
+                            language = ?"""
+                        bind_variables = (
+                            map_identifier,
+                            identifier,
+                            language.name.lower(),
+                        )
+                    else:
+                        sql = """SELECT name, scope, language, identifier
+                            FROM basename
+                            WHERE map_identifier = ? AND
+                            topic_identifier = ?"""
+                        bind_variables = (map_identifier, identifier)
+                cursor.execute(sql, bind_variables)
+                base_name_records = cursor.fetchall()
+                if base_name_records:
+                    for base_name_record in base_name_records:
+                        result.add_base_name(
+                            BaseName(
+                                base_name_record["name"],
+                                base_name_record["scope"],
+                                Language[base_name_record["language"].upper()],
+                                base_name_record["identifier"],
+                            )
+                        )
+                cursor.execute(
+                    "SELECT * FROM member WHERE map_identifier = ? AND association_identifier = ?",
+                    (map_identifier, identifier),
+                )
+                member_record = cursor.fetchone()
+                if member_record:
+                    member = Member(
+                        src_topic_ref=member_record["src_topic_ref"],
+                        src_role_spec=member_record["src_role_spec"],
+                        dest_topic_ref=member_record["dest_topic_ref"],
+                        dest_role_spec=member_record["dest_role_spec"],
+                        identifier=member_record["identifier"],
+                    )
+                    result.member = member
+                else:
+                    raise TopicDbError("Association member is missing")
+
+                if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
+                    result.add_attributes(self.get_attributes(map_identifier, identifier))
+                if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
+                    result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error retrieving an association: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
+
+    def get_association_groups(
+        self,
+        map_identifier: int,
+        identifier: str = "",
+        associations: Optional[List[Association]] = None,
+        instance_ofs: Optional[List[str]] = None,
+        scope: str = None,
+    ) -> DoubleKeyDict:
+        if identifier == "" and associations is None:
+            raise TopicDbError("At least one of the following parameters is required: 'identifier' or 'associations'")
+
+        result = DoubleKeyDict()
+
+        if not associations:
+            associations = self.get_topic_associations(
+                map_identifier, identifier, instance_ofs=instance_ofs, scope=scope
+            )
+
+        for association in associations:
+            resolved_topic_refs = self._resolve_topic_refs(association)
+            for resolved_topic_ref in resolved_topic_refs:
+                instance_of = resolved_topic_ref.instance_of
+                role_spec = resolved_topic_ref.role_spec
+                topic_ref = resolved_topic_ref.topic_ref
+                if topic_ref != identifier:
+                    if [instance_of, role_spec] in result:
+                        topic_refs = result[instance_of, role_spec]
+                        if topic_ref not in topic_refs:
+                            topic_refs.append(topic_ref)
+                        result[instance_of, role_spec] = topic_refs
+                    else:
+                        result[instance_of, role_spec] = [topic_ref]
+        return
+
     def set_association(
         self,
         map_identifier: int,
         association: Association,
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
-        pass
+        if ontology_mode is OntologyMode.STRICT:
+            instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
+            if not instance_of_exists:
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+
+            scope_exists = self.topic_exists(map_identifier, association.scope)
+            if not scope_exists:
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
+
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "INSERT INTO topic (map_identifier, identifier, instance_of, scope) VALUES (?, ?, ?, ?)",
+                    (
+                        map_identifier,
+                        association.identifier,
+                        association.instance_of,
+                        association.scope,
+                    ),
+                )
+                for base_name in association.base_names:
+                    connection.execute(
+                        "INSERT INTO basename (map_identifier, identifier, name, topic_identifier, scope, language) VALUES (?, ?, ?, ?, ?, ?)",
+                        (
+                            map_identifier,
+                            base_name.identifier,
+                            base_name.name,
+                            association.identifier,
+                            base_name.scope,
+                            base_name.language.name.lower(),
+                        ),
+                    )
+                connection.execute(
+                    "INSERT INTO member (map_identifier, identifier, src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec, association_identifier) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        map_identifier,
+                        association.member.identifier,
+                        association.member.src_topic_ref,
+                        association.member.src_role_spec,
+                        association.member.dest_topic_ref,
+                        association.member.dest_role_spec,
+                        association.identifier,
+                    ),
+                )
+                if not association.get_attribute_by_name("creation-timestamp"):
+                    timestamp = str(datetime.now())
+                    timestamp_attribute = Attribute(
+                        "creation-timestamp",
+                        timestamp,
+                        association.identifier,
+                        data_type=DataType.TIMESTAMP,
+                        scope=_UNIVERSAL_SCOPE,
+                        language=Language.ENG,
+                    )
+                    association.add_attribute(timestamp_attribute)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error creating the association: {error}")
+        finally:
+            connection.close()
+        self.set_attributes(map_identifier, association.attributes)
 
     # ========== ATTRIBUTE ==========
 
@@ -794,7 +1000,69 @@ class TopicStore:
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
     ) -> List[Association]:
-        pass
+        result = []
+
+        sql = """SELECT identifier FROM topic WHERE map_identifier = ? {0} AND
+        identifier IN
+            (SELECT association_identifier FROM member
+             WHERE map_identifier = ? AND (src_topic_ref = ? OR dest_topic_ref = ?))"""
+        if instance_ofs:
+            instance_of_in_condition = " AND instance_of IN ("
+            for index, value in enumerate(instance_ofs):
+                if (index + 1) != len(instance_ofs):
+                    instance_of_in_condition += "?, "
+                else:
+                    instance_of_in_condition += "?) "
+            if scope:
+                query_filter = instance_of_in_condition + " AND scope = ? "
+                bind_variables = (
+                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
+                )
+            else:
+                query_filter = instance_of_in_condition
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
+        else:
+            if scope:
+                query_filter = " AND scope = ?"
+                bind_variables = (
+                    map_identifier,
+                    scope,
+                    map_identifier,
+                    identifier,
+                    identifier,
+                )
+            else:
+                query_filter = ""
+                bind_variables = (
+                    map_identifier,
+                    map_identifier,
+                    identifier,
+                    identifier,
+                )
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql.format(query_filter), bind_variables)
+            records = cursor.fetchall()
+            for record in records:
+                association = self.get_association(
+                    map_identifier,
+                    record["identifier"],
+                    language=language,
+                    resolve_attributes=resolve_attributes,
+                    resolve_occurrences=resolve_occurrences,
+                )
+                if association:
+                    result.append(association)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error retrieving the topic associations: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+
+        return result
 
     def get_topics_network(
         self,
