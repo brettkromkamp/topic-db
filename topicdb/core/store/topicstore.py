@@ -948,13 +948,57 @@ class TopicStore:
     # ========== TAG ==========
 
     def get_tags(self, map_identifier: int, identifier: str) -> List[Optional[str]]:
-        pass
+        result = []
+
+        associations = self.get_topic_associations(map_identifier, identifier)
+        if associations:
+            groups = self.get_association_groups(map_identifier, associations=associations)
+            for instance_of in groups.dict:
+                for role in groups.dict[instance_of]:
+                    for topic_ref in groups[instance_of, role]:
+                        if topic_ref == identifier:
+                            continue
+                        if instance_of == "categorization":
+                            result.append(topic_ref)
+        return result
 
     def set_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
-        pass
+        if not self.topic_exists(map_identifier, identifier):
+            identifier_topic = Topic(
+                identifier=identifier,
+                name=self._normalize_topic_name(identifier),
+                instance_of="tag",
+            )
+            self.set_topic(map_identifier, identifier_topic)
+
+        if not self.topic_exists(map_identifier, tag):
+            tag_topic = Topic(
+                identifier=tag,
+                name=self._normalize_topic_name(tag),
+                instance_of="tag",
+            )
+            self.set_topic(map_identifier, tag_topic)
+
+        tag_association1 = Association(
+            instance_of="categorization",
+            src_topic_ref=identifier,
+            dest_topic_ref=tag,
+            src_role_spec="member",
+            dest_role_spec="category",
+        )
+        tag_association2 = Association(
+            instance_of="categorization",
+            src_topic_ref="tags",
+            dest_topic_ref=tag,
+            src_role_spec="broader",
+            dest_role_spec="narrower",
+        )
+        self.set_association(map_identifier, tag_association1)
+        self.set_association(map_identifier, tag_association2)
 
     def set_tags(self, map_identifier: int, identifier: str, tags: List[str]) -> None:
-        pass
+        for tag in tags:
+            self.set_tag(map_identifier, identifier, tag)
 
     # ========== TOPIC ==========
 
