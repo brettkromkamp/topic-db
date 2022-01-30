@@ -2231,11 +2231,10 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, 0, ?)",  # 0 = False
                     (
                         user_identifier,
                         map_identifier,
-                        False,
                         collaboration_mode.name.lower(),
                     ),
                 )
@@ -2249,8 +2248,11 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "SELECT collaboration_mode FROM user_map WHERE user_identifier = ? AND map_identifier = ?",
-                    (user_identifier, map_identifier),
+                    "DELETE FROM user_map WHERE user_identifier = ? AND map_identifier = ? AND owner = 0",  # 0 = False
+                    (
+                        user_identifier,
+                        map_identifier,
+                    ),
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error stopping collaboration': {error}")
@@ -2258,7 +2260,25 @@ class TopicStore:
             connection.close()
 
     def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
-        pass
+        result = None
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT collaboration_mode FROM user_map WHERE user_identifier = ? AND map_identifier = ?",
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = CollaborationMode[record["collaboration_mode"].upper()]
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error retrieving collaboration mode: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def update_collaboration_mode(
         self,
@@ -2286,7 +2306,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT * FROM user_map WHERE map_identifier = ? AND owner IS FALSE ORDER BY user_identifier",
+                "SELECT * FROM user_map WHERE map_identifier = ? AND owner = 0 ORDER BY user_identifier",  # 0 = False
                 (map_identifier,),
             )
             records = cursor.fetchall()
