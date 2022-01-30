@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS topic (
     scope TEXT,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX topic_1_index ON topic (map_identifier);
-CREATE INDEX topic_2_index ON topic (map_identifier, instance_of);
-CREATE INDEX topic_3_index ON topic (map_identifier, identifier, scope);
-CREATE INDEX topic_4_index ON topic (map_identifier, instance_of, scope);
-CREATE INDEX topic_5_index ON topic (map_identifier, scope);
+CREATE INDEX IF NOT EXISTS topic_1_index ON topic (map_identifier);
+CREATE INDEX IF NOT EXISTS topic_2_index ON topic (map_identifier, instance_of);
+CREATE INDEX IF NOT EXISTS topic_3_index ON topic (map_identifier, identifier, scope);
+CREATE INDEX IF NOT EXISTS topic_4_index ON topic (map_identifier, instance_of, scope);
+CREATE INDEX IF NOT EXISTS topic_5_index ON topic (map_identifier, scope);
 CREATE TABLE IF NOT EXISTS basename (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -59,10 +59,10 @@ CREATE TABLE IF NOT EXISTS basename (
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX basename_1_index ON basename (map_identifier);
-CREATE INDEX basename_2_index ON basename (map_identifier, topic_identifier);
-CREATE INDEX basename_3_index ON basename (map_identifier, topic_identifier, scope);
-CREATE INDEX basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
+CREATE INDEX IF NOT EXISTS basename_1_index ON basename (map_identifier);
+CREATE INDEX IF NOT EXISTS basename_2_index ON basename (map_identifier, topic_identifier);
+CREATE INDEX IF NOT EXISTS basename_3_index ON basename (map_identifier, topic_identifier, scope);
+CREATE INDEX IF NOT EXISTS basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
 CREATE TABLE IF NOT EXISTS member (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS member (
     dest_role_spec TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE UNIQUE INDEX member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
+CREATE UNIQUE INDEX IF NOT EXISTS member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
 CREATE TABLE IF NOT EXISTS occurrence (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -85,10 +85,10 @@ CREATE TABLE IF NOT EXISTS occurrence (
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX occurrence_1_index ON occurrence (map_identifier);
-CREATE INDEX occurrence_2_index ON occurrence (map_identifier, topic_identifier);
-CREATE INDEX occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
-CREATE INDEX occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
+CREATE INDEX IF NOT EXISTS occurrence_1_index ON occurrence (map_identifier);
+CREATE INDEX IF NOT EXISTS occurrence_2_index ON occurrence (map_identifier, topic_identifier);
+CREATE INDEX IF NOT EXISTS occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
+CREATE INDEX IF NOT EXISTS occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
 CREATE TABLE IF NOT EXISTS attribute (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -100,12 +100,12 @@ CREATE TABLE IF NOT EXISTS attribute (
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, entity_identifier, name, scope, language)
 );
-CREATE INDEX attribute_1_index ON attribute (map_identifier);
-CREATE INDEX attribute_2_index ON attribute (map_identifier, identifier);
-CREATE INDEX attribute_3_index ON attribute (map_identifier, entity_identifier);
-CREATE INDEX attribute_4_index ON attribute (map_identifier, entity_identifier, language);
-CREATE INDEX attribute_5_index ON attribute (map_identifier, entity_identifier, scope);
-CREATE INDEX attribute_6_index ON attribute (map_identifier, entity_identifier, scope, language);
+CREATE INDEX IF NOT EXISTS attribute_1_index ON attribute (map_identifier);
+CREATE INDEX IF NOT EXISTS attribute_2_index ON attribute (map_identifier, identifier);
+CREATE INDEX IF NOT EXISTS attribute_3_index ON attribute (map_identifier, entity_identifier);
+CREATE INDEX IF NOT EXISTS attribute_4_index ON attribute (map_identifier, entity_identifier, language);
+CREATE INDEX IF NOT EXISTS attribute_5_index ON attribute (map_identifier, entity_identifier, scope);
+CREATE INDEX IF NOT EXISTS attribute_6_index ON attribute (map_identifier, entity_identifier, scope, language);
 CREATE TABLE IF NOT EXISTS map (
     identifier INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -115,8 +115,8 @@ CREATE TABLE IF NOT EXISTS map (
     published BOOLEAN DEFAULT FALSE NOT NULL,
     promoted BOOLEAN DEFAULT FALSE NOT NULL
 );
-CREATE INDEX map_1_index ON map (published);
-CREATE INDEX map_2_index ON map (promoted);
+CREATE INDEX IF NOT EXISTS map_1_index ON map (published);
+CREATE INDEX IF NOT EXISTS map_2_index ON map (promoted);
 CREATE TABLE IF NOT EXISTS user_map (
     user_identifier INT NOT NULL,
     map_identifier INT NOT NULL,
@@ -124,8 +124,8 @@ CREATE TABLE IF NOT EXISTS user_map (
     collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, map_identifier)
 );
-CREATE INDEX user_map_1_index ON user_map (owner);
-CREATE VIRTUAL TABLE text USING fts5 (
+CREATE INDEX IF NOT EXISTS user_map_1_index ON user_map (owner);
+CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
     occurrence_identifier,
     resource_data
 );
@@ -584,7 +584,7 @@ class TopicStore:
             raise TopicDbError("Attribute has an empty 'entity identifier' property")
 
         if ontology_mode is OntologyMode.STRICT:
-            scope_exists = self.topic_exists(attribute.scope)
+            scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
                 raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
 
@@ -1720,7 +1720,7 @@ class TopicStore:
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
         if ontology_mode is OntologyMode.STRICT:
-            instance_of_exists = self.topic_exists(topic.instance_of)
+            instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
                 raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
 
