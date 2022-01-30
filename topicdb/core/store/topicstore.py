@@ -2227,10 +2227,35 @@ class TopicStore:
         user_identifier: int,
         collaboration_mode: CollaborationMode = CollaborationMode.VIEW,
     ) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
+                    (
+                        user_identifier,
+                        map_identifier,
+                        False,
+                        collaboration_mode.name.lower(),
+                    ),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error enabling collaboration': {error}")
+        finally:
+            connection.close()
 
     def stop_collaboration(self, map_identifier: int, user_identifier: int) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "SELECT collaboration_mode FROM user_map WHERE user_identifier = ? AND map_identifier = ?",
+                    (user_identifier, map_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error stopping collaboration': {error}")
+        finally:
+            connection.close()
 
     def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
         pass
@@ -2241,13 +2266,70 @@ class TopicStore:
         user_identifier: int,
         collaboration_mode: CollaborationMode,
     ) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "UPDATE user_map SET collaboration_mode = ? WHERE user_identifier = ? AND map_identifier = ?",
+                    (collaboration_mode.name.lower(), user_identifier, map_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error updating collaboration mode': {error}")
+        finally:
+            connection.close()
 
     def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
-        pass
+        result = []
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT * FROM user_map WHERE map_identifier = ? AND owner IS FALSE ORDER BY user_identifier",
+                (map_identifier,),
+            )
+            records = cursor.fetchall()
+            for record in records:
+                collaborator = Collaborator(
+                    record["topicmap_identifier"],
+                    record["user_identifier"],
+                    record["user_name"],
+                    CollaborationMode[record["collaboration_mode"].upper()],
+                )
+                result.append(collaborator)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error getting collaborators: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
-        pass
+        result = None
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ?",
+                (user_identifier, map_identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = Collaborator(
+                    record["topicmap_identifier"],
+                    record["user_identifier"],
+                    record["user_name"],
+                    CollaborationMode[record["collaboration_mode"].upper()],
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error getting collaborator: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     # ========== STATISTICS ==========
 
