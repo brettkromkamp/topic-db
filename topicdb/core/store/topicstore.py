@@ -227,16 +227,79 @@ class TopicStore:
     # ========== ATTRIBUTE ==========
 
     def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
-        pass
+        result = False
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT identifier FROM attribute WHERE map_identifier = ? AND entity_identifier = ? AND name = ?",
+                (map_identifier, entity_identifier, name),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = True
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error confirming the existence of an attribute: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def delete_attribute(self, map_identifier: int, identifier: str) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                    (map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting the attribute: {error}")
+        finally:
+            connection.close()
 
     def delete_attributes(self, map_identifier: int, entity_identifier: str) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "DELETE FROM attribute WHERE map_identifier = ? AND entity_identifier = ?",
+                    (map_identifier, entity_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting the attributes: {error}")
+        finally:
+            connection.close()
 
     def get_attribute(self, map_identifier: int, identifier: str) -> Optional[Attribute]:
-        pass
+        result = None
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                (map_identifier, identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = Attribute(
+                    record["name"],
+                    record["value"],
+                    record["entity_identifier"],
+                    record["identifier"],
+                    DataType[record["data_type"].upper()],
+                    record["scope"],
+                    Language[record["language"].upper()],
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error getting an attribute: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     def get_attributes(
         self,
@@ -245,7 +308,67 @@ class TopicStore:
         scope: str = None,
         language: Language = None,
     ) -> List[Attribute]:
-        pass
+        result = []
+
+        if scope:
+            if language:
+                sql = """SELECT * FROM attribute
+                    WHERE map_identifier = ? AND
+                    entity_identifier = ? AND
+                    scope = ? AND
+                    language = ?"""
+                bind_variables = (
+                    map_identifier,
+                    entity_identifier,
+                    scope,
+                    language.name.lower(),
+                )
+            else:
+                sql = """SELECT * FROM attribute
+                    WHERE map_identifier = ? AND
+                    entity_identifier = ? AND
+                    scope = ?"""
+                bind_variables = (map_identifier, entity_identifier, scope)
+        else:
+            if language:
+                sql = """SELECT * FROM attribute
+                    WHERE map_identifier = ? AND
+                    entity_identifier = ? AND
+                    language = ?"""
+                bind_variables = (
+                    map_identifier,
+                    entity_identifier,
+                    language.name.lower(),
+                )
+            else:
+                sql = """SELECT * FROM attribute
+                    WHERE map_identifier = ? AND
+                    entity_identifier = ?"""
+                bind_variables = (map_identifier, entity_identifier)
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql, bind_variables)
+            records = cursor.fetchall()
+            for record in records:
+                attribute = Attribute(
+                    record["name"],
+                    record["value"],
+                    record["entity_identifier"],
+                    record["identifier"],
+                    DataType[record["data_type"].upper()],
+                    record["scope"],
+                    Language[record["language"].upper()],
+                )
+                result.append(attribute)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error getting the attributes: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return
 
     def set_attribute(
         self,
@@ -262,7 +385,6 @@ class TopicStore:
                 raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
-
         try:
             with connection:
                 connection.execute(
@@ -288,7 +410,17 @@ class TopicStore:
             self.set_attribute(map_identifier, attribute)
 
     def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "UPDATE attribute SET value = ? WHERE map_identifier = ? AND identifier = ?",
+                    (value, map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error updating the attribute: {error}")
+        finally:
+            connection.close()
 
     # ========== OCCURRENCE ==========
 
@@ -319,6 +451,7 @@ class TopicStore:
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting the occurrences: {error}")
         finally:
+            cursor.close()
             connection.close()
         for record in records:
             self.delete_occurrence(map_identifier, record["identifier"])
