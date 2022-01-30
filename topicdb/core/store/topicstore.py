@@ -1,5 +1,5 @@
 """
-TopicStore class. Part of the Contextualise (https://contextualise.dev) project.
+TopicStore class. Part of Contextualise (https://contextualise.dev) project.
 
 February 24, 2017
 Brett Alistair Kromkamp (brettkromkamp@gmail.com)
@@ -215,7 +215,7 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the association: {error}")
+            raise TopicDbError(f"Error deleting association: {error}")
         finally:
             connection.close()
 
@@ -337,15 +337,13 @@ class TopicStore:
         scope: str = None,
     ) -> DoubleKeyDict:
         if identifier == "" and associations is None:
-            raise TopicDbError("At least one of the following parameters is required: 'identifier' or 'associations'")
+            raise TopicDbError("At least one of following parameters is required: 'identifier' or 'associations'")
 
         result = DoubleKeyDict()
-
         if not associations:
             associations = self.get_topic_associations(
                 map_identifier, identifier, instance_ofs=instance_ofs, scope=scope
             )
-
         for association in associations:
             resolved_topic_refs = self._resolve_topic_refs(association)
             for resolved_topic_ref in resolved_topic_refs:
@@ -360,7 +358,7 @@ class TopicStore:
                         result[instance_of, role_spec] = topic_refs
                     else:
                         result[instance_of, role_spec] = [topic_ref]
-        return
+        return result
 
     def set_association(
         self,
@@ -425,7 +423,7 @@ class TopicStore:
                     )
                     association.add_attribute(timestamp_attribute)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the association: {error}")
+            raise TopicDbError(f"Error creating association: {error}")
         finally:
             connection.close()
         self.set_attributes(map_identifier, association.attributes)
@@ -446,7 +444,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error confirming the existence of an attribute: {error}")
+            raise TopicDbError(f"Error confirming existence of an attribute: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -461,7 +459,7 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the attribute: {error}")
+            raise TopicDbError(f"Error deleting attribute: {error}")
         finally:
             connection.close()
 
@@ -474,7 +472,7 @@ class TopicStore:
                     (map_identifier, entity_identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the attributes: {error}")
+            raise TopicDbError(f"Error deleting attributes: {error}")
         finally:
             connection.close()
 
@@ -570,11 +568,11 @@ class TopicStore:
                 )
                 result.append(attribute)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the attributes: {error}")
+            raise TopicDbError(f"Error retrieving attributes: {error}")
         finally:
             cursor.close()
             connection.close()
-        return
+        return result
 
     def set_attribute(
         self,
@@ -607,7 +605,7 @@ class TopicStore:
                     ),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the attribute: {error}")
+            raise TopicDbError(f"Error creating attribute: {error}")
         finally:
             connection.close()
 
@@ -624,7 +622,7 @@ class TopicStore:
                     (value, map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating the attribute: {error}")
+            raise TopicDbError(f"Error updating attribute: {error}")
         finally:
             connection.close()
 
@@ -639,7 +637,7 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the occurrence: {error}")
+            raise TopicDbError(f"Error deleting occurrence: {error}")
         finally:
             connection.close()
         self.delete_attributes(map_identifier, identifier)
@@ -655,7 +653,7 @@ class TopicStore:
             )
             records = cursor.fetchall()
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the occurrences: {error}")
+            raise TopicDbError(f"Error deleting occurrences: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -696,7 +694,7 @@ class TopicStore:
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(self.get_attributes(map_identifier, identifier))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the occurrence data: {error}")
+            raise TopicDbError(f"Error retrieving occurrence data: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -718,7 +716,7 @@ class TopicStore:
                 if record["resource_data"] is not None:
                     result = record["resource_data"]  # Type: bytes
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the occurrence data: {error}")
+            raise TopicDbError(f"Error retrieving occurrence data: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -820,7 +818,7 @@ class TopicStore:
                     occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
                 result.append(occurrence)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the occurrences: {error}")
+            raise TopicDbError(f"Error retrieving occurrences: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -899,7 +897,7 @@ class TopicStore:
                 )
                 occurrence.add_attribute(timestamp_attribute)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the occurrence: {error}")
+            raise TopicDbError(f"Error creating occurrence: {error}")
         finally:
             connection.close()
         self.set_attributes(map_identifier, occurrence.attributes)
@@ -915,7 +913,7 @@ class TopicStore:
                     (resource_data, map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating the occurrence data: {error}")
+            raise TopicDbError(f"Error updating occurrence data: {error}")
         finally:
             connection.close()
 
@@ -928,7 +926,7 @@ class TopicStore:
                     (scope, map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating the occurrence scope: {error}")
+            raise TopicDbError(f"Error updating occurrence scope: {error}")
         finally:
             connection.close()
 
@@ -941,7 +939,7 @@ class TopicStore:
                     (topic_identifier, map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating the occurrence topic identifier: {error}")
+            raise TopicDbError(f"Error updating occurrence topic identifier: {error}")
         finally:
             connection.close()
 
@@ -1020,7 +1018,7 @@ class TopicStore:
         #
         # An association is also a topic. Nonetheless, an association is also more than a topic. From a technical
         # point-of-view, an association has a more complex data structure and although you could delete an
-        # association just like you would do a topic, in doing so, remnants of the (more complex) association data
+        # association just like you would do a topic, in doing so, remnants of (more complex) association data
         # structure would be left dangling. So, deleting an association has to be handled differently.
 
         connection = sqlite3.connect(self.database_path)
@@ -1053,7 +1051,7 @@ class TopicStore:
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the topic: {error}")
+            raise TopicDbError(f"Error deleting topic: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1157,11 +1155,11 @@ class TopicStore:
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic: {error}")
+            raise TopicDbError(f"Error retrieving topic: {error}")
         finally:
             cursor.close()
             connection.close()
-        return
+        return result
 
     def get_topic_associations(
         self,
@@ -1230,11 +1228,10 @@ class TopicStore:
                 if association:
                     result.append(association)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic associations: {error}")
+            raise TopicDbError(f"Error retrieving topic associations: {error}")
         finally:
             cursor.close()
             connection.close()
-
         return result
 
     def get_topics_network(
@@ -1339,7 +1336,7 @@ class TopicStore:
             for record in records:
                 result.append(record["identifier"])
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic identifiers: {error}")
+            raise TopicDbError(f"Error retrieving topic identifiers: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1371,7 +1368,7 @@ class TopicStore:
             for record in records:
                 result.append((record["name"], record["identifier"]))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic names: {error}")
+            raise TopicDbError(f"Error retrieving topic names: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1465,7 +1462,7 @@ class TopicStore:
                     occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
                 result.append(occurrence)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic occurrences: {error}")
+            raise TopicDbError(f"Error retrieving topic occurrences: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1514,7 +1511,7 @@ class TopicStore:
                     )
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topics: {error}")
+            raise TopicDbError(f"Error retrieving topics: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1608,7 +1605,7 @@ class TopicStore:
             for record in records:
                 result.append(record["identifier"])
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topic identifiers: {error}")
+            raise TopicDbError(f"Error retrieving topic identifiers: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1710,7 +1707,7 @@ class TopicStore:
                     )
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the topics: {error}")
+            raise TopicDbError(f"Error retrieving topics: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1758,19 +1755,81 @@ class TopicStore:
                 )
                 topic.add_attribute(timestamp_attribute)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the topic: {error}")
+            raise TopicDbError(f"Error creating topic: {error}")
         finally:
             connection.close()
         self.set_attributes(map_identifier, topic.attributes)
 
     def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "UPDATE topic SET instance_of = ? WHERE map_identifier = ? AND identifier = ?",
+                    (instance_of, map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error updating topic 'instance of': {error}")
+        finally:
+            connection.close()
 
     def update_topic_identifier(self, map_identifier: int, old_identifier: str, new_identifier: str) -> None:
-        pass
+        if self.topic_exists(map_identifier, new_identifier):
+            raise TopicDbError("Topic identifier already exists")
+        if old_identifier in self.base_topics.keys():
+            raise TopicDbError("Ontology 'STRICT' mode violation: attempt to update a base topic")
+
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "UPDATE topic SET identifier = ? WHERE map_identifier = ? AND identifier = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                connection.execute(
+                    "UPDATE basename SET topic_identifier = ? WHERE map_identifier = ? AND topic_identifier = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                connection.execute(
+                    "UPDATE occurrence SET topic_identifier = ? WHERE map_identifier = ? AND topic_identifier = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                connection.execute(
+                    "UPDATE attribute SET entity_identifier = ? WHERE map_identifier = ? AND parent_identifier = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                connection.execute(
+                    "UPDATE member SET src_topic_ref = ? WHERE map_identifier = ? AND src_topic_ref = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+                connection.execute(
+                    "UPDATE member SET dest_topic_ref = ? WHERE map_identifier = ? AND dest_topic_ref = ?",
+                    (new_identifier, map_identifier, old_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error updating topic identifier: {error}")
+        finally:
+            connection.close()
 
     def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "INSERT INTO basename (map_identifier, identifier, name, topic_identifier, scope, language) VALUES (?, ?, ?, ?, ?, ?)",
+                    (
+                        map_identifier,
+                        base_name.identifier,
+                        base_name.name,
+                        identifier,
+                        base_name.scope,
+                        base_name.language.name.lower(),
+                    ),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error setting topic 'base name': {error}")
+        finally:
+            connection.close()
 
     def update_base_name(
         self,
@@ -1780,10 +1839,30 @@ class TopicStore:
         scope: str,
         language: Language = Language.ENG,
     ) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "UPDATE basename SET name = ?, scope = ?, language = ? WHERE map_identifier = ? AND identifier = ?",
+                    (name, scope, language.name.lower(), map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error updating topic 'base name': {error}")
+        finally:
+            connection.close()
 
     def delete_base_name(self, map_identifier: int, identifier: str) -> None:
-        pass
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "DELETE FROM basename WHERE map_identifier = ? AND identifier = ?",
+                    (map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting topic 'base name': {error}")
+        finally:
+            connection.close()
 
     def topic_exists(self, map_identifier: int, identifier: str) -> bool:
         result = False
@@ -1798,15 +1877,31 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error confirming existence of the topic: {error}")
+            raise TopicDbError(f"Error confirming existence of topic: {error}")
         finally:
             cursor.close()
             connection.close()
-
         return result
 
     def is_topic(self, map_identifier: int, identifier: str) -> bool:
-        pass
+        result = False
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ? AND scope IS NULL",
+                (map_identifier, identifier),
+            )
+            record = cursor.fetchone()
+            if record:
+                result = True
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error confirming existence of topic: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
 
     # ========== DATABASE ==========
 
@@ -1819,7 +1914,7 @@ class TopicStore:
                 for statement in statements:
                     connection.execute(statement)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the database: {error}")
+            raise TopicDbError(f"Error creating database: {error}")
         finally:
             connection.close()
 
@@ -1856,7 +1951,7 @@ class TopicStore:
                     connection.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
                     connection.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error deleting the map: {error}")
+            raise TopicDbError(f"Error deleting map: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1901,7 +1996,7 @@ class TopicStore:
                         collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                     )
             except sqlite3.Error as error:
-                raise TopicDbError(f"Error retrieving the map: {error}")
+                raise TopicDbError(f"Error retrieving map: {error}")
             finally:
                 cursor.close()
                 connection.close()
@@ -1923,7 +2018,7 @@ class TopicStore:
                         collaboration_mode=None,
                     )
             except sqlite3.Error as error:
-                raise TopicDbError(f"Error retrieving the topic map: {error}")
+                raise TopicDbError(f"Error retrieving map: {error}")
             finally:
                 cursor.close()
                 connection.close()
@@ -1968,7 +2063,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the maps: {error}")
+            raise TopicDbError(f"Error retrieving maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2008,7 +2103,7 @@ class TopicStore:
                     (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error creating the map: {error}")
+            raise TopicDbError(f"Error creating map: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2040,7 +2135,7 @@ class TopicStore:
                     ),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating the map: {error}")
+            raise TopicDbError(f"Error updating map: {error}")
         finally:
             connection.close()
 
@@ -2068,7 +2163,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the published maps: {error}")
+            raise TopicDbError(f"Error retrieving published maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2098,7 +2193,7 @@ class TopicStore:
                 )
                 result.append(map)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving the promoted maps: {error}")
+            raise TopicDbError(f"Error retrieving promoted maps: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2118,7 +2213,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error confirming owner of the map: {error}")
+            raise TopicDbError(f"Error confirming owner of map: {error}")
         finally:
             cursor.close()
             connection.close()
