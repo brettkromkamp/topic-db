@@ -2252,4 +2252,37 @@ class TopicStore:
     # ========== STATISTICS ==========
 
     def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
-        pass
+        result = {
+            "image": 0,
+            "3d-scene": 0,
+            "video": 0,
+            "audio": 0,
+            "note": 0,
+            "file": 0,
+            "url": 0,
+            "text": 0,
+        }
+
+        connection = sqlite3.connect(self.database_path)
+        cursor = connection.cursor()
+        try:
+            if scope:
+                cursor.execute(
+                    "SELECT instance_of, COUNT(identifier) FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of, scope HAVING map_identifier = ? AND topic_identifier = ? AND scope = ?",
+                    (map_identifier, identifier, scope),
+                )
+                records = cursor.fetchall()
+            else:
+                cursor.execute(
+                    "SELECT instance_of, COUNT(identifier) FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of HAVING map_identifier = ? AND topic_identifier = ?",
+                    (map_identifier, identifier),
+                )
+                records = cursor.fetchall()
+            for record in records:
+                result[record["instance_of"]] = record["count"]
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error compiling statistics: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
