@@ -1353,8 +1353,8 @@ class TopicStore:
         sql = """SELECT basename.name AS name, topic.identifier AS identifier
             FROM topic
             JOIN basename ON topic.identifier = basename.topic_identifier
-            WHERE basename.topicmap_identifier = ?
-            AND topic.topicmap_identifier = ?
+            WHERE basename.map_identifier = ?
+            AND topic.map_identifier = ?
             AND topic.scope IS NULL
             ORDER BY basename.name
             LIMIT ? OFFSET ?"""
@@ -2312,7 +2312,7 @@ class TopicStore:
             records = cursor.fetchall()
             for record in records:
                 collaborator = Collaborator(
-                    record["topicmap_identifier"],
+                    record["map_identifier"],
                     record["user_identifier"],
                     record["user_name"],
                     CollaborationMode[record["collaboration_mode"].upper()],
@@ -2339,7 +2339,7 @@ class TopicStore:
             record = cursor.fetchone()
             if record:
                 result = Collaborator(
-                    record["topicmap_identifier"],
+                    record["map_identifier"],
                     record["user_identifier"],
                     record["user_name"],
                     CollaborationMode[record["collaboration_mode"].upper()],
