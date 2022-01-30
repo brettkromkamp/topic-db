@@ -323,7 +323,7 @@ class TopicStore:
             connection = self.pool.getconn()
             with connection, connection.cursor() as cursor:
                 cursor.execute(
-                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, INSTANCE_OF, scope) VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO topicdb.topic (topicmap_identifier, identifier, instance_of, scope) VALUES (%s, %s, %s, %s)",
                     (
                         map_identifier,
                         association.identifier,
