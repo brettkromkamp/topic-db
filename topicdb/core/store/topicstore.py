@@ -321,7 +321,7 @@ class TopicStore:
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
                     result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving an association: {error}")
+            raise TopicDbError(f"Error retrieving association: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -443,7 +443,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error confirming existence of an attribute: {error}")
+            raise TopicDbError(f"Error confirming existence of attribute: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -498,7 +498,7 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving an attribute: {error}")
+            raise TopicDbError(f"Error retrieving attribute: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -621,7 +621,7 @@ class TopicStore:
                     (value, map_identifier, identifier),
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error updating attribute: {error}")
+            raise TopicDbError(f"Error updating attribute value: {error}")
         finally:
             connection.close()
 
@@ -672,7 +672,7 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            connection.execute(
+            cursor.execute(
                 "SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language FROM occurrence WHERE map_identifier = ? AND identifier = ?",
                 (map_identifier, identifier),
             )
@@ -693,7 +693,7 @@ class TopicStore:
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
                     result.add_attributes(self.get_attributes(map_identifier, identifier))
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error retrieving occurrence data: {error}")
+            raise TopicDbError(f"Error retrieving occurrence: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -1896,7 +1896,7 @@ class TopicStore:
             if record:
                 result = True
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error confirming existence of topic: {error}")
+            raise TopicDbError(f"Error confirming if entity is a topic: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2318,7 +2318,7 @@ class TopicStore:
                 )
                 result.append(collaborator)
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error getting collaborators: {error}")
+            raise TopicDbError(f"Error retrieving collaborators: {error}")
         finally:
             cursor.close()
             connection.close()
@@ -2344,7 +2344,7 @@ class TopicStore:
                     CollaborationMode[record["collaboration_mode"].upper()],
                 )
         except sqlite3.Error as error:
-            raise TopicDbError(f"Error getting collaborator: {error}")
+            raise TopicDbError(f"Error retrieving collaborator: {error}")
         finally:
             cursor.close()
             connection.close()
