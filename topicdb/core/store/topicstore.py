@@ -29,7 +29,6 @@ from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.ontologymode import OntologyMode
 from topicdb.core.topicdberror import TopicDbError
 
-import os
 import sqlite3
 
 
