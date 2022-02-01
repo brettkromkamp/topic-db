@@ -1794,7 +1794,7 @@ class TopicStore:
                     (new_identifier, map_identifier, old_identifier),
                 )
                 connection.execute(
-                    "UPDATE attribute SET entity_identifier = ? WHERE map_identifier = ? AND parent_identifier = ?",
+                    "UPDATE attribute SET entity_identifier = ? WHERE map_identifier = ? AND entity_identifier = ?",
                     (new_identifier, map_identifier, old_identifier),
                 )
                 connection.execute(
