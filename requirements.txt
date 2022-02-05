@@ -1,5 +1,4 @@
-memory-profiler>=0.60.0
 python-slugify>=5.0.2
-pytest>=6.2.5
+pytest>=7.0.0
 mypy>=0.931
 typed-tree>=1.0.3
