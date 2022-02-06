@@ -359,7 +359,7 @@ class TopicStore:
                         result[instance_of, role_spec] = [topic_ref]
         return result
 
-    def set_association(
+    def create_association(
         self,
         map_identifier: int,
         association: Association,
@@ -425,7 +425,7 @@ class TopicStore:
             raise TopicDbError(f"Error creating association: {error}")
         finally:
             connection.close()
-        self.set_attributes(map_identifier, association.attributes)
+        self.create_attributes(map_identifier, association.attributes)
 
     # ========== ATTRIBUTE ==========
 
@@ -573,7 +573,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def set_attribute(
+    def create_attribute(
         self,
         map_identifier: int,
         attribute: Attribute,
@@ -608,9 +608,9 @@ class TopicStore:
         finally:
             connection.close()
 
-    def set_attributes(self, map_identifier: int, attributes: List[Attribute]) -> None:
+    def create_attributes(self, map_identifier: int, attributes: List[Attribute]) -> None:
         for attribute in attributes:
-            self.set_attribute(map_identifier, attribute)
+            self.create_attribute(map_identifier, attribute)
 
     def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
         connection = sqlite3.connect(self.database_path)
@@ -843,7 +843,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def set_occurrence(
+    def create_occurrence(
         self,
         map_identifier: int,
         occurrence: Occurrence,
@@ -899,7 +899,7 @@ class TopicStore:
             raise TopicDbError(f"Error creating occurrence: {error}")
         finally:
             connection.close()
-        self.set_attributes(map_identifier, occurrence.attributes)
+        self.create_attributes(map_identifier, occurrence.attributes)
 
     def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]) -> None:
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
@@ -959,14 +959,14 @@ class TopicStore:
                             result.append(topic_ref)
         return result
 
-    def set_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
+    def create_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
         if not self.topic_exists(map_identifier, identifier):
             identifier_topic = Topic(
                 identifier=identifier,
                 name=self._normalize_topic_name(identifier),
                 instance_of="tag",
             )
-            self.set_topic(map_identifier, identifier_topic)
+            self.create_topic(map_identifier, identifier_topic)
 
         if not self.topic_exists(map_identifier, tag):
             tag_topic = Topic(
@@ -974,7 +974,7 @@ class TopicStore:
                 name=self._normalize_topic_name(tag),
                 instance_of="tag",
             )
-            self.set_topic(map_identifier, tag_topic)
+            self.create_topic(map_identifier, tag_topic)
 
         tag_association1 = Association(
             instance_of="categorization",
@@ -990,12 +990,12 @@ class TopicStore:
             src_role_spec="broader",
             dest_role_spec="narrower",
         )
-        self.set_association(map_identifier, tag_association1)
-        self.set_association(map_identifier, tag_association2)
+        self.create_association(map_identifier, tag_association1)
+        self.create_association(map_identifier, tag_association2)
 
-    def set_tags(self, map_identifier: int, identifier: str, tags: List[str]) -> None:
+    def create_tags(self, map_identifier: int, identifier: str, tags: List[str]) -> None:
         for tag in tags:
-            self.set_tag(map_identifier, identifier, tag)
+            self.create_tag(map_identifier, identifier, tag)
 
     # ========== TOPIC ==========
 
@@ -1712,7 +1712,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def set_topic(
+    def create_topic(
         self,
         map_identifier: int,
         topic: Topic,
@@ -1757,7 +1757,7 @@ class TopicStore:
             raise TopicDbError(f"Error creating topic: {error}")
         finally:
             connection.close()
-        self.set_attributes(map_identifier, topic.attributes)
+        self.create_attributes(map_identifier, topic.attributes)
 
     def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
         connection = sqlite3.connect(self.database_path)
@@ -1810,7 +1810,7 @@ class TopicStore:
         finally:
             connection.close()
 
-    def set_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
+    def create_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -1929,7 +1929,7 @@ class TopicStore:
                     instance_of="base-topic",
                     name=v,
                 )
-                self.set_topic(map_identifier, topic, OntologyMode.LENIENT)
+                self.create_topic(map_identifier, topic, OntologyMode.LENIENT)
 
     def delete_map(self, map_identifier: int, user_identifier: int) -> None:
         connection = sqlite3.connect(self.database_path)
@@ -2068,7 +2068,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def set_map(
+    def create_map(
         self,
         user_identifier: int,
         name: str,
