@@ -14,6 +14,8 @@ from topicdb.core.models.association import Association
 
 import os
 
+MAP_IDENTIFIER = 1
+USER_IDENTIFIER_1 = 1
 SPACE = " "
 TAB = "\t"
 SPACES_PER_TAB = 4
@@ -94,8 +96,7 @@ def create_tree():
 
 
 def store_topic(store, topic):
-    store.open()
-    if not store.topic_exists(topic.identifier):
+    if not store.topic_exists(MAP_IDENTIFIER, topic.identifier):
         text_occurrence = Occurrence(
             instance_of="text",
             topic_identifier=topic.identifier,
@@ -110,19 +111,18 @@ def store_topic(store, topic):
             data_type=DataType.TIMESTAMP,
         )
         # Persist objects to the topic store
-        store.set_topic(topic)
-        # store.set_occurrence(text_occurrence)  # Not sure if these topics should have auto-generated topic text
-        store.set_attribute(modification_attribute)
+        store.create_topic(MAP_IDENTIFIER, topic)
+        # store.create_occurrence(MAP_IDENTIFIER, text_occurrence)  # Not sure if these topics should have auto-generated topic text
+        store.create_attribute(MAP_IDENTIFIER, modification_attribute)
         # Persist tags, if any
         tags_attribute = topic.get_attribute_by_name("tags")
         if tags_attribute:
             for tag in tags_attribute.value.split(","):
-                store.set_tag(topic.identifier, tag)
+                store.create_tag(MAP_IDENTIFIER, topic.identifier, tag)
 
 
 def create_topics(store):
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
-
         # Create the 'instance_of' topic if it doesn't already exist
         instance_of_topic = Topic(
             node.payload.instance_of,
@@ -144,7 +144,6 @@ def store_association(
     dest_role_spec,
     instance_of="navigation",
 ):
-    store.open()
     association = Association(
         instance_of=instance_of,
         scope=UNIVERSAL_SCOPE,
@@ -154,7 +153,7 @@ def store_association(
         dest_role_spec=dest_role_spec,
     )
     # Persist object to the topic store
-    store.set_association(association)
+    store.create_association(MAP_IDENTIFIER, association)
 
 
 def create_associations(store):
@@ -209,7 +208,11 @@ def create_associations(store):
 
 # ================================================================================
 if __name__ == "__main__":
-    topic_store = TopicStore()
+    store = TopicStore("template.db")
+    store.create_database()
+    store.create_map(USER_IDENTIFIER_1, "Test Map", "A map for testing purposes.")
+    store.populate_map(MAP_IDENTIFIER, USER_IDENTIFIER_1)
+
     tree = Tree()
     create_tree()
     print("-" * 80)
@@ -217,14 +220,14 @@ if __name__ == "__main__":
     print("-" * 80)
     for node in tree.traverse(ROOT_TOPIC, mode=TraversalMode.DEPTH):
         print(f"{node.payload.identifier} - {node.payload.instance_of} - {node.payload.first_base_name.name}")
+
     print("Creating topics...")
-    create_topics(topic_store)
+    create_topics(store)
     print("Topics created!")
     print("-" * 80)
     print("Creating associations...")
-    create_associations(topic_store)
+    create_associations(store)
     print("Associations created!")
     print("-" * 80)
-    with topic_store:
-        test_tree = topic_store.get_topics_network(ROOT_TOPIC, instance_ofs=["association"])
-        test_tree.display(ROOT_TOPIC)
+    test_tree = store.get_topics_network(MAP_IDENTIFIER, ROOT_TOPIC, instance_ofs=["association"])
+    test_tree.display(ROOT_TOPIC)
