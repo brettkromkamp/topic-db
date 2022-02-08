@@ -1,20 +1,17 @@
 TopicDB by Brett Kromkamp
 =========================
 
-TopicDB is a topic map-based graph library (using `SQLite`_ for persistence). Topic maps provide a way to
-describe complex relationships between abstract concepts and real-world (information) resources.
+TopicDB is a topic map-based graph library (using `SQLite`_ for persistence). Topic maps provide a way to describe complex relationships between abstract concepts and real-world (information) resources.
 
 .. image:: resources/topic-maps.png
    :alt: Topic maps with topics, associations and occurrences
 
 *Topic maps with topics, associations and occurrences*
 
-For a more in-depth introduction to topic maps, I recommend reading the excellent introductory article on topic maps
-over at MSDN: `An Introduction to Topic Maps`_. With that being said, although TopicDB is inspired by the topic maps
+For a more in-depth introduction to topic maps, I recommend reading the introductory article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although TopicDB is inspired by the topic maps
 paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
-TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API.
-`Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
+TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API. `Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
 
 Why?
 ----
@@ -36,8 +33,7 @@ TopicDB officially supports Python 3.6–3.10. To install TopicDB, simply::
 Install the Development Version
 -------------------------------
 
-If you have `Git <https://git-scm.com/>`_ installed on your system, it is possible to install the development version
-of TopicDB.
+If you have `Git <https://git-scm.com/>`_ installed on your system, it is possible to install the development version of TopicDB.
 
 Before installing the development version, you may need to uninstall the standard version of TopicDB using
 ``pip``::
@@ -50,8 +46,7 @@ Then do::
     $ cd topic-db
     $ pip install -e .
 
-The ``pip install -e .`` command allows you to follow the development branch as it changes by creating links in the
-right places and installing the command line scripts to the appropriate locations.
+The ``pip install -e .`` command allows you to follow the development branch as it changes by creating links in the right places and installing the command line scripts to the appropriate locations.
 
 Then, if you want to update TopicDB at any time, in the same directory do::
 

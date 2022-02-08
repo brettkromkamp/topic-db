@@ -14,7 +14,7 @@ with open(os.path.join(here, "README.rst"), encoding="utf-8") as f:
     README = f.read()
 with open(os.path.join(here, "HISTORY.rst"), encoding="utf-8") as f:
     HISTORY = f.read()
-with open(os.path.join(here, "requirements.txt")) as f:
+with open(os.path.join(here, "requirements.txt"), encoding="utf-8") as f:
     REQUIRED = f.read().splitlines()
 
 setup(
