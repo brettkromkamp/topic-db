@@ -137,7 +137,6 @@ def create_topics(store):
 
 def store_association(
     store,
-    topic_map_identifier,
     src_topic_ref,
     src_role_spec,
     dest_topic_ref,
