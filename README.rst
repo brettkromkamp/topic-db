@@ -8,8 +8,7 @@ TopicDB is a topic map-based graph library (using `SQLite`_ for persistence). To
 
 *Topic maps with topics, associations and occurrences*
 
-For a more in-depth introduction to topic maps, I recommend reading the introductory article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although TopicDB is inspired by the topic maps
-paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 Topic Maps`_ data model standard.
+For a more in-depth introduction to topic maps, I recommend reading the introductory article on topic maps over at MSDN: `An Introduction to Topic Maps`_. With that being said, although TopicDB is inspired by the topic maps paradigm, it is not (and never will be) an implementation of the `ISO/IEC 13250 Topic Maps`_ data model standard.
 
 TopicDB is intended to be used by other Python applications and does not provide its own user interface to the API. `Contextualise`_, currently in active development, will provide a complete web-based user interface for TopicDB.
 
@@ -26,7 +25,7 @@ Feature Support
 Installation
 ------------
 
-TopicDB officially supports Python 3.6–3.10. To install TopicDB, simply::
+TopicDB officially supports Python 3.7–3.10. To install TopicDB, simply::
 
     $ pip install topic-db
 

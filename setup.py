@@ -19,13 +19,13 @@ with open(os.path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="topic-db",
-    version="1.0.0",  # Bump version NUMBER *after* starting (git flow) release.
-    description="TopicDB is a topic map-based graph store (using PostgreSQL or, alternatively, SQLite for persistence).",
+    version="2.0.0-beta",  # Bump version NUMBER *after* starting (git flow) release.
+    description="TopicDB is a topic map-based graph store (using SQLite for persistence).",
     long_description=README + "\n\n" + HISTORY,
-    keywords="topic map, concept map, graph database, graph store, semantic, knowledge management, unstructured data",
+    keywords="topic map, concept map, graph database, graph store, semantic, knowledge management, unstructured data, sqlite",
     url="https://github.com/brettkromkamp/topic-db",
     author="Brett Alistair Kromkamp",
-    author_email="brettkromkamp@gmail.com",
+    author_email="brett.kromkamp@gmail.com",
     license="MIT",
     packages=find_packages(exclude=["tests*", "tools"]),
     package_data={"": ["LICENSE"]},
@@ -33,12 +33,11 @@ setup(
     zip_safe=False,
     install_requires=REQUIRED,
     classifiers=[
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
