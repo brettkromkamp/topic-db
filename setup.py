@@ -19,7 +19,7 @@ with open(os.path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="topic-db",
-    version="2.0.0-beta",  # Bump version NUMBER *after* starting (git flow) release.
+    version="2.0.0",  # Bump version NUMBER *after* starting (git flow) release.
     description="TopicDB is a topic map-based graph store (using SQLite for persistence).",
     long_description=README + "\n\n" + HISTORY,
     keywords="topic map, concept map, graph database, graph store, semantic, knowledge management, unstructured data, sqlite",
@@ -32,6 +32,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=REQUIRED,
+    python_requires=">=3.7",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
