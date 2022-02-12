@@ -18,7 +18,7 @@ I build (story) worlds and knowledge management systems. TopicDB plays a crucial
 
 TopicDB officially supports Python 3.7–3.10. To install TopicDB, simply:
 
-    $ pip install topic-db
+    $ pip install --upgrade topic-db
 
 ## Install the Development Version
 
