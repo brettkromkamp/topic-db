@@ -1,6 +1,5 @@
 """
-TopicMap class. Part of the Contextualise (https://contextualise.dev) project.
-
+Map class. Part of the Contextualise (https://contextualise.dev) project.
 January 07, 2016
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
@@ -8,7 +7,7 @@ Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 from topicdb.core.models.collaborationmode import CollaborationMode
 
 
-class TopicMap:
+class Map:
     def __init__(
         self,
         identifier: int,

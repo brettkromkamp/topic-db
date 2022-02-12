@@ -2,7 +2,7 @@
 Member class. Part of the Contextualise (https://contextualise.dev) project.
 
 July 03, 2016
-Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
+Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 import uuid
@@ -33,16 +33,6 @@ class Member:
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
     @property
-    def src_role_spec(self) -> str:
-        return self.__src_role_spec
-
-    @src_role_spec.setter
-    def src_role_spec(self, value: str) -> None:
-        if value == "":
-            raise TopicDbError("Empty 'value' parameter")
-        self.__src_role_spec = slugify(str(value))
-
-    @property
     def src_topic_ref(self) -> str:
         return self.__src_topic_ref
 
@@ -53,14 +43,14 @@ class Member:
         self.__src_topic_ref = slugify(str(value))
 
     @property
-    def dest_role_spec(self) -> str:
-        return self.__dest_role_spec
+    def src_role_spec(self) -> str:
+        return self.__src_role_spec
 
-    @dest_role_spec.setter
-    def dest_role_spec(self, value: str) -> None:
+    @src_role_spec.setter
+    def src_role_spec(self, value: str) -> None:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
-        self.__dest_role_spec = slugify(str(value))
+        self.__src_role_spec = slugify(str(value))
 
     @property
     def dest_topic_ref(self) -> str:
@@ -71,6 +61,16 @@ class Member:
         if value == "":
             raise TopicDbError("Empty 'value' parameter")
         self.__dest_topic_ref = slugify(str(value))
+
+    @property
+    def dest_role_spec(self) -> str:
+        return self.__dest_role_spec
+
+    @dest_role_spec.setter
+    def dest_role_spec(self, value: str) -> None:
+        if value == "":
+            raise TopicDbError("Empty 'value' parameter")
+        self.__dest_role_spec = slugify(str(value))
 
     @property
     def identifier(self) -> str:

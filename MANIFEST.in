@@ -1,1 +1,4 @@
-include topicdb/conf/topicmap-definition.sql
+include LICENSE
+include README.md
+include pyproject.toml
+include settings-sample.ini
