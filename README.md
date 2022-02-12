@@ -25,7 +25,7 @@ TopicDB officially supports Python 3.7–3.10. To install TopicDB, simply:
 If you have [Git](https://git-scm.com/) installed on your system, it is possible to install the development version of TopicDB.
 
 Before installing the development version, you may need to uninstall the standard version of TopicDB using
-`pip`:
+``pip``:
 
     $ pip uninstall topic-db
 
@@ -35,7 +35,7 @@ Then do:
     $ cd topic-db
     $ pip install -e .
 
-The `pip install -e .` command allows you to follow the development branch as it changes by creating links in the right places and installing the command line scripts to the appropriate locations.
+The ``pip install -e .`` command allows you to follow the development branch as it changes by creating links in the right places and installing the command line scripts to the appropriate locations.
 
 Then, if you want to update TopicDB at any time, in the same directory do:
 
