@@ -1922,7 +1922,7 @@ class TopicStore:
     def populate_map(self, map_identifier: int, user_identifier: int) -> None:
         map = self.get_map(map_identifier, user_identifier)
 
-        if map and not map.initialised and not self.topic_exists(map_identifier, "home"):
+        if map and not self.topic_exists(map_identifier, "home"):
             for k, v in self.base_topics.items():
                 topic = Topic(
                     identifier=k,
