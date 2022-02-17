@@ -1,3 +1,9 @@
+[![PyPI](https://img.shields.io/pypi/v/topic-db.svg)](https://pypi.org/project/topic-db/)
+[![Python 3.x](https://img.shields.io/pypi/pyversions/topic-db.svg?logo=python&logoColor=white)](https://pypi.org/project/topic-db/)
+[![GitHub open issues](https://img.shields.io/github/issues/brettkromkamp/topic-db)](https://github.com/brettkromkamp/topic-db/issues?q=is%3Aopen+is%3Aissue)
+[![GitHub closed issues](https://img.shields.io/github/issues-closed/brettkromkamp/topic-db)](https://github.com/brettkromkamp/topic-db/issues?q=is%3Aissue+is%3Aclosed)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/brettkromkamp/topic-db/blob/master/LICENSE)
+
 # TopicDB by Brett Kromkamp
 
 TopicDB is a topic map-based graph library (using [SQLite](https://www.sqlite.org/index.html) for persistence). Topic maps provide a way to describe complex relationships between abstract concepts and real-world (information) resources.
