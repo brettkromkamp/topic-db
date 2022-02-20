@@ -5,6 +5,7 @@ February 24, 2017
 Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
+# region Module and Class Imports
 from __future__ import annotations
 
 from collections import namedtuple
@@ -31,7 +32,8 @@ from topicdb.core.topicdberror import TopicDbError
 
 import sqlite3
 
-
+# endregion
+# region Constants
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
 _UNIVERSAL_SCOPE = "*"
@@ -129,9 +131,10 @@ CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
     resource_data
 );
 """
-
-
+# endregion
+# region Class
 class TopicStore:
+    # region Initialisation
     def __init__(self, database_path=_DATABASE_PATH) -> None:
         self.database_path = database_path
 
@@ -177,8 +180,8 @@ class TopicStore:
             "nld": "Dutch Language",
         }
 
-    # ========== ASSOCIATION ==========
-
+    # endregion
+    # region Association
     @staticmethod
     def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
         result: List[TopicRefs] = []
@@ -427,8 +430,8 @@ class TopicStore:
             connection.close()
         self.create_attributes(map_identifier, association.attributes)
 
-    # ========== ATTRIBUTE ==========
-
+    # endregion
+    # region Attribute
     def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
         result = False
 
@@ -625,8 +628,8 @@ class TopicStore:
         finally:
             connection.close()
 
-    # ========== OCCURRENCE ==========
-
+    # endregion
+    # region Occurrence
     def delete_occurrence(self, map_identifier: int, identifier: str) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
@@ -942,8 +945,8 @@ class TopicStore:
         finally:
             connection.close()
 
-    # ========== TAG ==========
-
+    # endregion
+    # region Tag
     def get_tags(self, map_identifier: int, identifier: str) -> List[Optional[str]]:
         result = []
 
@@ -997,8 +1000,8 @@ class TopicStore:
         for tag in tags:
             self.create_tag(map_identifier, identifier, tag)
 
-    # ========== TOPIC ==========
-
+    # endregion
+    # region Topic
     @staticmethod
     def _normalize_topic_name(topic_identifier):
         return " ".join([word.capitalize() for word in topic_identifier.split("-")])
@@ -1902,8 +1905,8 @@ class TopicStore:
             connection.close()
         return result
 
-    # ========== DATABASE ==========
-
+    # endregion
+    # region Database
     def create_database(self):
         statements = _DDL.split(";")
 
@@ -1917,8 +1920,8 @@ class TopicStore:
         finally:
             connection.close()
 
-    # ========== TOPIC MAP ==========
-
+    # endregion
+    # region Topic Map
     def populate_map(self, map_identifier: int, user_identifier: int) -> None:
         map = self.get_map(map_identifier, user_identifier)
 
@@ -2218,8 +2221,8 @@ class TopicStore:
             connection.close()
         return result
 
-    # ========== COLLABORATION ==========
-
+    # endregion
+    # region Collaboration
     def collaborate(
         self,
         map_identifier: int,
@@ -2350,8 +2353,8 @@ class TopicStore:
             connection.close()
         return result
 
-    # ========== STATISTICS ==========
-
+    # endregion
+    # region Statistics
     def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
         result = {
             "image": 0,
@@ -2387,3 +2390,8 @@ class TopicStore:
             cursor.close()
             connection.close()
         return result
+
+    # endregion
+
+
+# endregion
