@@ -47,9 +47,6 @@ Then, if you want to update TopicDB at any time, in the same directory do:
 
     $ git pull
 
-## Documentation
-
-Documentation will be available soon.
 
 ## How to Contribute
 

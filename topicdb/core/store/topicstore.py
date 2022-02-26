@@ -2368,17 +2368,18 @@ class TopicStore:
         }
 
         connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
             if scope:
                 cursor.execute(
-                    "SELECT instance_of, COUNT(identifier) FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of, scope HAVING map_identifier = ? AND topic_identifier = ? AND scope = ?",
+                    "SELECT instance_of, COUNT(identifier) AS count FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of, scope HAVING map_identifier = ? AND topic_identifier = ? AND scope = ?",
                     (map_identifier, identifier, scope),
                 )
                 records = cursor.fetchall()
             else:
                 cursor.execute(
-                    "SELECT instance_of, COUNT(identifier) FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of HAVING map_identifier = ? AND topic_identifier = ?",
+                    "SELECT instance_of, COUNT(identifier) AS count FROM occurrence GROUP BY map_identifier, topic_identifier, instance_of HAVING map_identifier = ? AND topic_identifier = ?",
                     (map_identifier, identifier),
                 )
                 records = cursor.fetchall()
