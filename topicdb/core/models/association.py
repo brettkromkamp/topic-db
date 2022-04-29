@@ -8,7 +8,6 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 from typing import List, Optional
 
 from slugify import slugify  # type: ignore
-
 from topicdb.core.models.language import Language
 from topicdb.core.models.member import Member
 from topicdb.core.models.topic import Topic

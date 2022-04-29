@@ -8,11 +8,10 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 # region Module and Class Imports
 from __future__ import annotations
 
+import sqlite3
 from collections import namedtuple
 from datetime import datetime
-from typing import Optional, List, Union, Dict, Tuple
-
-from typedtree.tree import Tree  # type: ignore
+from typing import Dict, List, Optional, Tuple, Union
 
 from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
@@ -22,15 +21,14 @@ from topicdb.core.models.collaborator import Collaborator
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.doublekeydict import DoubleKeyDict
 from topicdb.core.models.language import Language
+from topicdb.core.models.map import Map
 from topicdb.core.models.member import Member
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
-from topicdb.core.models.map import Map
-from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.store.ontologymode import OntologyMode
+from topicdb.core.store.retrievalmode import RetrievalMode
 from topicdb.core.topicdberror import TopicDbError
-
-import sqlite3
+from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants
