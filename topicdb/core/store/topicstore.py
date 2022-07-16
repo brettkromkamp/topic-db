@@ -177,7 +177,7 @@ class TopicStore:
             "spa": "Spanish Language",
             "nld": "Dutch Language",
             "causal": "Causal",
-            "characteristic": "Characteristic",
+            "characteristic": "Characteristic",  # https://brettkromkamp.com/posts/semantically-meaningful-relationships/
             "classification": "Classification",
             "comparison": "Comparison",
             "conditional": "Conditional",
