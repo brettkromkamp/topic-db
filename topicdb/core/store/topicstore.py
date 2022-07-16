@@ -176,6 +176,15 @@ class TopicStore:
             "eng": "English Language",
             "spa": "Spanish Language",
             "nld": "Dutch Language",
+            "causal": "Causal",
+            "characteristic": "Characteristic",
+            "classification": "Classification",
+            "comparison": "Comparison",
+            "conditional": "Conditional",
+            "function": "Function",
+            "location": "Location",
+            "part-whole": "Part-Whole",
+            "temporal": "Temporal",
         }
 
     # endregion
