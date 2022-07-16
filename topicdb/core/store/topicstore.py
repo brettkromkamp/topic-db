@@ -176,8 +176,8 @@ class TopicStore:
             "eng": "English Language",
             "spa": "Spanish Language",
             "nld": "Dutch Language",
-            "causal": "Causal",
-            "characteristic": "Characteristic",  # https://brettkromkamp.com/posts/semantically-meaningful-relationships/
+            "causal": "Causal",  # https://brettkromkamp.com/posts/semantically-meaningful-relationships/
+            "characteristic": "Characteristic",
             "classification": "Classification",
             "comparison": "Comparison",
             "conditional": "Conditional",
