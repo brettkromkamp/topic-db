@@ -8,6 +8,7 @@ from topicdb.core.models.datatype import DataType
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
 from topicdb.core.models.association import Association
+from topicdb.core.topicdberror import TopicDbError
 
 import pypff
 
@@ -54,51 +55,61 @@ def populate_topic_map(file_name: str, store: TopicStore) -> None:
     if messages:
         for message in messages:
 
-            # Create folder topic
-            folder_topic_identifier = slugify(message["folder"])
-            if folder_topic_identifier not in folders:
-                folders.append(folder_topic_identifier)
-                folder_topic_name = normalize_name(message["folder"])
+            try:
+                # Create folder topic
+                folder_topic_identifier = slugify(message["folder"])
+                if folder_topic_identifier not in folders:
+                    folders.append(folder_topic_identifier)
+                    folder_topic_name = normalize_name(message["folder"])
 
+                    if PERSIST_TO_TOPICMAP:
+                        folder_topic = Topic(
+                            folder_topic_identifier, instance_of="email-folder", name=folder_topic_name
+                        )
+                        store.create_topic(MAP_IDENTIFIER, folder_topic)
+
+                        # Tagging
+                        store.create_tag(MAP_IDENTIFIER, folder_topic_identifier, "email-folder-tag")
+
+                # Create sender topic
+                sender_topic_identifier = slugify(message["sender"])
+                if sender_topic_identifier not in senders:
+                    senders.append(sender_topic_identifier)
+                    sender_topic_name = normalize_name(message["sender"])
+
+                    if PERSIST_TO_TOPICMAP:
+                        sender_topic = Topic(
+                            sender_topic_identifier, instance_of="email-sender", name=sender_topic_name
+                        )
+                        store.create_topic(MAP_IDENTIFIER, sender_topic)
+
+                        # Tagging
+                        store.create_tag(MAP_IDENTIFIER, sender_topic_identifier, "email-sender-tag")
+
+                # Create message topic
+                message_topic_identifier = slugify(f"message-{message['datetime']}-{str(message_count).zfill(4)}")
+                message_count += 1
+                message_topic_name = normalize_name(f"Message {message['datetime']}")
                 if PERSIST_TO_TOPICMAP:
-                    folder_topic = Topic(folder_topic_identifier, instance_of="email-folder", name=folder_topic_name)
-                    store.create_topic(MAP_IDENTIFIER, folder_topic)
+                    date_time_attribute = Attribute(
+                        "date-time-timestamp",
+                        message["datetime"],
+                        message_topic_identifier,
+                        data_type=DataType.TIMESTAMP,
+                    )
+                    # Persist objects to the topic store
+                    message_topic = Topic(
+                        message_topic_identifier, instance_of="email-message", name=message_topic_name
+                    )
+                    store.create_topic(MAP_IDENTIFIER, message_topic)
+                    store.create_attribute(MAP_IDENTIFIER, date_time_attribute)
 
-                    # Tagging
-                    store.create_tag(MAP_IDENTIFIER, folder_topic_identifier, "email-folder-tag")
+                # TODO: Create associations between the message topic and the sender and folder topics, respectively
 
-            # Create sender topic
-            sender_topic_identifier = slugify(message["sender"])
-            if sender_topic_identifier not in senders:
-                senders.append(sender_topic_identifier)
-                sender_topic_name = normalize_name(message["sender"])
-
-                if PERSIST_TO_TOPICMAP:
-                    sender_topic = Topic(sender_topic_identifier, instance_of="email-sender", name=sender_topic_name)
-                    store.create_topic(MAP_IDENTIFIER, sender_topic)
-
-                    # Tagging
-                    store.create_tag(MAP_IDENTIFIER, sender_topic_identifier, "email-sender-tag")
-
-            # Create message topic
-            message_topic_identifier = slugify(f"message-{message['datetime']}-{str(message_count).zfill(4)}")
-            message_count += 1
-            message_topic_name = normalize_name(f"Message {message['datetime']}")
-            if PERSIST_TO_TOPICMAP:
-                date_time_attribute = Attribute(
-                    "date-time-timestamp",
-                    message["datetime"],
-                    message_topic_identifier,
-                    data_type=DataType.TIMESTAMP,
-                )
-                # Persist objects to the topic store
-                message_topic = Topic(message_topic_identifier, instance_of="email-message", name=message_topic_name)
-                store.create_topic(MAP_IDENTIFIER, message_topic)
-                store.create_attribute(MAP_IDENTIFIER, date_time_attribute)
-
-            # TODO: Create associations between the message topic and the sender and folder topics, respectively
-
-            # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
+                # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
+            except (OSError, TypeError, TopicDbError) as error:
+                print(f"Error: Unable to process message. Message will be skipped.")
+                continue
 
 
 def parse_folder(folder):
@@ -107,15 +118,24 @@ def parse_folder(folder):
         if folder.number_of_sub_folders:
             messages += parse_folder(folder)
         for message in folder.sub_messages:
-            messages.append(
-                {
+            try:
+                message = {
                     "folder": folder.name,
                     "subject": message.subject,
                     "sender": message.sender_name,
                     "datetime": message.client_submit_time,
                     "body": message.plain_text_body,
                 }
-            )
+            except OSError as error:
+                print(f"Error: Unable to parse message. Folder name: {folder.name}, Subject: {message.subject}.")
+                message = {
+                    "folder": folder.name,
+                    "subject": message.subject,
+                    "sender": message.sender_name,
+                    "datetime": message.client_submit_time,
+                    "body": "Error: Unable to retrieve message body.",
+                }
+            messages.append(message)
     return messages
 
 
@@ -128,7 +148,7 @@ def main() -> None:
     print("Start...")
     create_type_topics(store)
     print("Populating the topic map")
-    populate_topic_map("./tools/archive-2012.pst", store)
+    populate_topic_map("/home/brettk/Downloads/bandeja-de-entrada.pst", store)
     print("Done!")
 
 
