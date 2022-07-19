@@ -117,25 +117,27 @@ def parse_folder(folder):
     for folder in folder.sub_folders:
         if folder.number_of_sub_folders:
             messages += parse_folder(folder)
-        for message in folder.sub_messages:
+        for sub_message in folder.sub_messages:
+            message = None
             try:
                 message = {
                     "folder": folder.name,
-                    "subject": message.subject,
-                    "sender": message.sender_name,
-                    "datetime": message.client_submit_time,
-                    "body": message.plain_text_body,
+                    "subject": sub_message.subject,
+                    "sender": sub_message.sender_name,
+                    "datetime": sub_message.client_submit_time,
+                    "body": sub_message.plain_text_body,
                 }
             except OSError as error:
-                print(f"Error: Unable to parse message. Folder name: {folder.name}, Subject: {message.subject}.")
+                print(f"Error: Unable to parse message. Folder name: {folder.name}, Subject: {sub_message.subject}.")
                 message = {
                     "folder": folder.name,
-                    "subject": message.subject,
-                    "sender": message.sender_name,
-                    "datetime": message.client_submit_time,
+                    "subject": sub_message.subject,
+                    "sender": sub_message.sender_name,
+                    "datetime": sub_message.client_submit_time,
                     "body": "Error: Unable to retrieve message body.",
                 }
-            messages.append(message)
+            if message:
+                messages.append(message)
     return messages
 
 
