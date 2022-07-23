@@ -1,17 +1,15 @@
-from topicdb.core.store.ontologymode import OntologyMode
+from datetime import datetime
 
+import pypff
 from slugify import slugify
-
-from topicdb.core.store.topicstore import TopicStore
+from topicdb.core.models.association import Association
 from topicdb.core.models.attribute import Attribute
 from topicdb.core.models.datatype import DataType
 from topicdb.core.models.occurrence import Occurrence
 from topicdb.core.models.topic import Topic
-from topicdb.core.models.association import Association
+from topicdb.core.store.ontologymode import OntologyMode
+from topicdb.core.store.topicstore import TopicStore
 from topicdb.core.topicdberror import TopicDbError
-
-import pypff
-
 
 MAP_IDENTIFIER = 1
 USER_IDENTIFIER_1 = 1
@@ -104,12 +102,47 @@ def populate_topic_map(file_name: str, store: TopicStore) -> None:
                     store.create_topic(MAP_IDENTIFIER, message_topic)
                     store.create_attribute(MAP_IDENTIFIER, date_time_attribute)
 
-                # TODO: Create associations between the message topic and the sender and folder topics, respectively
+                    # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
 
-                # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
+                    message_body = message["body"] if message["body"] else ""
+                    email_body_occurrence = Occurrence(
+                        instance_of="text",
+                        topic_identifier=message_topic.identifier,
+                        resource_data=message_body,
+                    )
+                    store.create_occurrence(MAP_IDENTIFIER, email_body_occurrence)
+
+                # Create associations between the message topic and the sender topic
+                message_sender_association = Association(
+                    instance_of="email-sender",
+                    src_topic_ref=message_topic.identifier,
+                    dest_topic_ref=sender_topic.identifier,
+                )
+                store.create_association(MAP_IDENTIFIER, message_sender_association)
+
+                # Create associations between the message topic and the folder topic
+                message_folder_association = Association(
+                    instance_of="email-folder",
+                    src_topic_ref=message_topic.identifier,
+                    dest_topic_ref=folder_topic.identifier,
+                )
+                store.create_association(MAP_IDENTIFIER, message_folder_association)
+
             except (OSError, TypeError, TopicDbError) as error:
                 print(f"Error: Unable to process message. Message will be skipped.")
                 continue
+
+        # Create associations to email-folder-tag and email-sender-tag topics, respectively
+        folder_association = Association(
+            src_topic_ref="home",
+            dest_topic_ref="email-folder-tag",
+        )
+        store.create_association(MAP_IDENTIFIER, folder_association)
+        sender_association = Association(
+            src_topic_ref="home",
+            dest_topic_ref="email-sender-tag",
+        )
+        store.create_association(MAP_IDENTIFIER, sender_association)
 
 
 def parse_folder(folder):
@@ -144,7 +177,7 @@ def parse_folder(folder):
 def main() -> None:
     store = TopicStore("email.db")
     store.create_database()
-    store.create_map(USER_IDENTIFIER_1, "Test Map", "A map for testing purposes.")
+    store.create_map(USER_IDENTIFIER_1, "Email ETL", "A map resulting from an email ETL operation.")
     store.populate_map(MAP_IDENTIFIER, USER_IDENTIFIER_1)
 
     print("Start...")

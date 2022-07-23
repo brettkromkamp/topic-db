@@ -1247,7 +1247,7 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        maximum_depth: int = 3,
+        maximum_depth: int = 1,
         depth: int = 0,
         tree_accumulator: Tree = None,
         nodes_accumulator: List[str] = None,
