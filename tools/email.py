@@ -85,13 +85,13 @@ def populate_topic_map(file_name: str, store: TopicStore) -> None:
                         store.create_tag(MAP_IDENTIFIER, sender_topic_identifier, "email-sender-tag")
 
                 # Create message topic
-                message_topic_identifier = slugify(f"message-{message['datetime']}-{str(message_count).zfill(4)}")
+                message_topic_identifier = slugify(f"message-{message['submit_time']}-{str(message_count).zfill(4)}")
                 message_count += 1
-                message_topic_name = normalize_name(f"Message {message['datetime']}")
+                message_topic_name = normalize_name(f"Message {message['submit_time']}")
                 if PERSIST_TO_TOPICMAP:
                     date_time_attribute = Attribute(
                         "date-time-timestamp",
-                        message["datetime"],
+                        message["submit_time"],
                         message_topic_identifier,
                         data_type=DataType.TIMESTAMP,
                     )
@@ -103,7 +103,6 @@ def populate_topic_map(file_name: str, store: TopicStore) -> None:
                     store.create_attribute(MAP_IDENTIFIER, date_time_attribute)
 
                     # TODO: Extract the message's (plain-text) body and attach it to the message topic as a text occurrence
-
                     message_body = message["body"] if message["body"] else ""
                     email_body_occurrence = Occurrence(
                         instance_of="text",
@@ -146,36 +145,63 @@ def populate_topic_map(file_name: str, store: TopicStore) -> None:
 
 
 def parse_folder(folder):
-    messages = []
+    result = []
     for folder in folder.sub_folders:
         if folder.number_of_sub_folders:
-            messages += parse_folder(folder)
+            result += parse_folder(folder)
         for sub_message in folder.sub_messages:
-            message = None
-            try:
-                message = {
-                    "folder": folder.name,
-                    "subject": sub_message.subject,
-                    "sender": sub_message.sender_name,
-                    "datetime": sub_message.client_submit_time,
-                    "body": sub_message.plain_text_body,
-                }
-            except OSError as error:
-                print(f"Error: Unable to parse message. Folder name: {folder.name}, Subject: {sub_message.subject}.")
-                message = {
-                    "folder": folder.name,
-                    "subject": sub_message.subject,
-                    "sender": sub_message.sender_name,
-                    "datetime": sub_message.client_submit_time,
-                    "body": "Error: Unable to retrieve message body.",
-                }
+            message = process_message(sub_message, folder)
             if message:
-                messages.append(message)
-    return messages
+                result.append(message)
+    return result
+
+
+def process_message(message, folder):
+    attachments = []
+    total_attachment_size_bytes = 0
+    if message.number_of_attachments > 0:
+        for i in range(message.number_of_attachments):
+            total_attachment_size_bytes = total_attachment_size_bytes + (message.get_attachment(i)).get_size()
+            # attachments.append(
+            #     ((message.get_attachment(i)).read_buffer((message.get_attachment(i)).get_size())).decode(
+            #         "ascii", errors="ignore"
+            #     )
+            # )
+    result = None
+    try:
+        result = {
+            "folder": folder.name,
+            "subject": message.subject,
+            "sender": message.sender_name,
+            "header": message.transport_headers,
+            "body": message.plain_text_body,
+            "creation_time": message.creation_time,
+            "submit_time": message.client_submit_time,
+            "delivery_time": message.delivery_time,
+            "attachment_count": message.number_of_attachments,
+            "total_attachment_size": total_attachment_size_bytes,
+            # "attachments": attachments,
+        }
+    except OSError as error:
+        print(f"Error: Unable to parse message. Folder name: {folder.name}, Subject: {message.subject}.")
+        result = {
+            "folder": folder,
+            "subject": message.subject,
+            "sender": message.sender_name,
+            "header": message.transport_headers,
+            "body": "Error: Unable to retrieve message body.",
+            "creation_time": message.creation_time,
+            "submit_time": message.client_submit_time,
+            "delivery_time": message.delivery_time,
+            "attachment_count": message.number_of_attachments,
+            "total_attachment_size": total_attachment_size_bytes,
+            # "attachments": attachments,
+        }
+    return result
 
 
 def main() -> None:
-    store = TopicStore("email.db")
+    store = TopicStore("bandeja-de-entrada.db")
     store.create_database()
     store.create_map(USER_IDENTIFIER_1, "Email ETL", "A map resulting from an email ETL operation.")
     store.populate_map(MAP_IDENTIFIER, USER_IDENTIFIER_1)
@@ -183,7 +209,9 @@ def main() -> None:
     print("Start...")
     create_type_topics(store)
     print("Populating the topic map")
-    populate_topic_map("/home/brettk/Downloads/bandeja-de-entrada.pst", store)
+    populate_topic_map(
+        "/home/brettk/Downloads/bandeja-de-entrada.pst", store
+    )  # lpajvd-02.pst, carpetas-02.pst, bandeja-de-entrada.pst
     print("Done!")
 
 
