@@ -34,6 +34,7 @@ from typedtree.tree import Tree  # type: ignore
 # region Constants
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
+_NETWORK_MAX_DEPTH = 3
 _UNIVERSAL_SCOPE = "*"
 _DATABASE_PATH = "topics.db"
 _DDL = """
@@ -1247,7 +1248,7 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        maximum_depth: int = 1,
+        maximum_depth: int = _NETWORK_MAX_DEPTH,
         depth: int = 0,
         tree_accumulator: Tree = None,
         nodes_accumulator: List[str] = None,
