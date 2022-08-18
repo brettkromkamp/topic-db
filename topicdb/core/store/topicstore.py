@@ -165,7 +165,6 @@ class TopicStore:
             "image": "Image",
             "video": "Video",
             "audio": "Audio",
-            "note": "Note",
             "file": "File",
             "url": "URL",
             "text": "Text",
