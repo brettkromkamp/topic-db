@@ -82,7 +82,8 @@ def test_init_association1():
     assert association1.first_base_name.language is Language.ENG
     assert len(association1.attributes) == 0
     assert len(association1.occurrences) == 0
-    assert len(association1.members) == 0
+    assert association1.member.src_role_spec == "related"
+    assert association1.member.dest_role_spec == "related"
 
 
 def test_init_association2():
@@ -100,9 +101,10 @@ def test_init_association2():
     assert association2.first_base_name.language is Language.ENG
     assert len(association2.attributes) == 0
     assert len(association2.occurrences) == 0
-    assert len(association2.members) == 2
-    assert association2.members[0].role_spec == "related"
-    assert association2.members[1].role_spec == "related"
+    assert association2.member.src_topic_ref == "test-topic1"
+    assert association2.member.src_role_spec == "related"
+    assert association2.member.dest_topic_ref == "test-topic2"
+    assert association2.member.dest_role_spec == "related"
 
 
 def test_init_attribute1():

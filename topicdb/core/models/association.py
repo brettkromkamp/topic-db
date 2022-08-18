@@ -32,7 +32,7 @@ class Association(Topic):
         super().__init__(identifier, instance_of, name, scope, language)  # Base name 'scope' parameter
 
         self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))  # Association 'scope' parameter
-        self.member: Member = None
+        self.member: Member = Member()
 
         if src_topic_ref != "" and src_role_spec != "" and dest_topic_ref != "" and dest_role_spec != "":
             member = Member(src_topic_ref, src_role_spec, dest_topic_ref, dest_role_spec)
