@@ -176,14 +176,10 @@ class TopicStore:
             "eng": "English Language",
             "spa": "Spanish Language",
             "nld": "Dutch Language",
-            "causal": "Causal",  # https://brettkromkamp.com/posts/semantically-meaningful-relationships/
+            "inclusion": "Inclusion",  # https://brettkromkamp.com/posts/semantically-meaningful-relationships/
             "characteristic": "Characteristic",
-            "classification": "Classification",
-            "comparison": "Comparison",
-            "conditional": "Conditional",
-            "function": "Function",
-            "location": "Location",
-            "part-whole": "Part-Whole",
+            "action": "Action",
+            "process": "Process",
             "temporal": "Temporal",
         }
 
