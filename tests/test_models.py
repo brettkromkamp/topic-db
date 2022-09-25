@@ -5,12 +5,12 @@ January 22, 2017
 Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
-from topicdb.models.datatype import DataType
-from topicdb.models.language import Language
-from topicdb.models.topic import Topic
-from topicdb.models.occurrence import Occurrence
-from topicdb.models.association import Association
-from topicdb.models.attribute import Attribute
+from src.topicdb.models.datatype import DataType
+from src.topicdb.models.language import Language
+from src.topicdb.models.topic import Topic
+from src.topicdb.models.occurrence import Occurrence
+from src.topicdb.models.association import Association
+from src.topicdb.models.attribute import Attribute
 
 
 def test_init_topic1():
