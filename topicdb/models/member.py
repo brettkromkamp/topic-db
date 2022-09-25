@@ -6,10 +6,9 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 import uuid
-from typing import List
 
 from slugify import slugify  # type: ignore
-from topicdb.core.topicdberror import TopicDbError
+from topicdb.topicdberror import TopicDbError
 
 
 class Member:

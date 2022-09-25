@@ -13,21 +13,21 @@ from collections import namedtuple
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
-from topicdb.core.models.association import Association
-from topicdb.core.models.attribute import Attribute
-from topicdb.core.models.basename import BaseName
-from topicdb.core.models.collaborationmode import CollaborationMode
-from topicdb.core.models.collaborator import Collaborator
-from topicdb.core.models.datatype import DataType
-from topicdb.core.models.doublekeydict import DoubleKeyDict
-from topicdb.core.models.language import Language
-from topicdb.core.models.map import Map
-from topicdb.core.models.member import Member
-from topicdb.core.models.occurrence import Occurrence
-from topicdb.core.models.topic import Topic
-from topicdb.core.store.ontologymode import OntologyMode
-from topicdb.core.store.retrievalmode import RetrievalMode
-from topicdb.core.topicdberror import TopicDbError
+from topicdb.models.association import Association
+from topicdb.models.attribute import Attribute
+from topicdb.models.basename import BaseName
+from topicdb.models.collaborationmode import CollaborationMode
+from topicdb.models.collaborator import Collaborator
+from topicdb.models.datatype import DataType
+from topicdb.models.doublekeydict import DoubleKeyDict
+from topicdb.models.language import Language
+from topicdb.models.map import Map
+from topicdb.models.member import Member
+from topicdb.models.occurrence import Occurrence
+from topicdb.models.topic import Topic
+from topicdb.store.ontologymode import OntologyMode
+from topicdb.store.retrievalmode import RetrievalMode
+from topicdb.topicdberror import TopicDbError
 from typedtree.tree import Tree  # type: ignore
 
 # endregion

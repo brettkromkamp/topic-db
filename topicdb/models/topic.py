@@ -7,10 +7,10 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
 from typing import List, Optional
 
-from topicdb.core.models.basename import BaseName
-from topicdb.core.models.entity import Entity
-from topicdb.core.models.language import Language
-from topicdb.core.models.occurrence import Occurrence
+from topicdb.models.basename import BaseName
+from topicdb.models.entity import Entity
+from topicdb.models.language import Language
+from topicdb.models.occurrence import Occurrence
 
 UNIVERSAL_SCOPE = "*"
 

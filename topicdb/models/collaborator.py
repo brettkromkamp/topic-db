@@ -4,7 +4,7 @@ April 08, 2020
 Brett Alistair Kromkamp (brett.kromkamp@gmail.com)
 """
 
-from topicdb.core.models.collaborationmode import CollaborationMode
+from topicdb.models.collaborationmode import CollaborationMode
 
 
 class Collaborator:

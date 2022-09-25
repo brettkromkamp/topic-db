@@ -8,8 +8,8 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 import uuid
 
 from slugify import slugify  # type: ignore
-from topicdb.core.models.language import Language
-from topicdb.core.topicdberror import TopicDbError
+from topicdb.models.language import Language
+from topicdb.topicdberror import TopicDbError
 
 UNIVERSAL_SCOPE = "*"
 
