@@ -968,10 +968,6 @@ class TopicStore:
         return result
 
     def create_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
-        if tag.strip().endswith("-tag"):
-            tag_identifier = f"{slugify(str(tag))}"
-        else:
-            tag_identifier = f"{slugify(str(tag))}-tag"
         if not self.topic_exists(map_identifier, identifier):
             identifier_topic = Topic(
                 identifier=identifier,
@@ -980,10 +976,10 @@ class TopicStore:
             )
             self.create_topic(map_identifier, identifier_topic)
 
-        if not self.topic_exists(map_identifier, tag_identifier):
+        if not self.topic_exists(map_identifier, tag):
             tag_topic = Topic(
-                identifier=tag_identifier,
-                name=self._normalize_topic_name(tag_identifier),
+                identifier=tag,
+                name=self._normalize_topic_name(tag),
                 instance_of="tag",
             )
             self.create_topic(map_identifier, tag_topic)
@@ -991,14 +987,14 @@ class TopicStore:
         tag_association1 = Association(
             instance_of="categorization",
             src_topic_ref=identifier,
-            dest_topic_ref=tag_identifier,
+            dest_topic_ref=tag,
             src_role_spec="member",
             dest_role_spec="category",
         )
         tag_association2 = Association(
             instance_of="categorization",
             src_topic_ref="tags",
-            dest_topic_ref=tag_identifier,
+            dest_topic_ref=tag,
             src_role_spec="broader",
             dest_role_spec="narrower",
         )
