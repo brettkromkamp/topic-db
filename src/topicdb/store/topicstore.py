@@ -13,6 +13,9 @@ from collections import namedtuple
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
+from slugify import slugify  # type: ignore
+from typedtree.tree import Tree  # type: ignore
+
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -28,7 +31,6 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
-from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants
@@ -966,18 +968,22 @@ class TopicStore:
         return result
 
     def create_tag(self, map_identifier: int, identifier: str, tag: str) -> None:
+        if tag.strip().endswith("-tag"):
+            tag_identifier = f"{slugify(str(tag))}"
+        else:
+            tag_identifier = f"{slugify(str(tag))}-tag"
         if not self.topic_exists(map_identifier, identifier):
             identifier_topic = Topic(
                 identifier=identifier,
                 name=self._normalize_topic_name(identifier),
-                instance_of="tag",
+                instance_of="topic",
             )
             self.create_topic(map_identifier, identifier_topic)
 
-        if not self.topic_exists(map_identifier, tag):
+        if not self.topic_exists(map_identifier, tag_identifier):
             tag_topic = Topic(
-                identifier=tag,
-                name=self._normalize_topic_name(tag),
+                identifier=tag_identifier,
+                name=self._normalize_topic_name(tag_identifier),
                 instance_of="tag",
             )
             self.create_topic(map_identifier, tag_topic)
@@ -985,14 +991,14 @@ class TopicStore:
         tag_association1 = Association(
             instance_of="categorization",
             src_topic_ref=identifier,
-            dest_topic_ref=tag,
+            dest_topic_ref=tag_identifier,
             src_role_spec="member",
             dest_role_spec="category",
         )
         tag_association2 = Association(
             instance_of="categorization",
             src_topic_ref="tags",
-            dest_topic_ref=tag,
+            dest_topic_ref=tag_identifier,
             src_role_spec="broader",
             dest_role_spec="narrower",
         )
