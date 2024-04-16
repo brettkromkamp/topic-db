@@ -7,15 +7,17 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
 import uuid
 
-from slugify import slugify  # type: ignore
+from slugify import slugify
 from topicdb.models.datatype import DataType
 from topicdb.models.language import Language
+from topicdb.models.scope import Scope
+from topicdb.models.scopes import Scopes
 from topicdb.topicdberror import TopicDbError
 
 UNIVERSAL_SCOPE = "*"
 
 
-class Attribute:
+class Attribute(Scopes):
     def __init__(
         self,
         name: str,
@@ -30,23 +32,13 @@ class Attribute:
             entity_identifier if entity_identifier == UNIVERSAL_SCOPE else slugify(str(entity_identifier))
         )
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
-        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(scope)
 
         self.name = name
         self.data_type = data_type
         self.language = language
         self.value = value
 
-    def __repr__(self) -> str:
-        return "Attribute('{0}', '{1}', '{2}', '{3}', {4}, '{5}', {6})".format(
-            self.name,
-            self.value,
-            self.__entity_identifier,
-            self.__identifier,
-            str(self.data_type),
-            self.__scope,
-            str(self.language),
-        )
+        self.scopes.add_scope(Scope(topic_identifier=scope))
 
     @property
     def entity_identifier(self) -> str:
@@ -61,13 +53,3 @@ class Attribute:
     @property
     def identifier(self) -> str:
         return self.__identifier
-
-    @property
-    def scope(self) -> str:
-        return self.__scope
-
-    @scope.setter
-    def scope(self, value: str) -> None:
-        if value == "":
-            raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))

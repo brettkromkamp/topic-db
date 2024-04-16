@@ -24,11 +24,13 @@ from topicdb.models.language import Language
 from topicdb.models.map import Map
 from topicdb.models.member import Member
 from topicdb.models.occurrence import Occurrence
+from topicdb.models.scope import Scope
+from topicdb.models.scopes import Scopes
 from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
-from typedtree.tree import Tree  # type: ignore
+from typedtree.tree import Tree
 
 # endregion
 # region Constants
@@ -42,27 +44,16 @@ CREATE TABLE IF NOT EXISTS topic (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
-    scope TEXT,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS topic_1_index ON topic (map_identifier);
-CREATE INDEX IF NOT EXISTS topic_2_index ON topic (map_identifier, instance_of);
-CREATE INDEX IF NOT EXISTS topic_3_index ON topic (map_identifier, identifier, scope);
-CREATE INDEX IF NOT EXISTS topic_4_index ON topic (map_identifier, instance_of, scope);
-CREATE INDEX IF NOT EXISTS topic_5_index ON topic (map_identifier, scope);
 CREATE TABLE IF NOT EXISTS basename (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     name TEXT NOT NULL,
     topic_identifier TEXT NOT NULL,
-    scope TEXT NOT NULL,
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS basename_1_index ON basename (map_identifier);
-CREATE INDEX IF NOT EXISTS basename_2_index ON basename (map_identifier, topic_identifier);
-CREATE INDEX IF NOT EXISTS basename_3_index ON basename (map_identifier, topic_identifier, scope);
-CREATE INDEX IF NOT EXISTS basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
 CREATE TABLE IF NOT EXISTS member (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -73,22 +64,16 @@ CREATE TABLE IF NOT EXISTS member (
     dest_role_spec TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE UNIQUE INDEX IF NOT EXISTS member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
 CREATE TABLE IF NOT EXISTS occurrence (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
-    scope TEXT NOT NULL,
     resource_ref TEXT NOT NULL,
     resource_data BLOB,
     topic_identifier TEXT NOT NULL,
     language TEXT NOT NULL,
     PRIMARY KEY (map_identifier, identifier)
 );
-CREATE INDEX IF NOT EXISTS occurrence_1_index ON occurrence (map_identifier);
-CREATE INDEX IF NOT EXISTS occurrence_2_index ON occurrence (map_identifier, topic_identifier);
-CREATE INDEX IF NOT EXISTS occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
-CREATE INDEX IF NOT EXISTS occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
 CREATE TABLE IF NOT EXISTS attribute (
     map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
@@ -96,16 +81,16 @@ CREATE TABLE IF NOT EXISTS attribute (
     name TEXT NOT NULL,
     value TEXT NOT NULL,
     data_type TEXT NOT NULL,
-    scope TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, entity_identifier, name, scope, language)
+    PRIMARY KEY (map_identifier, entity_identifier, name, language)
 );
-CREATE INDEX IF NOT EXISTS attribute_1_index ON attribute (map_identifier);
-CREATE INDEX IF NOT EXISTS attribute_2_index ON attribute (map_identifier, identifier);
-CREATE INDEX IF NOT EXISTS attribute_3_index ON attribute (map_identifier, entity_identifier);
-CREATE INDEX IF NOT EXISTS attribute_4_index ON attribute (map_identifier, entity_identifier, language);
-CREATE INDEX IF NOT EXISTS attribute_5_index ON attribute (map_identifier, entity_identifier, scope);
-CREATE INDEX IF NOT EXISTS attribute_6_index ON attribute (map_identifier, entity_identifier, scope, language);
+CREATE TABLE IF NOT EXISTS scope (
+    map_identifier INTEGER NOT NULL,
+    identifier TEXT NOT NULL,
+    entity_identifier TEXT NOT NULL,
+    topic_identifier TEXT NOT NULL,
+    PRIMARY KEY (map_identifier, identifier)
+);
 CREATE TABLE IF NOT EXISTS map (
     identifier INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -115,8 +100,6 @@ CREATE TABLE IF NOT EXISTS map (
     published BOOLEAN DEFAULT FALSE NOT NULL,
     promoted BOOLEAN DEFAULT FALSE NOT NULL
 );
-CREATE INDEX IF NOT EXISTS map_1_index ON map (published);
-CREATE INDEX IF NOT EXISTS map_2_index ON map (promoted);
 CREATE TABLE IF NOT EXISTS user_map (
     user_identifier INT NOT NULL,
     map_identifier INT NOT NULL,
@@ -124,12 +107,13 @@ CREATE TABLE IF NOT EXISTS user_map (
     collaboration_mode TEXT NOT NULL,
     PRIMARY KEY (user_identifier, map_identifier)
 );
-CREATE INDEX IF NOT EXISTS user_map_1_index ON user_map (owner);
 CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
     occurrence_identifier,
     resource_data
 );
 """
+
+
 # endregion
 # region Class
 class TopicStore:
@@ -147,6 +131,7 @@ class TopicStore:
             "occurrence": "Occurrence",
             "navigation": "Navigation",
             "member": "Member",
+            "scope": "Scope",
             "category": "Category",
             "categorization": "Categorization",
             "tag": "Tag",
@@ -197,6 +182,27 @@ class TopicStore:
         )
         return result
 
+    def get_scopes(self, map_identifier: int, entity_identifier: str) -> List[Scopes]:
+        result = []
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(
+                "SELECT topic_identifier FROM scope WHERE map_identifier = ? AND entity_identifier = ?",
+                (map_identifier, entity_identifier),
+            )
+            records = cursor.fetchall()
+            for record in records:
+                scope = Scope(record["topic_identifier"])
+                result.append(scope)
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error retrieving scopes: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
+
     def delete_association(self, map_identifier: int, identifier: str) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
@@ -217,6 +223,12 @@ class TopicStore:
                 # Delete members
                 connection.execute(
                     "DELETE FROM member WHERE map_identifier = ? AND association_identifier = ?",
+                    (map_identifier, identifier),
+                )
+
+                # Delete scopes
+                connection.execute(
+                    "DELETE FROM scope WHERE map_identifier = ? AND entity_identifier = ?",
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
@@ -1876,7 +1888,8 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ?",
+                (map_identifier, identifier),
             )
             record = cursor.fetchone()
             if record:

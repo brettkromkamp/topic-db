@@ -7,14 +7,15 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
 import uuid
 
-from slugify import slugify  # type: ignore
+from slugify import slugify
 from topicdb.models.language import Language
-from topicdb.topicdberror import TopicDbError
+from topicdb.models.scope import Scope
+from topicdb.models.scopes import Scopes
 
 UNIVERSAL_SCOPE = "*"
 
 
-class BaseName:
+class BaseName(Scopes):
     def __init__(
         self,
         name: str,
@@ -25,19 +26,10 @@ class BaseName:
         self.__identifier = str(uuid.uuid4()) if identifier == "" else slugify(str(identifier))
 
         self.name = name
-        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))
         self.language = language
+
+        self.scopes.add_scope(Scope(topic_identifier=scope))
 
     @property
     def identifier(self) -> str:
         return self.__identifier
-
-    @property
-    def scope(self) -> str:
-        return self.__scope
-
-    @scope.setter
-    def scope(self, value: str) -> None:
-        if value == "":
-            raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))

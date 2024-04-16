@@ -7,15 +7,17 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 
 from typing import Optional, Union
 
-from slugify import slugify  # type: ignore
+from slugify import slugify
 from topicdb.models.entity import Entity
 from topicdb.models.language import Language
+from topicdb.models.scope import Scope
+from topicdb.models.scopes import Scopes
 from topicdb.topicdberror import TopicDbError
 
 UNIVERSAL_SCOPE = "*"
 
 
-class Occurrence(Entity):
+class Occurrence(Entity, Scopes):
     def __init__(
         self,
         identifier: str = "",
@@ -31,7 +33,6 @@ class Occurrence(Entity):
         self.__topic_identifier = (
             topic_identifier if topic_identifier == UNIVERSAL_SCOPE else slugify(str(topic_identifier))
         )
-        self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))
         self.resource_ref = resource_ref
         if resource_data:
             self.__resource_data = (
@@ -42,15 +43,7 @@ class Occurrence(Entity):
 
         self.language = language
 
-    @property
-    def scope(self) -> str:
-        return self.__scope
-
-    @scope.setter
-    def scope(self, value: str) -> None:
-        if value == "":
-            raise TopicDbError("Empty 'value' parameter")
-        self.__scope = value if value == UNIVERSAL_SCOPE else slugify(str(value))
+        self.scopes.add_scope(Scope(topic_identifier=scope))
 
     @property
     def topic_identifier(self) -> str:
