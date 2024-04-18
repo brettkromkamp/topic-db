@@ -38,58 +38,58 @@ TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
 
 _NETWORK_MAX_DEPTH = 3
 _UNIVERSAL_SCOPE = "*"
-_DATABASE_PATH = "topics.db"
+_DATABASE_PATH = "./contextualise.sqlite3"
 _DDL = """
-CREATE TABLE IF NOT EXISTS topic (
-    map_identifier INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS topic (    
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
+    map_identifier_fk INTEGER NOT NULL,
+    PRIMARY KEY (map_identifier_fk, identifier)
 );
-CREATE TABLE IF NOT EXISTS basename (
-    map_identifier INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS basename (    
     identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    topic_identifier TEXT NOT NULL,
+    name TEXT NOT NULL,    
     language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
+    map_identifier_fk INTEGER NOT NULL,
+    topic_identifier_fk TEXT NOT NULL,
+    PRIMARY KEY (map_identifier_fk, identifier)
 );
 CREATE TABLE IF NOT EXISTS member (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    association_identifier TEXT NOT NULL,
+    identifier TEXT NOT NULL,    
     src_topic_ref TEXT NOT NULL,
     src_role_spec TEXT NOT NULL,
     dest_topic_ref TEXT NOT NULL,
     dest_role_spec TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
+    map_identifier_fk INTEGER NOT NULL,
+    association_identifier_fk TEXT NOT NULL,
+    PRIMARY KEY (map_identifier_fk, identifier)
 );
 CREATE TABLE IF NOT EXISTS occurrence (
-    map_identifier INTEGER NOT NULL,
     identifier TEXT NOT NULL,
     instance_of TEXT NOT NULL,
     resource_ref TEXT NOT NULL,
-    resource_data BLOB,
-    topic_identifier TEXT NOT NULL,
+    resource_data BLOB,    
     language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
+    map_identifier_fk INTEGER NOT NULL,
+    topic_identifier_fk TEXT NOT NULL,
+    PRIMARY KEY (map_identifier_fk, identifier)
 );
 CREATE TABLE IF NOT EXISTS attribute (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    entity_identifier TEXT NOT NULL,
+    identifier TEXT NOT NULL,    
     name TEXT NOT NULL,
     value TEXT NOT NULL,
     data_type TEXT NOT NULL,
     language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, entity_identifier, name, language)
+    map_identifier_fk INTEGER NOT NULL,
+    entity_identifier_fk TEXT NOT NULL,
+    PRIMARY KEY (map_identifier_fk, entity_identifier, name, language)
 );
 CREATE TABLE IF NOT EXISTS scope (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    entity_identifier TEXT NOT NULL,
+    identifier TEXT NOT NULL,    
     topic_identifier TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
+    map_identifier_fk INTEGER NOT NULL,
+    entity_identifier_fk TEXT NOT NULL,
+    PRIMARY KEY (map_identifier_fk, identifier)
 );
 CREATE TABLE IF NOT EXISTS map (
     identifier INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,12 +100,12 @@ CREATE TABLE IF NOT EXISTS map (
     published BOOLEAN DEFAULT FALSE NOT NULL,
     promoted BOOLEAN DEFAULT FALSE NOT NULL
 );
-CREATE TABLE IF NOT EXISTS user_map (
-    user_identifier INT NOT NULL,
-    map_identifier INT NOT NULL,
+CREATE TABLE IF NOT EXISTS user_map (    
     owner BOOLEAN DEFAULT FALSE NOT NULL,
     collaboration_mode TEXT NOT NULL,
-    PRIMARY KEY (user_identifier, map_identifier)
+    user_identifier_fk INT NOT NULL,
+    map_identifier_fk INT NOT NULL,
+    PRIMARY KEY (user_identifier_fk, map_identifier_fk)
 );
 CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
     occurrence_identifier,
@@ -169,19 +169,8 @@ class TopicStore:
         }
 
     # endregion
-    # region Association
-    @staticmethod
-    def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
-        result: List[TopicRefs] = []
 
-        result.append(
-            TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
-        )
-        result.append(
-            TopicRefs(association.instance_of, association.member.dest_role_spec, association.member.dest_topic_ref)
-        )
-        return result
-
+    # region Scope
     def get_scopes(self, map_identifier: int, entity_identifier: str) -> List[Scopes]:
         result = []
         connection = sqlite3.connect(self.database_path)
@@ -189,7 +178,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT topic_identifier FROM scope WHERE map_identifier = ? AND entity_identifier = ?",
+                "SELECT topic_identifier FROM scope WHERE map_identifier = ? AND entity_identifier_fk = ?",
                 (map_identifier, entity_identifier),
             )
             records = cursor.fetchall()
@@ -203,6 +192,77 @@ class TopicStore:
             connection.close()
         return result
 
+    def create_scope(
+        self,
+        map_identifier: int,
+        scope: Scope,
+        ontology_mode: OntologyMode = OntologyMode.LENIENT,
+    ) -> None:
+        if scope.entity_identifier == "":
+            raise TopicDbError("Scope has an empty 'entity identifier' property")
+
+        if ontology_mode is OntologyMode.STRICT:
+            scope_exists = self.topic_exists(map_identifier, scope.topic_identifier)
+            if not scope_exists:
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
+
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "INSERT INTO scope (identifier, topic_identifier, map_identifier_fk, entity_identifier_fk) VALUES (?, ?, ?, ?)",
+                    (scope.identifier, scope.topic_identifier, map_identifier, scope.entity_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error creating scope: {error}")
+        finally:
+            connection.close()
+
+    def create_scopes(self, map_identifier: int, entity_identifier: str, scopes: List[Scope]) -> None:
+        # https://docs.python.org/3/library/sqlite3.html#sqlite3.Cursor.executemany
+        pass
+
+    def delete_scope(self, map_identifier: int, identifier: str) -> None:
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "DELETE FROM scope WHERE map_identifier_fk = ? AND identifier = ?",
+                    (map_identifier, identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting scope: {error}")
+        finally:
+            connection.close()
+
+    def delete_scopes(self, map_identifier: int, entity_identifier: str) -> None:
+        connection = sqlite3.connect(self.database_path)
+        try:
+            with connection:
+                connection.execute(
+                    "DELETE FROM scope WHERE map_identifier_fk = ? AND entity_identifier_fk = ?",
+                    (map_identifier, entity_identifier),
+                )
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error deleting scopes: {error}")
+        finally:
+            connection.close()
+
+    # endregion
+
+    # region Association
+    @staticmethod
+    def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
+        result: List[TopicRefs] = []
+
+        result.append(
+            TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
+        )
+        result.append(
+            TopicRefs(association.instance_of, association.member.dest_role_spec, association.member.dest_topic_ref)
+        )
+        return result
+
     def delete_association(self, map_identifier: int, identifier: str) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
@@ -210,25 +270,25 @@ class TopicStore:
             with connection:
                 # Delete association
                 connection.execute(
-                    "DELETE FROM topic WHERE map_identifier = ? AND identifier = ? AND scope IS NOT NULL",
+                    "DELETE FROM topic WHERE map_identifier_fk = ? AND identifier = ? AND scope IS NOT NULL",
                     (map_identifier, identifier),
                 )
 
                 # Delete base name record(s)
                 connection.execute(
-                    "DELETE FROM basename WHERE map_identifier = ? AND topic_identifier = ?",
+                    "DELETE FROM basename WHERE map_identifier_fk = ? AND topic_identifier_fk = ?",
                     (map_identifier, identifier),
                 )
 
                 # Delete members
                 connection.execute(
-                    "DELETE FROM member WHERE map_identifier = ? AND association_identifier = ?",
+                    "DELETE FROM member WHERE map_identifier_fk = ? AND association_identifier_fk = ?",
                     (map_identifier, identifier),
                 )
 
                 # Delete scopes
                 connection.execute(
-                    "DELETE FROM scope WHERE map_identifier = ? AND entity_identifier = ?",
+                    "DELETE FROM scope WHERE map_identifier_fk = ? AND entity_identifier_fk = ?",
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
@@ -454,7 +514,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT identifier FROM attribute WHERE map_identifier = ? AND entity_identifier = ? AND name = ?",
+                "SELECT identifier FROM attribute WHERE map_identifier_fk = ? AND entity_identifier_fk = ? AND name = ?",
                 (map_identifier, entity_identifier, name),
             )
             record = cursor.fetchone()
@@ -472,7 +532,11 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                    "DELETE FROM attribute WHERE map_identifier_fk = ? AND identifier = ?",
+                    (map_identifier, identifier),
+                )
+                connection.execute(
+                    "DELETE FROM scope WHERE map_identifier_fk = ? AND entity_identifier_fk = ?",
                     (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
@@ -484,8 +548,9 @@ class TopicStore:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
+                # TODO: Refactor
                 connection.execute(
-                    "DELETE FROM attribute WHERE map_identifier = ? AND entity_identifier = ?",
+                    "DELETE FROM attribute WHERE map_identifier_fk = ? AND entity_identifier_fk = ?",
                     (map_identifier, entity_identifier),
                 )
         except sqlite3.Error as error:
@@ -501,7 +566,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                "SELECT * FROM attribute WHERE map_identifier_fk = ? AND identifier = ?",
                 (map_identifier, identifier),
             )
             record = cursor.fetchone()
@@ -512,9 +577,9 @@ class TopicStore:
                     record["entity_identifier"],
                     record["identifier"],
                     DataType[record["data_type"].upper()],
-                    record["scope"],
                     Language[record["language"].upper()],
                 )
+                result.add_scopes(self.get_scopes(map_identifier, identifier))
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving attribute: {error}")
         finally:

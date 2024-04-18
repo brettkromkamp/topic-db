@@ -9,13 +9,14 @@ from slugify import slugify
 from topicdb.models.language import Language
 from topicdb.models.member import Member
 from topicdb.models.scope import Scope
+from topicdb.models.scopes import Scopes
 from topicdb.models.topic import Topic
 from topicdb.topicdberror import TopicDbError
 
 UNIVERSAL_SCOPE = "*"
 
 
-class Association(Topic):
+class Association(Topic, Scopes):
     def __init__(
         self,
         identifier: str = "",
