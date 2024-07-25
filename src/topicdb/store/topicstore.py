@@ -13,6 +13,9 @@ from collections import namedtuple
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
+from slugify import slugify  # type: ignore
+from typedtree.tree import Tree  # type: ignore
+
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -28,7 +31,6 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
-from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants
@@ -130,6 +132,8 @@ CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
     resource_data
 );
 """
+
+
 # endregion
 # region Class
 class TopicStore:
@@ -460,8 +464,7 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?",
-                    (map_identifier, identifier),
+                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting attribute: {error}")
@@ -489,8 +492,7 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?",
-                (map_identifier, identifier),
+                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
             )
             record = cursor.fetchone()
             if record:
@@ -638,8 +640,7 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM occurrence WHERE map_identifier = ? AND identifier = ?",
-                    (map_identifier, identifier),
+                    "DELETE FROM occurrence WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting occurrence: {error}")
@@ -970,7 +971,7 @@ class TopicStore:
             identifier_topic = Topic(
                 identifier=identifier,
                 name=self._normalize_topic_name(identifier),
-                instance_of="tag",
+                instance_of="topic",
             )
             self.create_topic(map_identifier, identifier_topic)
 
@@ -1310,7 +1311,7 @@ class TopicStore:
     ) -> List[str]:
         result = []
 
-        query_string = "{0}%%".format(query)
+        query_string = "{0}%".format(query)
         sql = """SELECT identifier FROM topic
             WHERE map_identifier = ? AND
             identifier LIKE ? AND
@@ -1861,8 +1862,7 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM basename WHERE map_identifier = ? AND identifier = ?",
-                    (map_identifier, identifier),
+                    "DELETE FROM basename WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting topic 'base name': {error}")
@@ -1876,7 +1876,8 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                "SELECT identifier FROM topic WHERE map_identifier = ? AND identifier = ?",
+                (map_identifier, identifier),
             )
             record = cursor.fetchone()
             if record:
@@ -2105,8 +2106,8 @@ class TopicStore:
                 result = cursor.fetchone()[0]
                 connection.execute(
                     "INSERT INTO user_map (user_identifier, map_identifier, owner, collaboration_mode) VALUES (?, ?, ?, ?)",
-                    (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),  # 1 = True
-                )
+                    (user_identifier, result, 1, CollaborationMode.EDIT.name.lower()),
+                )  # 1 = True
         except sqlite3.Error as error:
             raise TopicDbError(f"Error creating map: {error}")
         finally:
@@ -2309,11 +2310,15 @@ class TopicStore:
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
+        sql = """SELECT user_map.user_identifier, user_map.map_identifier, user_map.collaboration_mode, user.email AS user_name
+            FROM user_map 
+            JOIN user ON user_map.user_identifier = user.id
+            WHERE user_map.map_identifier = ? 
+            AND owner = 0 
+            ORDER BY user_map.user_identifier
+        """
         try:
-            cursor.execute(
-                "SELECT * FROM user_map WHERE map_identifier = ? AND owner = 0 ORDER BY user_identifier",  # 0 = False
-                (map_identifier,),
-            )
+            cursor.execute(sql, (map_identifier,))
             records = cursor.fetchall()
             for record in records:
                 collaborator = Collaborator(
@@ -2336,11 +2341,16 @@ class TopicStore:
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
+        sql = """SELECT user_map.user_identifier, user_map.map_identifier, user_map.collaboration_mode, user.email AS user_name
+            FROM user_map 
+            JOIN user ON user_map.user_identifier = user.id
+            WHERE user_map.map_identifier = ? 
+            AND user_map.user_identifier = ?
+            AND owner = 0 
+            ORDER BY user_map.user_identifier
+        """
         try:
-            cursor.execute(
-                "SELECT * FROM user_map WHERE user_identifier = ? AND map_identifier = ?",
-                (user_identifier, map_identifier),
-            )
+            cursor.execute(sql, (map_identifier, user_identifier))
             record = cursor.fetchone()
             if record:
                 result = Collaborator(
