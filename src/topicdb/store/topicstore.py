@@ -340,7 +340,7 @@ class TopicStore:
     def get_association_groups(
         self,
         map_identifier: int,
-        identifier: str = "",
+        identifier: str,
         associations: Optional[List[Association]] = None,
         instance_ofs: Optional[List[str]] = None,
         scope: str = None,
@@ -436,6 +436,21 @@ class TopicStore:
         finally:
             connection.close()
         self.create_attributes(map_identifier, association.attributes)
+
+    def get_associations(
+        self,
+        map_identifier: int,
+        identifier: str,
+        scope: str = None,
+        language: Language = None,
+        resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+        resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
+    ) -> List[Association]:
+        result = []
+
+        # TODO: Implement
+
+        return result
 
     # endregion
     # region Attribute
