@@ -8,6 +8,7 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 import uuid
 
 from slugify import slugify  # type: ignore
+
 from topicdb.topicdberror import TopicDbError
 
 

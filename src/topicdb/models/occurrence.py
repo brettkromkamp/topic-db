@@ -8,6 +8,7 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 from typing import Optional, Union
 
 from slugify import slugify  # type: ignore
+
 from topicdb.models.entity import Entity
 from topicdb.models.language import Language
 from topicdb.topicdberror import TopicDbError

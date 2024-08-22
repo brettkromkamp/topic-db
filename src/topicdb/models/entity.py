@@ -9,6 +9,7 @@ import uuid
 from typing import List, Optional
 
 from slugify import slugify  # type: ignore
+
 from topicdb.models.attribute import Attribute
 from topicdb.topicdberror import TopicDbError
 

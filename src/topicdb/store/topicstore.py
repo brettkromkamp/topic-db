@@ -2010,10 +2010,10 @@ class TopicStore:
                         user_identifier=record["user_identifier"],
                         description=record["description"],
                         image_path=record["image_path"],
-                        initialised=record["initialised"],
-                        published=record["published"],
-                        promoted=record["promoted"],
-                        owner=record["owner"],
+                        initialised=bool(record["initialised"]),
+                        published=bool(record["published"]),
+                        promoted=bool(record["promoted"]),
+                        owner=bool(record["owner"]),
                         collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                     )
             except sqlite3.Error as error:
@@ -2032,10 +2032,10 @@ class TopicStore:
                         user_identifier=None,
                         description=record["description"],
                         image_path=record["image_path"],
-                        initialised=record["initialised"],
-                        published=record["published"],
-                        promoted=record["promoted"],
-                        owner=None,
+                        initialised=bool(record["initialised"]),
+                        published=bool(record["published"]),
+                        promoted=bool(record["promoted"]),
+                        owner=False,
                         collaboration_mode=None,
                     )
             except sqlite3.Error as error:
@@ -2076,10 +2076,10 @@ class TopicStore:
                     user_identifier=record["user_identifier"],
                     description=record["description"],
                     image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=record["owner"],
+                    initialised=bool(record["initialised"]),
+                    published=bool(record["published"]),
+                    promoted=bool(record["promoted"]),
+                    owner=bool(record["owner"]),
                     collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
                 )
                 result.append(map)
@@ -2176,10 +2176,10 @@ class TopicStore:
                     user_identifier=None,
                     description=record["description"],
                     image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=None,
+                    initialised=bool(record["initialised"]),
+                    published=bool(record["published"]),
+                    promoted=bool(record["promoted"]),
+                    owner=False,
                     collaboration_mode=None,
                 )
                 result.append(map)
@@ -2206,10 +2206,10 @@ class TopicStore:
                     user_identifier=None,
                     description=record["description"],
                     image_path=record["image_path"],
-                    initialised=record["initialised"],
-                    published=record["published"],
-                    promoted=record["promoted"],
-                    owner=None,
+                    initialised=bool(record["initialised"]),
+                    published=bool(record["published"]),
+                    promoted=bool(record["promoted"]),
+                    owner=False,
                     collaboration_mode=None,
                 )
                 result.append(map)
@@ -2326,10 +2326,10 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         sql = """SELECT user_map.user_identifier, user_map.map_identifier, user_map.collaboration_mode, user.email AS user_name
-            FROM user_map 
+            FROM user_map
             JOIN user ON user_map.user_identifier = user.id
-            WHERE user_map.map_identifier = ? 
-            AND owner = 0 
+            WHERE user_map.map_identifier = ?
+            AND owner = 0
             ORDER BY user_map.user_identifier
         """
         try:
@@ -2357,11 +2357,11 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         sql = """SELECT user_map.user_identifier, user_map.map_identifier, user_map.collaboration_mode, user.email AS user_name
-            FROM user_map 
+            FROM user_map
             JOIN user ON user_map.user_identifier = user.id
-            WHERE user_map.map_identifier = ? 
+            WHERE user_map.map_identifier = ?
             AND user_map.user_identifier = ?
-            AND owner = 0 
+            AND owner = 0
             ORDER BY user_map.user_identifier
         """
         try:

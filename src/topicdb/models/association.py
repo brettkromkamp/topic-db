@@ -6,6 +6,7 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 from slugify import slugify  # type: ignore
+
 from topicdb.models.language import Language
 from topicdb.models.member import Member
 from topicdb.models.topic import Topic
