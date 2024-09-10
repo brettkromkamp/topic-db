@@ -14,8 +14,6 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
 from slugify import slugify  # type: ignore
-from typedtree.tree import Tree  # type: ignore
-
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -31,6 +29,7 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
+from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants
@@ -1998,8 +1997,7 @@ class TopicStore:
                 FROM map
                 INNER JOIN user_map ON map.identifier = user_map.map_identifier
                 WHERE user_map.user_identifier = ?
-                AND map.identifier = ?
-                ORDER BY map_identifier"""
+                AND map.identifier = ?"""
             try:
                 cursor.execute(sql, (user_identifier, map_identifier))
                 record = cursor.fetchone()
@@ -2045,7 +2043,12 @@ class TopicStore:
                 connection.close()
         return result
 
-    def get_maps(self, user_identifier: int) -> List[Map]:
+    def get_maps(
+        self,
+        user_identifier: int,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> List[Map]:
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -2065,9 +2068,10 @@ class TopicStore:
             FROM map
             INNER JOIN user_map ON map.identifier = user_map.map_identifier
             WHERE user_map.user_identifier = ?
-            ORDER BY map_identifier"""
+            ORDER BY map_identifier
+            LIMIT ? OFFSET ?"""
         try:
-            cursor.execute(sql, (user_identifier,))
+            cursor.execute(sql, (user_identifier, limit, offset))
             records = cursor.fetchall()
             for record in records:
                 map = Map(
