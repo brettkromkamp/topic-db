@@ -2430,7 +2430,10 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NULL", (map_identifier,))
+            cursor.execute(
+                "SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NULL",
+                (map_identifier,),
+            )
             record = cursor.fetchone()
             if record:
                 result = record["count"]
@@ -2448,7 +2451,10 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NOT NULL", (map_identifier,))
+            cursor.execute(
+                "SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NOT NULL",
+                (map_identifier,),
+            )
             record = cursor.fetchone()
             if record:
                 result = record["count"]
@@ -2466,7 +2472,9 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?", (map_identifier,))
+            cursor.execute(
+                "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?", (map_identifier,)
+            )
             record = cursor.fetchone()
             if record:
                 result = record["count"]
