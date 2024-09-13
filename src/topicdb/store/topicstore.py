@@ -14,6 +14,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
 from slugify import slugify  # type: ignore
+from typedtree.tree import Tree  # type: ignore
+
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -29,7 +31,6 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
-from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants

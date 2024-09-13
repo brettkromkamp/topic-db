@@ -14,7 +14,7 @@ TopicDB is intended to be used by other Python applications and does not provide
 
 ## Why?
 
-I build (story) worlds and knowledge management systems. TopicDB plays a crucial role in both those endeavours.
+I build story worlds and knowledge management systems. TopicDB plays a crucial role in both those endeavours.
 
 ## Feature Support
 
@@ -22,7 +22,7 @@ I build (story) worlds and knowledge management systems. TopicDB plays a crucial
 
 ## Installation
 
-TopicDB officially supports Python 3.7–3.10. To install TopicDB, simply:
+TopicDB officially supports Python 3.10-3.12. To install TopicDB, simply:
 
     $ pip install --upgrade topic-db
 
