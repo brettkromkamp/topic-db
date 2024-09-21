@@ -15,6 +15,8 @@ class RetrievalMode(Enum):
     DONT_RESOLVE_OCCURRENCES = 4
     INLINE_RESOURCE_DATA = 5
     DONT_INLINE_RESOURCE_DATA = 6
+    FILTER_BASE_TOPICS = 7
+    DONT_FILTER_BASE_TOPICS = 8
 
     def __str__(self):
         return self.name

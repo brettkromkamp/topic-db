@@ -14,8 +14,6 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
 from slugify import slugify  # type: ignore
-from typedtree.tree import Tree  # type: ignore
-
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -31,6 +29,7 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
+from typedtree.tree import Tree  # type: ignore
 
 # endregion
 # region Constants
@@ -1497,6 +1496,7 @@ class TopicStore:
         offset: int = 0,
         limit: int = 100,
         resolve_attributes=RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
+        filter_base_topics=RetrievalMode.DONT_FILTER_BASE_TOPICS,
     ) -> List[Optional[Topic]]:
         result = []
 
@@ -1509,11 +1509,21 @@ class TopicStore:
                 LIMIT ? OFFSET ?"""
             bind_variables = (map_identifier, instance_of, limit, offset)
         else:
-            sql = """SELECT identifier FROM topic
+            match filter_base_topics:
+                case RetrievalMode.FILTER_BASE_TOPICS:
+                    sql = """SELECT identifier FROM topic
+                WHERE map_identifier = ? AND
+                instance_of != 'base-topic' AND
+                scope IS NULL
+                ORDER BY identifier
+                LIMIT ? OFFSET ?"""
+                case RetrievalMode.DONT_FILTER_BASE_TOPICS:
+                    sql = """SELECT identifier FROM topic
                 WHERE map_identifier = ? AND
                 scope IS NULL
                 ORDER BY identifier
                 LIMIT ? OFFSET ?"""
+
             bind_variables = (map_identifier, limit, offset)
 
         connection = sqlite3.connect(self.database_path)
@@ -2425,14 +2435,19 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_topics_count(self, map_identifier: int) -> int:
+    def get_topics_count(self, map_identifier: int, filter_base_topics=RetrievalMode.DONT_FILTER_BASE_TOPICS) -> int:
         result = 0
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
+        match filter_base_topics:
+            case RetrievalMode.FILTER_BASE_TOPICS:
+                sql = "SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NULL AND instance_of != 'base-topic'"
+            case RetrievalMode.DONT_FILTER_BASE_TOPICS:
+                sql = "SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NULL"
         try:
             cursor.execute(
-                "SELECT COUNT(identifier) AS count FROM topic WHERE map_identifier = ? AND scope IS NULL",
+                sql,
                 (map_identifier,),
             )
             record = cursor.fetchone()
