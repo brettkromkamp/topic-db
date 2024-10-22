@@ -1254,6 +1254,68 @@ class TopicStore:
             connection.close()
         return result
 
+    def get_topic_associations_count(
+        self,
+        map_identifier: int,
+        identifier: str,
+        instance_ofs: Optional[List[str]] = None,
+        scope: str = None,
+    ) -> List[Association]:
+        result = 0
+
+        sql = """SELECT COUNT(identifier) AS associations_count FROM topic WHERE map_identifier = ? {0} AND
+        identifier IN
+            (SELECT association_identifier FROM member
+             WHERE map_identifier = ? AND (src_topic_ref = ? OR dest_topic_ref = ?))"""
+        if instance_ofs:
+            instance_of_in_condition = " AND instance_of IN ("
+            for index, value in enumerate(instance_ofs):
+                if (index + 1) != len(instance_ofs):
+                    instance_of_in_condition += "?, "
+                else:
+                    instance_of_in_condition += "?) "
+            if scope:
+                query_filter = instance_of_in_condition + " AND scope = ? "
+                bind_variables = (
+                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
+                )
+            else:
+                query_filter = instance_of_in_condition
+                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
+        else:
+            if scope:
+                query_filter = " AND scope = ?"
+                bind_variables = (
+                    map_identifier,
+                    scope,
+                    map_identifier,
+                    identifier,
+                    identifier,
+                )
+            else:
+                query_filter = ""
+                bind_variables = (
+                    map_identifier,
+                    map_identifier,
+                    identifier,
+                    identifier,
+                )
+
+        connection = sqlite3.connect(self.database_path)
+        connection.row_factory = sqlite3.Row
+        cursor = connection.cursor()
+        try:
+            cursor.execute(sql.format(query_filter), bind_variables)
+            record = cursor.fetchone()
+            if record:
+                result = record["associations_count"]
+        except sqlite3.Error as error:
+            raise TopicDbError(f"Error retrieving topic associations count: {error}")
+        finally:
+            cursor.close()
+            connection.close()
+        return result
+
     def get_topics_network(
         self,
         map_identifier: int,
