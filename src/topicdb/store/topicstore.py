@@ -2544,15 +2544,20 @@ class TopicStore:
 
         return result
 
-    def get_occurrences_count(self, map_identifier: int) -> int:
+    def get_occurrences_count(self, map_identifier: int, instance_of: str = None,) -> int:
         result = 0
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute(
-                "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?", (map_identifier,)
-            )
+            if instance_of:
+                cursor.execute(
+                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ? AND instance_of = ?", (map_identifier, instance_of)
+                )
+            else:
+                cursor.execute(
+                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?", (map_identifier,)
+                )
             record = cursor.fetchone()
             if record:
                 result = record["count"]
