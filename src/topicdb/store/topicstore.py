@@ -11,7 +11,7 @@ from __future__ import annotations
 import sqlite3
 from collections import namedtuple
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 from slugify import slugify  # type: ignore
 from topicdb.models.association import Association
@@ -189,8 +189,8 @@ class TopicStore:
     # endregion
     # region Association
     @staticmethod
-    def _resolve_topic_refs(association: Association) -> List[TopicRefs]:
-        result: List[TopicRefs] = []
+    def _resolve_topic_refs(association: Association) -> list[TopicRefs]:
+        result: list[TopicRefs] = []
 
         result.append(
             TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
@@ -234,11 +234,11 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        scope: str = None,
-        language: Language = None,
+        scope: str | None = None,
+        language: Language | None = None,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
-    ) -> Optional[Association]:
+    ) -> Association | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -277,7 +277,7 @@ class TopicStore:
                             WHERE map_identifier =? AND
                             topic_identifier = ? AND
                             scope = ?"""
-                        bind_variables = (map_identifier, identifier, scope)
+                        bind_variables = (map_identifier, identifier, scope)  # type: ignore
                 else:
                     if language:
                         sql = """SELECT name, scope, language, identifier
@@ -289,13 +289,13 @@ class TopicStore:
                             map_identifier,
                             identifier,
                             language.name.lower(),
-                        )
+                        )  # type: ignore
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM basename
                             WHERE map_identifier = ? AND
                             topic_identifier = ?"""
-                        bind_variables = (map_identifier, identifier)
+                        bind_variables = (map_identifier, identifier)  # type: ignore
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
@@ -340,9 +340,9 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        associations: Optional[List[Association]] = None,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
+        associations: list[Association] | None = None,
+        instance_ofs: list[str] | None = None,
+        scope: str | None = None,
     ) -> DoubleKeyDict:
         if identifier == "" and associations is None:
             raise TopicDbError("At least one of following parameters is required: 'identifier' or 'associations'")
@@ -440,14 +440,14 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        scope: str = None,
-        language: Language = None,
+        scope: str | None = None,
+        language: Language | None = None,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
-    ) -> List[Association]:
-        result = []
+    ) -> list[Association]:
+        result: list[Association] = []
 
-        # TODO: Implement
+        # Implement the logic to populate the result list with Association objects
 
         return result
 
@@ -498,7 +498,7 @@ class TopicStore:
         finally:
             connection.close()
 
-    def get_attribute(self, map_identifier: int, identifier: str) -> Optional[Attribute]:
+    def get_attribute(self, map_identifier: int, identifier: str) -> Attribute | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -530,10 +530,10 @@ class TopicStore:
         self,
         map_identifier: int,
         entity_identifier: str,
-        scope: str = None,
-        language: Language = None,
-    ) -> List[Attribute]:
-        result = []
+        scope: str | None = None,
+        language: Language | None = None,
+    ) -> list[Attribute]:
+        result: list[Attribute] = []
 
         if scope:
             if language:
@@ -553,7 +553,7 @@ class TopicStore:
                     WHERE map_identifier = ? AND
                     entity_identifier = ? AND
                     scope = ?"""
-                bind_variables = (map_identifier, entity_identifier, scope)
+                bind_variables = (map_identifier, entity_identifier, scope)  # type: ignore
         else:
             if language:
                 sql = """SELECT * FROM attribute
@@ -564,12 +564,12 @@ class TopicStore:
                     map_identifier,
                     entity_identifier,
                     language.name.lower(),
-                )
+                )  # type: ignore
             else:
                 sql = """SELECT * FROM attribute
                     WHERE map_identifier = ? AND
                     entity_identifier = ?"""
-                bind_variables = (map_identifier, entity_identifier)
+                bind_variables = (map_identifier, entity_identifier)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -630,7 +630,7 @@ class TopicStore:
         finally:
             connection.close()
 
-    def create_attributes(self, map_identifier: int, attributes: List[Attribute]) -> None:
+    def create_attributes(self, map_identifier: int, attributes: list[Attribute]) -> None:
         for attribute in attributes:
             self.create_attribute(map_identifier, attribute)
 
@@ -686,7 +686,7 @@ class TopicStore:
         identifier: str,
         inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
-    ) -> Optional[Occurrence]:
+    ) -> Occurrence | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -745,15 +745,15 @@ class TopicStore:
     def get_occurrences(
         self,
         map_identifier: int,
-        instance_of: str = None,
-        scope: str = None,
-        language: Language = None,
+        instance_of: str | None = None,
+        scope: str | None = None,
+        language: Language | None = None,
         offset: int = 0,
         limit: int = 100,
         inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
-    ) -> List[Occurrence]:
-        result = []
+    ) -> list[Occurrence]:
+        result: list[Occurrence] = []
 
         sql = """SELECT * FROM occurrence
             WHERE map_identifier = ?
@@ -774,7 +774,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND instance_of = ? AND scope = ?"
-                    bind_variables = (map_identifier, instance_of, scope, limit, offset)
+                    bind_variables = (map_identifier, instance_of, scope, limit, offset)  # type: ignore
             else:
                 if language:
                     query_filter = " AND instance_of = ? AND language = ?"
@@ -784,10 +784,10 @@ class TopicStore:
                         language.name.lower(),
                         limit,
                         offset,
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND instance_of = ?"
-                    bind_variables = (map_identifier, instance_of, limit, offset)
+                    bind_variables = (map_identifier, instance_of, limit, offset)  # type: ignore
         else:
             if scope:
                 if language:
@@ -798,10 +798,10 @@ class TopicStore:
                         language.name.lower(),
                         limit,
                         offset,
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND scope = ?"
-                    bind_variables = (map_identifier, scope, limit, offset)
+                    bind_variables = (map_identifier, scope, limit, offset)  # type: ignore
             else:
                 if language:
                     query_filter = " AND language = ?"
@@ -810,10 +810,10 @@ class TopicStore:
                         language.name.lower(),
                         limit,
                         offset,
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = ""
-                    bind_variables = (map_identifier, limit, offset)
+                    bind_variables = (map_identifier, limit, offset)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -922,7 +922,7 @@ class TopicStore:
             connection.close()
         self.create_attributes(map_identifier, occurrence.attributes)
 
-    def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: Union[str, bytes]) -> None:
+    def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: str | bytes) -> None:
         resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
 
         connection = sqlite3.connect(self.database_path)
@@ -965,12 +965,12 @@ class TopicStore:
 
     # endregion
     # region Tag
-    def get_tags(self, map_identifier: int, identifier: str) -> List[Optional[str]]:
-        result = []
+    def get_tags(self, map_identifier: int, identifier: str) -> list[str]:
+        result: list[str] = []
 
         associations = self.get_topic_associations(map_identifier, identifier)
         if associations:
-            groups = self.get_association_groups(map_identifier, associations=associations)
+            groups = self.get_association_groups(map_identifier, identifier, associations=associations)
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
@@ -1014,7 +1014,7 @@ class TopicStore:
         self.create_association(map_identifier, tag_association1)
         self.create_association(map_identifier, tag_association2)
 
-    def create_tags(self, map_identifier: int, identifier: str, tags: List[str]) -> None:
+    def create_tags(self, map_identifier: int, identifier: str, tags: list[str]) -> None:
         for tag in tags:
             self.create_tag(map_identifier, identifier, tag)
 
@@ -1080,31 +1080,33 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
-    ) -> List[Optional[Topic]]:
-        result = []
+        instance_ofs: list[str] | None = None,
+        scope: str | None = None,
+    ) -> list[Topic]:
+        result: list[Topic] = []
 
         associations = self.get_topic_associations(map_identifier, identifier, instance_ofs=instance_ofs, scope=scope)
         if associations:
-            groups = self.get_association_groups(map_identifier, associations=associations)
+            groups = self.get_association_groups(map_identifier, identifier, associations=associations)
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
                         if topic_ref == identifier:
                             continue
-                        result.append(self.get_topic(map_identifier, topic_ref))
+                        topic = self.get_topic(map_identifier, topic_ref)
+                        if topic:
+                            result.append(topic)
         return result
 
     def get_topic(
         self,
         map_identifier: int,
         identifier: str,
-        scope: str = None,
-        language: Language = None,
+        scope: str | None = None,
+        language: Language | None = None,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
-    ) -> Optional[Topic]:
+    ) -> Topic | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -1139,7 +1141,7 @@ class TopicStore:
                             WHERE map_identifier = ? AND
                             topic_identifier = ? AND
                             scope = ?"""
-                        bind_variables = (map_identifier, identifier, scope)
+                        bind_variables = (map_identifier, identifier, scope)  # type: ignore
                 else:
                     if language:
                         sql = """SELECT name, scope, language, identifier
@@ -1151,13 +1153,13 @@ class TopicStore:
                             map_identifier,
                             identifier,
                             language.name.lower(),
-                        )
+                        )  # type: ignore
                     else:
                         sql = """SELECT name, scope, language, identifier
                             FROM basename
                             WHERE map_identifier = ? AND
                             topic_identifier = ?"""
-                        bind_variables = (map_identifier, identifier)
+                        bind_variables = (map_identifier, identifier)  # type: ignore
                 cursor.execute(sql, bind_variables)
                 base_name_records = cursor.fetchall()
                 if base_name_records:
@@ -1185,13 +1187,13 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
-        language: Language = None,
+        instance_ofs: list[str] | None = None,
+        scope: str | None = None,
+        language: Language | None = None,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         resolve_occurrences: RetrievalMode = RetrievalMode.DONT_RESOLVE_OCCURRENCES,
-    ) -> List[Association]:
-        result = []
+    ) -> list[Association]:
+        result: list[Association] = []
 
         sql = """SELECT identifier FROM topic WHERE map_identifier = ? {0} AND
         identifier IN
@@ -1258,9 +1260,9 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
-    ) -> List[Association]:
+        instance_ofs: list[str] | None = None,
+        scope: str | None = None,
+    ) -> int:
         result = 0
 
         sql = """SELECT COUNT(identifier) AS associations_count FROM topic WHERE map_identifier = ? {0} AND
@@ -1323,23 +1325,24 @@ class TopicStore:
         maximum_depth: int = _NETWORK_MAX_DEPTH,
         depth: int = 0,
         tree_accumulator: Tree = None,
-        nodes_accumulator: List[str] = None,
-        instance_ofs: Optional[List[str]] = None,
-        scope: str = None,
+        nodes_accumulator: list[str] | None = None,
+        instance_ofs: list[str] | None = None,
+        scope: str | None = None,
     ) -> Tree:
         if tree_accumulator is None:
             tree = Tree()
             root_topic = self.get_topic(map_identifier, identifier)
-            tree.add_node(
-                identifier,
-                node_type=root_topic.instance_of,
-                payload={"level": depth, "topic": root_topic},
-            )
+            if root_topic:
+                tree.add_node(
+                    identifier,
+                    node_type=root_topic.instance_of,
+                    payload={"level": depth, "topic": root_topic},
+                )
         else:
             tree = tree_accumulator
 
         if nodes_accumulator is None:
-            nodes: List[str] = []
+            nodes: list[str] = []
         else:
             nodes = nodes_accumulator
 
@@ -1353,13 +1356,14 @@ class TopicStore:
                     topic_ref = resolved_topic_ref.topic_ref
                     if (topic_ref != identifier) and (topic_ref not in nodes):
                         topic = self.get_topic(map_identifier, topic_ref)
-                        tree.add_node(
-                            topic_ref,
-                            parent_pointer=identifier,
-                            node_type=topic.instance_of,
-                            edge_type=association.instance_of,
-                            payload={"level": depth, "topic": topic},
-                        )
+                        if topic:
+                            tree.add_node(
+                                topic_ref,
+                                parent_pointer=identifier,
+                                node_type=topic.instance_of,
+                                edge_type=association.instance_of,
+                                payload={"level": depth, "topic": topic},
+                            )
                     if topic_ref not in nodes:
                         nodes.append(topic_ref)
             children = tree[identifier].children
@@ -1381,11 +1385,11 @@ class TopicStore:
         self,
         map_identifier: int,
         query: str,
-        instance_ofs: Optional[List[str]] = None,
+        instance_ofs: list[str] | None = None,
         offset: int = 0,
         limit: int = 100,
-    ) -> List[str]:
-        result = []
+    ) -> list[str]:
+        result: list[str] = []
 
         query_string = "{0}%".format(query)
         sql = """SELECT identifier FROM topic
@@ -1429,8 +1433,8 @@ class TopicStore:
         map_identifier: int,
         offset: int = 0,
         limit: int = 100,
-    ) -> List[Tuple[str, str]]:
-        result = []
+    ) -> list[Tuple[str, str]]:
+        result: list[Tuple[str, str]] = []
 
         sql = """SELECT basename.name AS name, topic.identifier AS identifier
             FROM topic
@@ -1460,12 +1464,12 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        instance_of: str = None,
-        scope: str = None,
-        language: Language = None,
+        instance_of: str | None = None,
+        scope: str | None = None,
+        language: Language | None = None,
         inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
-    ) -> List[Occurrence]:
+    ) -> list[Occurrence]:
         result = []
 
         sql = """SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language
@@ -1487,7 +1491,7 @@ class TopicStore:
                     )
                 else:
                     query_filter = " AND instance_of = ? AND scope = ?"
-                    bind_variables = (map_identifier, identifier, instance_of, scope)
+                    bind_variables = (map_identifier, identifier, instance_of, scope)  # type: ignore
             else:
                 if language:
                     query_filter = " AND instance_of = ? AND language = ?"
@@ -1496,10 +1500,10 @@ class TopicStore:
                         identifier,
                         instance_of,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND instance_of = ?"
-                    bind_variables = (map_identifier, identifier, instance_of)
+                    bind_variables = (map_identifier, identifier, instance_of)  # type: ignore
         else:
             if scope:
                 if language:
@@ -1509,17 +1513,17 @@ class TopicStore:
                         identifier,
                         scope,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND scope = ?"
-                    bind_variables = (map_identifier, identifier, scope)
+                    bind_variables = (map_identifier, identifier, scope)  # type: ignore
             else:
                 if language:
                     query_filter = " AND language = ?"
-                    bind_variables = (map_identifier, identifier, language.name.lower())
+                    bind_variables = (map_identifier, identifier, language.name.lower())  # type: ignore
                 else:
                     query_filter = ""
-                    bind_variables = (map_identifier, identifier)
+                    bind_variables = (map_identifier, identifier)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -1553,14 +1557,14 @@ class TopicStore:
     def get_topics(
         self,
         map_identifier: int,
-        instance_of: str = None,
-        language: Language = None,
+        instance_of: str | None = None,
+        language: Language | None = None,
         offset: int = 0,
         limit: int = 100,
         resolve_attributes=RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
         filter_base_topics=RetrievalMode.DONT_FILTER_BASE_TOPICS,
-    ) -> List[Optional[Topic]]:
-        result = []
+    ) -> list[Topic]:
+        result: list[Topic] = []
 
         if instance_of:
             sql = """SELECT identifier FROM topic
@@ -1586,7 +1590,7 @@ class TopicStore:
                 ORDER BY identifier
                 LIMIT ? OFFSET ?"""
 
-            bind_variables = (map_identifier, limit, offset)
+            bind_variables = (map_identifier, limit, offset)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -1601,7 +1605,7 @@ class TopicStore:
                         record["identifier"],
                         language=language,
                         resolve_attributes=resolve_attributes,
-                    )
+                    )  # type: ignore
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving topics: {error}")
@@ -1613,12 +1617,12 @@ class TopicStore:
     def get_topic_identifiers_by_attribute_name(
         self,
         map_identifier: int,
-        name: str = None,
-        instance_of: str = None,
-        scope: str = None,
-        language: Language = None,
-    ) -> List[Optional[str]]:
-        result = []
+        name: str | None = None,
+        instance_of: str | None = None,
+        scope: str | None = None,
+        language: Language | None = None,
+    ) -> list[str]:
+        result: list[str] = []
 
         sql = """SELECT topic.identifier AS identifier
             FROM topic
@@ -1648,7 +1652,7 @@ class TopicStore:
                         name,
                         instance_of,
                         scope,
-                    )
+                    )  # type: ignore
             else:
                 if language:
                     query_filter = " AND topic.instance_of = ? AND attribute.language = ?"
@@ -1658,10 +1662,10 @@ class TopicStore:
                         name,
                         instance_of,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND topic.instance_of = ?"
-                    bind_variables = (map_identifier, map_identifier, name, instance_of)
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)  # type: ignore
         else:
             if scope:
                 if language:
@@ -1672,10 +1676,10 @@ class TopicStore:
                         name,
                         scope,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND attribute.scope = ?"
-                    bind_variables = (map_identifier, map_identifier, name, scope)
+                    bind_variables = (map_identifier, map_identifier, name, scope)  # type: ignore
             else:
                 if language:
                     query_filter = " AND attribute.language = ?"
@@ -1684,10 +1688,10 @@ class TopicStore:
                         map_identifier,
                         name,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = ""
-                    bind_variables = (map_identifier, map_identifier, name)
+                    bind_variables = (map_identifier, map_identifier, name)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -1707,13 +1711,13 @@ class TopicStore:
     def get_topics_by_attribute_name(
         self,
         map_identifier: int,
-        name: str = None,
-        instance_of: str = None,
-        scope: str = None,
-        language: Language = None,
+        name: str | None = None,
+        instance_of: str | None = None,
+        scope: str | None = None,
+        language: Language | None = None,
         resolve_attributes=RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
-    ) -> List[Optional[Topic]]:
-        result = []
+    ) -> list[Topic]:
+        result: list[Topic] = []
 
         sql = """SELECT topic.identifier AS identifier
             FROM topic
@@ -1743,7 +1747,7 @@ class TopicStore:
                         name,
                         instance_of,
                         scope,
-                    )
+                    )  # type: ignore
             else:
                 if language:
                     query_filter = " AND topic.instance_of = ? AND attribute.language = ?"
@@ -1753,10 +1757,10 @@ class TopicStore:
                         name,
                         instance_of,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND topic.instance_of = ?"
-                    bind_variables = (map_identifier, map_identifier, name, instance_of)
+                    bind_variables = (map_identifier, map_identifier, name, instance_of)  # type: ignore
         else:
             if scope:
                 if language:
@@ -1767,10 +1771,10 @@ class TopicStore:
                         name,
                         scope,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = " AND attribute.scope = ?"
-                    bind_variables = (map_identifier, map_identifier, name, scope)
+                    bind_variables = (map_identifier, map_identifier, name, scope)  # type: ignore
             else:
                 if language:
                     query_filter = " AND attribute.language = ?"
@@ -1779,10 +1783,10 @@ class TopicStore:
                         map_identifier,
                         name,
                         language.name.lower(),
-                    )
+                    )  # type: ignore
                 else:
                     query_filter = ""
-                    bind_variables = (map_identifier, map_identifier, name)
+                    bind_variables = (map_identifier, map_identifier, name)  # type: ignore
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -1797,7 +1801,7 @@ class TopicStore:
                         record["identifier"],
                         language=language,
                         resolve_attributes=resolve_attributes,
-                    )
+                    )  # type: ignore
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving topics: {error}")
@@ -2049,7 +2053,7 @@ class TopicStore:
             cursor.close()
             connection.close()
 
-    def get_map(self, map_identifier: int, user_identifier: int = None) -> Optional[Map]:
+    def get_map(self, map_identifier: int, user_identifier: int | None = None) -> Map | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2121,7 +2125,7 @@ class TopicStore:
         user_identifier: int,
         offset: int = 0,
         limit: int = 100,
-    ) -> List[Map]:
+    ) -> list[Map]:
         result = []
 
         connection = sqlite3.connect(self.database_path)
@@ -2237,8 +2241,8 @@ class TopicStore:
         finally:
             connection.close()
 
-    def get_published_maps(self) -> List[Map]:
-        result = []
+    def get_published_maps(self) -> list[Map]:
+        result: list[Map] = []
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2267,8 +2271,8 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_promoted_maps(self) -> List[Map]:
-        result = []
+    def get_promoted_maps(self) -> list[Map]:
+        result: list[Map] = []
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2357,7 +2361,7 @@ class TopicStore:
         finally:
             connection.close()
 
-    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> Optional[CollaborationMode]:
+    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> CollaborationMode | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2396,8 +2400,8 @@ class TopicStore:
         finally:
             connection.close()
 
-    def get_collaborators(self, map_identifier: int) -> List[Collaborator]:
-        result = []
+    def get_collaborators(self, map_identifier: int) -> list[Collaborator]:
+        result: list[Collaborator] = []
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2427,7 +2431,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Optional[Collaborator]:
+    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Collaborator | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2460,7 +2464,7 @@ class TopicStore:
 
     # endregion
     # region Statistics
-    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str = None) -> Dict:
+    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str | None = None) -> Dict:
         result = {
             "image": 0,
             "3d-scene": 0,
@@ -2544,7 +2548,11 @@ class TopicStore:
 
         return result
 
-    def get_occurrences_count(self, map_identifier: int, instance_of: str = None,) -> int:
+    def get_occurrences_count(
+        self,
+        map_identifier: int,
+        instance_of: str | None = None,
+    ) -> int:
         result = 0
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2552,7 +2560,8 @@ class TopicStore:
         try:
             if instance_of:
                 cursor.execute(
-                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ? AND instance_of = ?", (map_identifier, instance_of)
+                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ? AND instance_of = ?",
+                    (map_identifier, instance_of),
                 )
             else:
                 cursor.execute(

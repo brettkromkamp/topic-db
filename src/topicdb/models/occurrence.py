@@ -5,8 +5,6 @@ June 12, 2016
 Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
-from typing import Optional, Union
-
 from slugify import slugify  # type: ignore
 
 from topicdb.models.entity import Entity
@@ -24,7 +22,7 @@ class Occurrence(Entity):
         topic_identifier: str = "",
         scope: str = UNIVERSAL_SCOPE,
         resource_ref: str = "",
-        resource_data: Optional[Union[str, bytes]] = None,
+        resource_data: str | bytes | None = None,
         language: Language = Language.ENG,
     ) -> None:
         super().__init__(identifier, instance_of)
@@ -34,12 +32,11 @@ class Occurrence(Entity):
         )
         self.__scope = scope if scope == UNIVERSAL_SCOPE else slugify(str(scope))
         self.resource_ref = resource_ref
+        self.__resource_data = None
         if resource_data:
             self.__resource_data = (
                 resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
             )
-        else:
-            self.__resource_data = None
 
         self.language = language
 
@@ -64,11 +61,11 @@ class Occurrence(Entity):
         self.__topic_identifier = value if value == UNIVERSAL_SCOPE else slugify(str(value))
 
     @property
-    def resource_data(self) -> Optional[Union[str, bytes]]:
+    def resource_data(self) -> str | bytes | None:
         return self.__resource_data
 
     @resource_data.setter
-    def resource_data(self, value: Union[str, bytes]) -> None:
+    def resource_data(self, value: str | bytes) -> None:
         self.__resource_data = value if isinstance(value, bytes) else bytes(value, encoding="utf-8")
 
     def has_data(self) -> bool:

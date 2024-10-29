@@ -12,5 +12,5 @@ class CollaborationMode(Enum):
     COMMENT = 2
     EDIT = 3  # Read/write
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

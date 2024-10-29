@@ -6,7 +6,6 @@ Brett Alistair Kromkamp (brettkromkamp@gmail.com)
 """
 
 import uuid
-from typing import List, Optional
 
 from slugify import slugify  # type: ignore
 
@@ -29,7 +28,7 @@ class Entity:
             self.__identifier = slugify(str(identifier))
 
         self.__instance_of = slugify(str(instance_of))
-        self.__attributes: List[Attribute] = []
+        self.__attributes: list[Attribute] = []
 
     @property
     def identifier(self) -> str:
@@ -46,19 +45,19 @@ class Entity:
         self.__instance_of = slugify(str(value))
 
     @property
-    def attributes(self) -> List[Attribute]:
+    def attributes(self) -> list[Attribute]:
         return self.__attributes
 
     def add_attribute(self, attribute: Attribute) -> None:
         self.__attributes.append(attribute)
 
-    def add_attributes(self, attributes: List[Attribute]) -> None:
+    def add_attributes(self, attributes: list[Attribute]) -> None:
         self.__attributes = [*self.__attributes, *attributes]
 
     def remove_attribute(self, identifier: str) -> None:
         self.__attributes[:] = [x for x in self.__attributes if x.identifier != identifier]
 
-    def get_attribute(self, identifier: str) -> Optional[Attribute]:
+    def get_attribute(self, identifier: str) -> Attribute | None:
         result = None
         for attribute in self.__attributes:
             if attribute.identifier == identifier:
@@ -66,7 +65,7 @@ class Entity:
                 break
         return result
 
-    def get_attribute_by_name(self, name: str) -> Optional[Attribute]:
+    def get_attribute_by_name(self, name: str) -> Attribute | None:
         result = None
         for attribute in self.__attributes:
             if attribute.name == name:

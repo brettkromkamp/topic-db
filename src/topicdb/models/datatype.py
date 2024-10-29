@@ -14,5 +14,5 @@ class DataType(Enum):
     TIMESTAMP = 3
     BOOLEAN = 4
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

@@ -12,14 +12,14 @@ class Map:
         self,
         identifier: int,
         name: str,
-        user_identifier: int = None,
+        user_identifier: int | None = None,
         description: str = "",
         image_path: str = "",
         initialised: bool = False,
         published: bool = False,
         promoted: bool = False,
-        owner: bool = None,
-        collaboration_mode: CollaborationMode = None,
+        owner: bool | None = None,
+        collaboration_mode: CollaborationMode | None = None,
     ) -> None:
         self.__identifier = identifier
         self.name = name
