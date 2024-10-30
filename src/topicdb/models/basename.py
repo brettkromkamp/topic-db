@@ -14,6 +14,7 @@ from topicdb.topicdberror import TopicDbError
 
 from ..constants import UNIVERSAL_SCOPE
 
+
 class BaseName:
     def __init__(
         self,
