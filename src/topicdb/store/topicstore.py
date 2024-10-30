@@ -11,9 +11,10 @@ from __future__ import annotations
 import sqlite3
 from collections import namedtuple
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
-from slugify import slugify  # type: ignore
+from typedtree.tree import Tree  # type: ignore
+
 from topicdb.models.association import Association
 from topicdb.models.attribute import Attribute
 from topicdb.models.basename import BaseName
@@ -29,119 +30,24 @@ from topicdb.models.topic import Topic
 from topicdb.store.ontologymode import OntologyMode
 from topicdb.store.retrievalmode import RetrievalMode
 from topicdb.topicdberror import TopicDbError
-from typedtree.tree import Tree  # type: ignore
+
+from ..constants import DATABASE_PATH, DDL, NETWORK_MAX_DEPTH, UNIVERSAL_SCOPE
 
 # endregion
-# region Constants
+
+# region Setup
 TopicRefs = namedtuple("TopicRefs", ["instance_of", "role_spec", "topic_ref"])
-
-_NETWORK_MAX_DEPTH = 3
-_UNIVERSAL_SCOPE = "*"
-_DATABASE_PATH = "topics.db"
-_DDL = """
-CREATE TABLE IF NOT EXISTS topic (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    instance_of TEXT NOT NULL,
-    scope TEXT,
-    PRIMARY KEY (map_identifier, identifier)
-);
-CREATE INDEX IF NOT EXISTS topic_1_index ON topic (map_identifier);
-CREATE INDEX IF NOT EXISTS topic_2_index ON topic (map_identifier, instance_of);
-CREATE INDEX IF NOT EXISTS topic_3_index ON topic (map_identifier, identifier, scope);
-CREATE INDEX IF NOT EXISTS topic_4_index ON topic (map_identifier, instance_of, scope);
-CREATE INDEX IF NOT EXISTS topic_5_index ON topic (map_identifier, scope);
-CREATE TABLE IF NOT EXISTS basename (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    topic_identifier TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
-);
-CREATE INDEX IF NOT EXISTS basename_1_index ON basename (map_identifier);
-CREATE INDEX IF NOT EXISTS basename_2_index ON basename (map_identifier, topic_identifier);
-CREATE INDEX IF NOT EXISTS basename_3_index ON basename (map_identifier, topic_identifier, scope);
-CREATE INDEX IF NOT EXISTS basename_4_index ON basename (map_identifier, topic_identifier, scope, language);
-CREATE TABLE IF NOT EXISTS member (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    association_identifier TEXT NOT NULL,
-    src_topic_ref TEXT NOT NULL,
-    src_role_spec TEXT NOT NULL,
-    dest_topic_ref TEXT NOT NULL,
-    dest_role_spec TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
-);
-CREATE UNIQUE INDEX IF NOT EXISTS member_1_index ON member(map_identifier, association_identifier, src_role_spec, src_topic_ref, dest_role_spec, dest_topic_ref);
-CREATE TABLE IF NOT EXISTS occurrence (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    instance_of TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    resource_ref TEXT NOT NULL,
-    resource_data BLOB,
-    topic_identifier TEXT NOT NULL,
-    language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, identifier)
-);
-CREATE INDEX IF NOT EXISTS occurrence_1_index ON occurrence (map_identifier);
-CREATE INDEX IF NOT EXISTS occurrence_2_index ON occurrence (map_identifier, topic_identifier);
-CREATE INDEX IF NOT EXISTS occurrence_3_index ON occurrence (map_identifier, topic_identifier, scope, language);
-CREATE INDEX IF NOT EXISTS occurrence_4_index ON occurrence (map_identifier, topic_identifier, instance_of, scope, language);
-CREATE TABLE IF NOT EXISTS attribute (
-    map_identifier INTEGER NOT NULL,
-    identifier TEXT NOT NULL,
-    entity_identifier TEXT NOT NULL,
-    name TEXT NOT NULL,
-    value TEXT NOT NULL,
-    data_type TEXT NOT NULL,
-    scope TEXT NOT NULL,
-    language TEXT NOT NULL,
-    PRIMARY KEY (map_identifier, entity_identifier, name, scope, language)
-);
-CREATE INDEX IF NOT EXISTS attribute_1_index ON attribute (map_identifier);
-CREATE INDEX IF NOT EXISTS attribute_2_index ON attribute (map_identifier, identifier);
-CREATE INDEX IF NOT EXISTS attribute_3_index ON attribute (map_identifier, entity_identifier);
-CREATE INDEX IF NOT EXISTS attribute_4_index ON attribute (map_identifier, entity_identifier, language);
-CREATE INDEX IF NOT EXISTS attribute_5_index ON attribute (map_identifier, entity_identifier, scope);
-CREATE INDEX IF NOT EXISTS attribute_6_index ON attribute (map_identifier, entity_identifier, scope, language);
-CREATE TABLE IF NOT EXISTS map (
-    identifier INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    image_path TEXT,
-    initialised BOOLEAN DEFAULT FALSE NOT NULL,
-    published BOOLEAN DEFAULT FALSE NOT NULL,
-    promoted BOOLEAN DEFAULT FALSE NOT NULL
-);
-CREATE INDEX IF NOT EXISTS map_1_index ON map (published);
-CREATE INDEX IF NOT EXISTS map_2_index ON map (promoted);
-CREATE TABLE IF NOT EXISTS user_map (
-    user_identifier INT NOT NULL,
-    map_identifier INT NOT NULL,
-    owner BOOLEAN DEFAULT FALSE NOT NULL,
-    collaboration_mode TEXT NOT NULL,
-    PRIMARY KEY (user_identifier, map_identifier)
-);
-CREATE INDEX IF NOT EXISTS user_map_1_index ON user_map (owner);
-CREATE VIRTUAL TABLE IF NOT EXISTS text USING fts5 (
-    occurrence_identifier,
-    resource_data
-);
-"""
-
-
 # endregion
+
+
 # region Class
 class TopicStore:
     # region Initialisation
-    def __init__(self, database_path=_DATABASE_PATH) -> None:
+    def __init__(self, database_path: str = DATABASE_PATH) -> None:
         self.database_path = database_path
 
         self.base_topics = {
-            _UNIVERSAL_SCOPE: "Universal",
+            UNIVERSAL_SCOPE: "Universal",
             "home": "Home",
             "entity": "Entity",
             "topic": "Topic",
@@ -193,10 +99,18 @@ class TopicStore:
         result: list[TopicRefs] = []
 
         result.append(
-            TopicRefs(association.instance_of, association.member.src_role_spec, association.member.src_topic_ref)
+            TopicRefs(
+                association.instance_of,
+                association.member.src_role_spec,
+                association.member.src_topic_ref,
+            )
         )
         result.append(
-            TopicRefs(association.instance_of, association.member.dest_role_spec, association.member.dest_topic_ref)
+            TopicRefs(
+                association.instance_of,
+                association.member.dest_role_spec,
+                association.member.dest_topic_ref,
+            )
         )
         return result
 
@@ -326,9 +240,13 @@ class TopicStore:
                     raise TopicDbError("Association member is missing")
 
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
+                    result.add_attributes(
+                        self.get_attributes(map_identifier, identifier)
+                    )
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
+                    result.add_occurrences(
+                        self.get_topic_occurrences(map_identifier, identifier)
+                    )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving association: {error}")
         finally:
@@ -345,7 +263,9 @@ class TopicStore:
         scope: str | None = None,
     ) -> DoubleKeyDict:
         if identifier == "" and associations is None:
-            raise TopicDbError("At least one of following parameters is required: 'identifier' or 'associations'")
+            raise TopicDbError(
+                "At least one of following parameters is required: 'identifier' or 'associations'"
+            )
 
         result = DoubleKeyDict()
         if not associations:
@@ -375,13 +295,19 @@ class TopicStore:
         ontology_mode: OntologyMode = OntologyMode.STRICT,
     ) -> None:
         if ontology_mode is OntologyMode.STRICT:
-            instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
+            instance_of_exists = self.topic_exists(
+                map_identifier, association.instance_of
+            )
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -426,7 +352,7 @@ class TopicStore:
                         timestamp,
                         association.identifier,
                         data_type=DataType.TIMESTAMP,
-                        scope=_UNIVERSAL_SCOPE,
+                        scope=UNIVERSAL_SCOPE,
                         language=Language.ENG,
                     )
                     association.add_attribute(timestamp_attribute)
@@ -453,7 +379,9 @@ class TopicStore:
 
     # endregion
     # region Attribute
-    def attribute_exists(self, map_identifier: int, entity_identifier: str, name: str) -> bool:
+    def attribute_exists(
+        self, map_identifier: int, entity_identifier: str, name: str
+    ) -> bool:
         result = False
 
         connection = sqlite3.connect(self.database_path)
@@ -478,7 +406,8 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                    "DELETE FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                    (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting attribute: {error}")
@@ -506,7 +435,8 @@ class TopicStore:
         cursor = connection.cursor()
         try:
             cursor.execute(
-                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                "SELECT * FROM attribute WHERE map_identifier = ? AND identifier = ?",
+                (map_identifier, identifier),
             )
             record = cursor.fetchone()
             if record:
@@ -607,7 +537,9 @@ class TopicStore:
         if ontology_mode is OntologyMode.STRICT:
             scope_exists = self.topic_exists(map_identifier, attribute.scope)
             if not scope_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -630,11 +562,15 @@ class TopicStore:
         finally:
             connection.close()
 
-    def create_attributes(self, map_identifier: int, attributes: list[Attribute]) -> None:
+    def create_attributes(
+        self, map_identifier: int, attributes: list[Attribute]
+    ) -> None:
         for attribute in attributes:
             self.create_attribute(map_identifier, attribute)
 
-    def update_attribute_value(self, map_identifier: int, identifier: str, value: str) -> None:
+    def update_attribute_value(
+        self, map_identifier: int, identifier: str, value: str
+    ) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -654,7 +590,8 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM occurrence WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                    "DELETE FROM occurrence WHERE map_identifier = ? AND identifier = ?",
+                    (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting occurrence: {error}")
@@ -701,7 +638,9 @@ class TopicStore:
             if record:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, identifier=identifier)
+                    resource_data = self.get_occurrence_data(
+                        map_identifier, identifier=identifier
+                    )
                 result = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -712,7 +651,9 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
+                    result.add_attributes(
+                        self.get_attributes(map_identifier, identifier)
+                    )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving occurrence: {error}")
         finally:
@@ -720,7 +661,7 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_occurrence_data(self, map_identifier: int, identifier: str) -> Optional[bytes]:
+    def get_occurrence_data(self, map_identifier: int, identifier: str) -> bytes | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -824,7 +765,9 @@ class TopicStore:
             for record in records:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, identifier=record["identifier"])
+                    resource_data = self.get_occurrence_data(
+                        map_identifier, identifier=record["identifier"]
+                    )
                 occurrence = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -835,7 +778,9 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
+                    occurrence.add_attributes(
+                        self.get_attributes(map_identifier, occurrence.identifier)
+                    )
                 result.append(occurrence)
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving occurrences: {error}")
@@ -874,13 +819,19 @@ class TopicStore:
             raise TopicDbError("Occurrence has an empty 'topic identifier' property")
 
         if ontology_mode is OntologyMode.STRICT:
-            instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
+            instance_of_exists = self.topic_exists(
+                map_identifier, occurrence.instance_of
+            )
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'scope' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'scope' topic does not exist"
+                )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -912,7 +863,7 @@ class TopicStore:
                     timestamp,
                     occurrence.identifier,
                     data_type=DataType.TIMESTAMP,
-                    scope=_UNIVERSAL_SCOPE,
+                    scope=UNIVERSAL_SCOPE,
                     language=Language.ENG,
                 )
                 occurrence.add_attribute(timestamp_attribute)
@@ -922,8 +873,14 @@ class TopicStore:
             connection.close()
         self.create_attributes(map_identifier, occurrence.attributes)
 
-    def update_occurrence_data(self, map_identifier: int, identifier: str, resource_data: str | bytes) -> None:
-        resource_data = resource_data if isinstance(resource_data, bytes) else bytes(resource_data, encoding="utf-8")
+    def update_occurrence_data(
+        self, map_identifier: int, identifier: str, resource_data: str | bytes
+    ) -> None:
+        resource_data = (
+            resource_data
+            if isinstance(resource_data, bytes)
+            else bytes(resource_data, encoding="utf-8")
+        )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -937,7 +894,9 @@ class TopicStore:
         finally:
             connection.close()
 
-    def update_occurrence_scope(self, map_identifier: int, identifier: str, scope: str) -> None:
+    def update_occurrence_scope(
+        self, map_identifier: int, identifier: str, scope: str
+    ) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -950,7 +909,9 @@ class TopicStore:
         finally:
             connection.close()
 
-    def update_occurrence_topic_identifier(self, map_identifier: int, identifier: str, topic_identifier: str) -> None:
+    def update_occurrence_topic_identifier(
+        self, map_identifier: int, identifier: str, topic_identifier: str
+    ) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -970,7 +931,9 @@ class TopicStore:
 
         associations = self.get_topic_associations(map_identifier, identifier)
         if associations:
-            groups = self.get_association_groups(map_identifier, identifier, associations=associations)
+            groups = self.get_association_groups(
+                map_identifier, identifier, associations=associations
+            )
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
@@ -1014,7 +977,9 @@ class TopicStore:
         self.create_association(map_identifier, tag_association1)
         self.create_association(map_identifier, tag_association2)
 
-    def create_tags(self, map_identifier: int, identifier: str, tags: list[str]) -> None:
+    def create_tags(
+        self, map_identifier: int, identifier: str, tags: list[str]
+    ) -> None:
         for tag in tags:
             self.create_tag(map_identifier, identifier, tag)
 
@@ -1032,7 +997,9 @@ class TopicStore:
     ) -> None:
         if ontology_mode is OntologyMode.STRICT:
             if identifier in self.base_topics.keys():
-                raise TopicDbError("Ontology 'STRICT' mode violation: attempt to delete a base topic")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: attempt to delete a base topic"
+                )
 
         # Is this actually an association?
         #
@@ -1051,14 +1018,18 @@ class TopicStore:
             )
             association_record = cursor.fetchone()
             if association_record:
-                raise TopicDbError("Attempt to delete an association as if it were a topic")
+                raise TopicDbError(
+                    "Attempt to delete an association as if it were a topic"
+                )
 
             sql = """SELECT identifier FROM topic WHERE map_identifier = ? AND
             identifier IN
                 (SELECT association_identifier FROM member
                 WHERE map_identifier = ? AND (src_topic_ref = ? OR dest_topic_ref = ?))"""
 
-            cursor.execute(sql, (map_identifier, map_identifier, identifier, identifier))
+            cursor.execute(
+                sql, (map_identifier, map_identifier, identifier, identifier)
+            )
             records = cursor.fetchall()
             for record in records:
                 self.delete_association(map_identifier, record["identifier"])
@@ -1085,9 +1056,13 @@ class TopicStore:
     ) -> list[Topic]:
         result: list[Topic] = []
 
-        associations = self.get_topic_associations(map_identifier, identifier, instance_ofs=instance_ofs, scope=scope)
+        associations = self.get_topic_associations(
+            map_identifier, identifier, instance_ofs=instance_ofs, scope=scope
+        )
         if associations:
-            groups = self.get_association_groups(map_identifier, identifier, associations=associations)
+            groups = self.get_association_groups(
+                map_identifier, identifier, associations=associations
+            )
             for instance_of in groups.dict:
                 for role in groups.dict[instance_of]:
                     for topic_ref in groups[instance_of, role]:
@@ -1173,9 +1148,13 @@ class TopicStore:
                             )
                         )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    result.add_attributes(self.get_attributes(map_identifier, identifier))
+                    result.add_attributes(
+                        self.get_attributes(map_identifier, identifier)
+                    )
                 if resolve_occurrences is RetrievalMode.RESOLVE_OCCURRENCES:
-                    result.add_occurrences(self.get_topic_occurrences(map_identifier, identifier))
+                    result.add_occurrences(
+                        self.get_topic_occurrences(map_identifier, identifier)
+                    )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving topic: {error}")
         finally:
@@ -1209,11 +1188,17 @@ class TopicStore:
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = ? "
                 bind_variables = (
-                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (scope, map_identifier, identifier, identifier)
                 )
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
+                bind_variables = (
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (map_identifier, identifier, identifier)
+                )
         else:
             if scope:
                 query_filter = " AND scope = ?"
@@ -1279,11 +1264,17 @@ class TopicStore:
             if scope:
                 query_filter = instance_of_in_condition + " AND scope = ? "
                 bind_variables = (
-                    (map_identifier,) + tuple(instance_ofs) + (scope, map_identifier, identifier, identifier)
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (scope, map_identifier, identifier, identifier)
                 )
             else:
                 query_filter = instance_of_in_condition
-                bind_variables = (map_identifier,) + tuple(instance_ofs) + (map_identifier, identifier, identifier)
+                bind_variables = (
+                    (map_identifier,)
+                    + tuple(instance_ofs)
+                    + (map_identifier, identifier, identifier)
+                )
         else:
             if scope:
                 query_filter = " AND scope = ?"
@@ -1322,7 +1313,7 @@ class TopicStore:
         self,
         map_identifier: int,
         identifier: str,
-        maximum_depth: int = _NETWORK_MAX_DEPTH,
+        maximum_depth: int = NETWORK_MAX_DEPTH,
         depth: int = 0,
         tree_accumulator: Tree = None,
         nodes_accumulator: list[str] | None = None,
@@ -1408,7 +1399,9 @@ class TopicStore:
                 else:
                     instance_of_in_condition += "?) "
             query_filter = instance_of_in_condition
-            bind_variables = (map_identifier, query_string) + tuple(instance_ofs) + (limit, offset)
+            bind_variables = (
+                (map_identifier, query_string) + tuple(instance_ofs) + (limit, offset)
+            )
         else:
             query_filter = ""
             bind_variables = (map_identifier, query_string, limit, offset)
@@ -1470,7 +1463,7 @@ class TopicStore:
         inline_resource_data: RetrievalMode = RetrievalMode.DONT_INLINE_RESOURCE_DATA,
         resolve_attributes: RetrievalMode = RetrievalMode.DONT_RESOLVE_ATTRIBUTES,
     ) -> list[Occurrence]:
-        result = []
+        result: list[Occurrence] = []
 
         sql = """SELECT identifier, instance_of, scope, resource_ref, topic_identifier, language
             FROM occurrence
@@ -1534,7 +1527,9 @@ class TopicStore:
             for record in records:
                 resource_data = None
                 if inline_resource_data is RetrievalMode.INLINE_RESOURCE_DATA:
-                    resource_data = self.get_occurrence_data(map_identifier, record["identifier"])
+                    resource_data = self.get_occurrence_data(
+                        map_identifier, record["identifier"]
+                    )
                 occurrence = Occurrence(
                     record["identifier"],
                     record["instance_of"],
@@ -1545,7 +1540,9 @@ class TopicStore:
                     Language[record["language"].upper()],
                 )
                 if resolve_attributes is RetrievalMode.RESOLVE_ATTRIBUTES:
-                    occurrence.add_attributes(self.get_attributes(map_identifier, occurrence.identifier))
+                    occurrence.add_attributes(
+                        self.get_attributes(map_identifier, occurrence.identifier)
+                    )
                 result.append(occurrence)
         except sqlite3.Error as error:
             raise TopicDbError(f"Error retrieving topic occurrences: {error}")
@@ -1617,7 +1614,7 @@ class TopicStore:
     def get_topic_identifiers_by_attribute_name(
         self,
         map_identifier: int,
-        name: str | None = None,
+        name: str,
         instance_of: str | None = None,
         scope: str | None = None,
         language: Language | None = None,
@@ -1655,7 +1652,9 @@ class TopicStore:
                     )  # type: ignore
             else:
                 if language:
-                    query_filter = " AND topic.instance_of = ? AND attribute.language = ?"
+                    query_filter = (
+                        " AND topic.instance_of = ? AND attribute.language = ?"
+                    )
                     bind_variables = (
                         map_identifier,
                         map_identifier,
@@ -1750,7 +1749,9 @@ class TopicStore:
                     )  # type: ignore
             else:
                 if language:
-                    query_filter = " AND topic.instance_of = ? AND attribute.language = ?"
+                    query_filter = (
+                        " AND topic.instance_of = ? AND attribute.language = ?"
+                    )
                     bind_variables = (
                         map_identifier,
                         map_identifier,
@@ -1819,7 +1820,9 @@ class TopicStore:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError(
+                    "Ontology 'STRICT' mode violation: 'instance Of' topic does not exist"
+                )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -1847,7 +1850,7 @@ class TopicStore:
                     timestamp,
                     topic.identifier,
                     data_type=DataType.TIMESTAMP,
-                    scope=_UNIVERSAL_SCOPE,
+                    scope=UNIVERSAL_SCOPE,
                     language=Language.ENG,
                 )
                 topic.add_attribute(timestamp_attribute)
@@ -1857,7 +1860,9 @@ class TopicStore:
             connection.close()
         self.create_attributes(map_identifier, topic.attributes)
 
-    def update_topic_instance_of(self, map_identifier: int, identifier: str, instance_of: str) -> None:
+    def update_topic_instance_of(
+        self, map_identifier: int, identifier: str, instance_of: str
+    ) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -1870,11 +1875,15 @@ class TopicStore:
         finally:
             connection.close()
 
-    def update_topic_identifier(self, map_identifier: int, old_identifier: str, new_identifier: str) -> None:
+    def update_topic_identifier(
+        self, map_identifier: int, old_identifier: str, new_identifier: str
+    ) -> None:
         if self.topic_exists(map_identifier, new_identifier):
             raise TopicDbError("Topic identifier already exists")
         if old_identifier in self.base_topics.keys():
-            raise TopicDbError("Ontology 'STRICT' mode violation: attempt to update a base topic")
+            raise TopicDbError(
+                "Ontology 'STRICT' mode violation: attempt to update a base topic"
+            )
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -1908,7 +1917,9 @@ class TopicStore:
         finally:
             connection.close()
 
-    def create_base_name(self, map_identifier: int, identifier: str, base_name: BaseName) -> None:
+    def create_base_name(
+        self, map_identifier: int, identifier: str, base_name: BaseName
+    ) -> None:
         connection = sqlite3.connect(self.database_path)
         try:
             with connection:
@@ -1953,7 +1964,8 @@ class TopicStore:
         try:
             with connection:
                 connection.execute(
-                    "DELETE FROM basename WHERE map_identifier = ? AND identifier = ?", (map_identifier, identifier)
+                    "DELETE FROM basename WHERE map_identifier = ? AND identifier = ?",
+                    (map_identifier, identifier),
                 )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting topic 'base name': {error}")
@@ -2003,7 +2015,7 @@ class TopicStore:
     # endregion
     # region Database
     def create_database(self):
-        statements = _DDL.split(";")
+        statements = DDL.split(";")
 
         connection = sqlite3.connect(self.database_path)
         try:
@@ -2040,20 +2052,40 @@ class TopicStore:
                 )
                 record = cursor.fetchone()
                 if record:
-                    connection.execute("DELETE FROM user_map WHERE map_identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM map WHERE identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM attribute WHERE map_identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM occurrence WHERE map_identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM member WHERE map_identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM basename WHERE map_identifier = ?", (map_identifier,))
-                    connection.execute("DELETE FROM topic WHERE map_identifier = ?", (map_identifier,))
+                    connection.execute(
+                        "DELETE FROM user_map WHERE map_identifier = ?",
+                        (map_identifier,),
+                    )
+                    connection.execute(
+                        "DELETE FROM map WHERE identifier = ?", (map_identifier,)
+                    )
+                    connection.execute(
+                        "DELETE FROM attribute WHERE map_identifier = ?",
+                        (map_identifier,),
+                    )
+                    connection.execute(
+                        "DELETE FROM occurrence WHERE map_identifier = ?",
+                        (map_identifier,),
+                    )
+                    connection.execute(
+                        "DELETE FROM member WHERE map_identifier = ?", (map_identifier,)
+                    )
+                    connection.execute(
+                        "DELETE FROM basename WHERE map_identifier = ?",
+                        (map_identifier,),
+                    )
+                    connection.execute(
+                        "DELETE FROM topic WHERE map_identifier = ?", (map_identifier,)
+                    )
         except sqlite3.Error as error:
             raise TopicDbError(f"Error deleting map: {error}")
         finally:
             cursor.close()
             connection.close()
 
-    def get_map(self, map_identifier: int, user_identifier: int | None = None) -> Map | None:
+    def get_map(
+        self, map_identifier: int, user_identifier: int | None = None
+    ) -> Map | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2089,7 +2121,9 @@ class TopicStore:
                         published=bool(record["published"]),
                         promoted=bool(record["promoted"]),
                         owner=bool(record["owner"]),
-                        collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                        collaboration_mode=CollaborationMode[
+                            record["collaboration_mode"].upper()
+                        ],
                     )
             except sqlite3.Error as error:
                 raise TopicDbError(f"Error retrieving map: {error}")
@@ -2098,7 +2132,9 @@ class TopicStore:
                 connection.close()
         else:
             try:
-                cursor.execute("SELECT * FROM map WHERE identifier = ?", (map_identifier,))
+                cursor.execute(
+                    "SELECT * FROM map WHERE identifier = ?", (map_identifier,)
+                )
                 record = cursor.fetchone()
                 if record:
                     result = Map(
@@ -2126,7 +2162,7 @@ class TopicStore:
         offset: int = 0,
         limit: int = 100,
     ) -> list[Map]:
-        result = []
+        result: list[Map] = []
 
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2161,7 +2197,9 @@ class TopicStore:
                     published=bool(record["published"]),
                     promoted=bool(record["promoted"]),
                     owner=bool(record["owner"]),
-                    collaboration_mode=CollaborationMode[record["collaboration_mode"].upper()],
+                    collaboration_mode=CollaborationMode[
+                        record["collaboration_mode"].upper()
+                    ],
                 )
                 result.append(map)
         except sqlite3.Error as error:
@@ -2248,7 +2286,9 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM map WHERE published = 1 ORDER BY identifier")  # 1 = True
+            cursor.execute(
+                "SELECT * FROM map WHERE published = 1 ORDER BY identifier"
+            )  # 1 = True
             records = cursor.fetchall()
             for record in records:
                 map = Map(
@@ -2278,7 +2318,9 @@ class TopicStore:
         connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         try:
-            cursor.execute("SELECT * FROM map WHERE promoted = 1 ORDER BY identifier")  # 1 = True
+            cursor.execute(
+                "SELECT * FROM map WHERE promoted = 1 ORDER BY identifier"
+            )  # 1 = True
             records = cursor.fetchall()
             for record in records:
                 map = Map(
@@ -2361,7 +2403,9 @@ class TopicStore:
         finally:
             connection.close()
 
-    def get_collaboration_mode(self, map_identifier: int, user_identifier: int) -> CollaborationMode | None:
+    def get_collaboration_mode(
+        self, map_identifier: int, user_identifier: int
+    ) -> CollaborationMode | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2431,7 +2475,9 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_collaborator(self, map_identifier: int, user_identifier: int) -> Collaborator | None:
+    def get_collaborator(
+        self, map_identifier: int, user_identifier: int
+    ) -> Collaborator | None:
         result = None
 
         connection = sqlite3.connect(self.database_path)
@@ -2464,7 +2510,9 @@ class TopicStore:
 
     # endregion
     # region Statistics
-    def get_topic_occurrences_statistics(self, map_identifier: int, identifier: str, scope: str | None = None) -> Dict:
+    def get_topic_occurrences_statistics(
+        self, map_identifier: int, identifier: str, scope: str | None = None
+    ) -> Dict:
         result = {
             "image": 0,
             "3d-scene": 0,
@@ -2501,7 +2549,11 @@ class TopicStore:
             connection.close()
         return result
 
-    def get_topics_count(self, map_identifier: int, filter_base_topics=RetrievalMode.DONT_FILTER_BASE_TOPICS) -> int:
+    def get_topics_count(
+        self,
+        map_identifier: int,
+        filter_base_topics=RetrievalMode.DONT_FILTER_BASE_TOPICS,
+    ) -> int:
         result = 0
         connection = sqlite3.connect(self.database_path)
         connection.row_factory = sqlite3.Row
@@ -2565,7 +2617,8 @@ class TopicStore:
                 )
             else:
                 cursor.execute(
-                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?", (map_identifier,)
+                    "SELECT COUNT(identifier) AS count FROM occurrence WHERE map_identifier = ?",
+                    (map_identifier,),
                 )
             record = cursor.fetchone()
             if record:

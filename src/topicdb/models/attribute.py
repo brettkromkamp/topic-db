@@ -13,7 +13,7 @@ from topicdb.models.datatype import DataType
 from topicdb.models.language import Language
 from topicdb.topicdberror import TopicDbError
 
-UNIVERSAL_SCOPE = "*"
+from ..constants import UNIVERSAL_SCOPE
 
 
 class Attribute:

@@ -12,8 +12,7 @@ from slugify import slugify  # type: ignore
 from topicdb.models.language import Language
 from topicdb.topicdberror import TopicDbError
 
-UNIVERSAL_SCOPE = "*"
-
+from ..constants import UNIVERSAL_SCOPE
 
 class BaseName:
     def __init__(

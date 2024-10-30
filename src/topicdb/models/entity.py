@@ -12,7 +12,7 @@ from slugify import slugify  # type: ignore
 from topicdb.models.attribute import Attribute
 from topicdb.topicdberror import TopicDbError
 
-UNIVERSAL_SCOPE = "*"
+from ..constants import UNIVERSAL_SCOPE
 
 
 class Entity:

@@ -12,7 +12,7 @@ from topicdb.models.member import Member
 from topicdb.models.topic import Topic
 from topicdb.topicdberror import TopicDbError
 
-UNIVERSAL_SCOPE = "*"
+from ..constants import UNIVERSAL_SCOPE
 
 
 class Association(Topic):
