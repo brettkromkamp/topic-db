@@ -82,6 +82,9 @@ class TopicStore:
             "number": "Number",
             "timestamp": "Timestamp",
             "boolean": "Boolean",
+            "temporal-event": "Temporal Event",
+            "temporal-era": "Temporal Era",
+            "geographic-coordinates": "Geographic Coordinates",
             "eng": "English Language",
             "spa": "Spanish Language",
             "nld": "Dutch Language",
@@ -291,7 +294,7 @@ class TopicStore:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, association.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance-of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, association.scope)
             if not scope_exists:
@@ -793,7 +796,7 @@ class TopicStore:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, occurrence.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance-of' topic does not exist")
 
             scope_exists = self.topic_exists(map_identifier, occurrence.scope)
             if not scope_exists:
@@ -1736,7 +1739,7 @@ class TopicStore:
         if ontology_mode is OntologyMode.STRICT:
             instance_of_exists = self.topic_exists(map_identifier, topic.instance_of)
             if not instance_of_exists:
-                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance Of' topic does not exist")
+                raise TopicDbError("Ontology 'STRICT' mode violation: 'instance-of' topic does not exist")
 
         connection = sqlite3.connect(self.database_path)
         try:
