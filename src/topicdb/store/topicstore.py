@@ -94,7 +94,6 @@ class TopicStore:
             "characteristic": "Characteristic",
             "action": "Action",
             "process": "Process",
-            "temporal": "Temporal",
         }
 
     # endregion
